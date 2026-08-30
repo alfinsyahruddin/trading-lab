@@ -14,25 +14,23 @@
 </script>
 
 <span
-	class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-600 {currentStyle.pulse
+	class="font-600 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs {currentStyle.pulse
 		? 'animate-pulse'
 		: ''}"
 	style="background-color: {currentStyle.bg}; color: {currentStyle.text};"
 >
 	{#if status === 'PENDING'}
-		<span
-			class="h-1.5 w-1.5 rounded-full"
-			style="background-color: {currentStyle.text}; opacity: 0.7;"
+		<span class="size-1.5 rounded-full" style="background-color: {currentStyle.text}; opacity: 0.7;"
 		></span>
 	{:else if status === 'PROCESSING'}
 		<span
-			class="h-1.5 w-1.5 rounded-full animate-bounce"
+			class="size-1.5 animate-bounce rounded-full"
 			style="background-color: {currentStyle.text};"
 		></span>
 	{:else if status === 'DONE'}
-		<span class="h-1.5 w-1.5 rounded-full" style="background-color: {currentStyle.text};"></span>
+		<span class="size-1.5 rounded-full" style="background-color: {currentStyle.text};"></span>
 	{:else if status === 'FAILED'}
-		<span class="h-1.5 w-1.5 rounded-full" style="background-color: {currentStyle.text};"></span>
+		<span class="size-1.5 rounded-full" style="background-color: {currentStyle.text};"></span>
 	{/if}
 	<span>{status}</span>
 </span>

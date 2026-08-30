@@ -209,14 +209,14 @@
 <!-- Page header -->
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 	<div>
-		<h1 class="text-2xl font-700" style="color: var(--fg)">Users</h1>
+		<h1 class="font-700 text-2xl" style="color: var(--fg)">Users</h1>
 		<p class="mt-0.5 text-sm" style="color: var(--fg-muted)">
 			Manage platform users and their roles.
 		</p>
 	</div>
 	<button
 		onclick={openCreate}
-		class="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 text-white shadow-sm hover:shadow-md hover:opacity-95 active:scale-95 w-full sm:w-auto"
+		class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
 		style="background-color: var(--accent);"
 	>
 		<Icon icon="lucide:plus" width="16" height="16" />
@@ -226,7 +226,7 @@
 
 <!-- User count -->
 {#if !loading}
-	<p class="mb-4 text-xs font-500 uppercase tracking-wider" style="color: var(--fg-muted)">
+	<p class="font-500 mb-4 text-xs tracking-wider uppercase" style="color: var(--fg-muted)">
 		{users.length}
 		{users.length === 1 ? 'user' : 'users'}
 	</p>
@@ -257,7 +257,7 @@
 			<!-- Edit button -->
 			<button
 				onclick={() => openEdit(row)}
-				class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-(--bg-card-hover) active:scale-90"
+				class="btn-interactive flex size-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-(--bg-card-hover) active:scale-90"
 				style="color: var(--fg-muted);"
 				title="Edit user"
 				aria-label="Edit {row.name}"
@@ -268,7 +268,7 @@
 			{#if row.id !== currentUser?.id}
 				<button
 					onclick={() => openDelete(row)}
-					class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950 active:scale-90"
+					class="btn-interactive flex size-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-red-50 hover:text-red-500 active:scale-90 dark:hover:bg-red-950"
 					style="color: var(--fg-muted);"
 					title="Delete user"
 					aria-label="Delete {row.name}"
@@ -320,7 +320,7 @@
 	{#snippet footer()}
 		<button
 			onclick={() => (createOpen = false)}
-			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-500 w-full rounded-lg border px-4 py-2 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -329,7 +329,7 @@
 			type="submit"
 			form="create-form"
 			disabled={createLoading}
-			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm text-white transition-opacity duration-150 sm:w-auto"
 			style="background-color: var(--accent); opacity: {createLoading ? '0.7' : '1'};"
 		>
 			{createLoading ? 'Creating…' : 'Create User'}
@@ -364,7 +364,7 @@
 	{#snippet footer()}
 		<button
 			onclick={() => (editOpen = false)}
-			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-500 w-full rounded-lg border px-4 py-2 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -373,7 +373,7 @@
 			type="submit"
 			form="edit-form"
 			disabled={editLoading}
-			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm text-white transition-opacity duration-150 sm:w-auto"
 			style="background-color: var(--accent); opacity: {editLoading ? '0.7' : '1'};"
 		>
 			{editLoading ? 'Saving…' : 'Save Changes'}

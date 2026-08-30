@@ -136,14 +136,14 @@
 <!-- Page Header -->
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 	<div>
-		<h1 class="text-2xl font-700" style="color: var(--fg)">Trading Strategy</h1>
+		<h1 class="font-700 text-2xl" style="color: var(--fg)">Trading Strategy</h1>
 		<p class="mt-0.5 text-sm" style="color: var(--fg-muted)">
 			Build, backtest, and deploy algorithmic trading strategies with multi-group rules.
 		</p>
 	</div>
 	<a
 		href="/dashboard/strategies/new"
-		class="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 text-white shadow-sm hover:shadow-md hover:opacity-95 active:scale-95 w-full sm:w-auto"
+		class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
 		style="background-color: var(--accent);"
 	>
 		<Icon icon="lucide:plus" width="16" height="16" />
@@ -153,7 +153,7 @@
 
 <!-- Strategy Count Info -->
 {#if !loading}
-	<p class="mb-4 text-xs font-600 uppercase tracking-wider" style="color: var(--fg-muted)">
+	<p class="font-600 mb-4 text-xs tracking-wider uppercase" style="color: var(--fg-muted)">
 		{strategies.length}
 		{strategies.length === 1 ? 'strategy' : 'strategies'}
 	</p>
@@ -170,7 +170,7 @@
 				width="32"
 				height="32"
 			/>
-			<p class="text-sm font-500" style="color: var(--fg-muted)">Loading strategies…</p>
+			<p class="font-500 text-sm" style="color: var(--fg-muted)">Loading strategies…</p>
 		</div>
 	</div>
 {:else if strategies.length === 0}
@@ -180,19 +180,19 @@
 		style="background-color: var(--bg-card); border-color: var(--border);"
 	>
 		<div
-			class="animate-float mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+			class="animate-float mb-4 flex size-16 items-center justify-center rounded-2xl"
 			style="background-color: var(--accent-soft); color: var(--accent);"
 		>
 			<Icon icon="lucide:candlestick-chart" width="32" height="32" />
 		</div>
-		<h2 class="text-lg font-700" style="color: var(--fg)">No Trading Strategies Yet</h2>
-		<p class="mt-1 max-w-md text-sm font-400" style="color: var(--fg-muted)">
+		<h2 class="font-700 text-lg" style="color: var(--fg)">No Trading Strategies Yet</h2>
+		<p class="font-400 mt-1 max-w-md text-sm" style="color: var(--fg-muted)">
 			Create your first algorithmic strategy by specifying entry rules, take-profit targets,
 			stop-loss limits, and holding periods.
 		</p>
 		<a
 			href="/dashboard/strategies/new"
-			class="btn-interactive mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-600 text-white shadow-sm"
+			class="btn-interactive font-600 mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm text-white shadow-sm"
 			style="background-color: var(--accent);"
 		>
 			<Icon icon="lucide:plus" width="16" height="16" />
@@ -204,22 +204,22 @@
 	<div class="flex flex-col gap-4">
 		{#each strategies as strategy (strategy.id)}
 			<div
-				class="group flex flex-col rounded-2xl border p-4 sm:p-5 transition-colors duration-200"
+				class="group flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
 				style="background-color: var(--bg-card); border-color: var(--border);"
 			>
 				<!-- Top Row: Title + Visibility Badge + Action Buttons -->
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 					<!-- Title & Visibility -->
 					<div class="flex flex-col gap-1">
-						<div class="flex items-center gap-2 flex-wrap">
-							<h3 class="text-base sm:text-lg font-700 leading-snug" style="color: var(--fg)">
+						<div class="flex flex-wrap items-center gap-2">
+							<h3 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
 								{strategy.name}
 							</h3>
 
 							<!-- Public / Private Status Icon Badge -->
 							{#if strategy.is_public}
 								<span
-									class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-600"
+									class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
 									style="background-color: var(--accent-soft); color: var(--accent);"
 									title="Public strategy"
 								>
@@ -228,7 +228,7 @@
 								</span>
 							{:else}
 								<span
-									class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-600"
+									class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
 									style="background-color: rgba(148, 163, 184, 0.15); color: var(--fg-muted);"
 									title="Private strategy"
 								>
@@ -239,19 +239,19 @@
 						</div>
 
 						{#if strategy.description}
-							<p class="text-xs sm:text-sm font-400 line-clamp-2" style="color: var(--fg-muted)">
+							<p class="font-400 line-clamp-2 text-xs sm:text-sm" style="color: var(--fg-muted)">
 								{strategy.description}
 							</p>
 						{/if}
 					</div>
 
 					<!-- Actions: Duplicate, Edit, Delete Buttons -->
-					<div class="flex items-center gap-1.5 self-start flex-wrap">
+					<div class="flex flex-wrap items-center gap-1.5 self-start">
 						<!-- Duplicate Button -->
 						<button
 							type="button"
 							onclick={() => openDuplicate(strategy)}
-							class="btn-interactive flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+							class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
 							style="border-color: var(--border); color: var(--fg);"
 							title="Duplicate strategy"
 							aria-label="Duplicate {strategy.name}"
@@ -263,7 +263,7 @@
 						<!-- Edit Button -->
 						<a
 							href="/dashboard/strategies/{strategy.id}/edit"
-							class="btn-interactive flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+							class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
 							style="border-color: var(--border); color: var(--fg);"
 							title="Edit strategy"
 							aria-label="Edit {strategy.name}"
@@ -276,7 +276,7 @@
 						<button
 							type="button"
 							onclick={() => openDelete(strategy)}
-							class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+							class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
 							style="border-color: var(--border); color: var(--fg-muted);"
 							title="Delete strategy"
 							aria-label="Delete {strategy.name}"
@@ -288,18 +288,18 @@
 
 				<!-- Middle Row: Strategy Key Performance Parameters Grid -->
 				<div
-					class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 rounded-xl p-3"
+					class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-4 sm:gap-3"
 					style="background-color: var(--bg-card-hover, var(--bg));"
 				>
 					<!-- TP -->
 					<div class="flex flex-col">
 						<span
-							class="text-[11px] font-600 uppercase tracking-wider"
+							class="font-600 text-[11px] tracking-wider uppercase"
 							style="color: var(--fg-muted)"
 						>
 							Take Profit
 						</span>
-						<span class="text-sm font-700" style="color: var(--success)">
+						<span class="font-700 text-sm" style="color: var(--success)">
 							+{strategy.tp_percentage}%
 						</span>
 					</div>
@@ -307,12 +307,12 @@
 					<!-- SL -->
 					<div class="flex flex-col">
 						<span
-							class="text-[11px] font-600 uppercase tracking-wider"
+							class="font-600 text-[11px] tracking-wider uppercase"
 							style="color: var(--fg-muted)"
 						>
 							Stop Loss
 						</span>
-						<span class="text-sm font-700" style="color: var(--danger)">
+						<span class="font-700 text-sm" style="color: var(--danger)">
 							-{strategy.sl_percentage}%
 						</span>
 					</div>
@@ -320,12 +320,12 @@
 					<!-- Risk Reward Ratio -->
 					<div class="flex flex-col">
 						<span
-							class="text-[11px] font-600 uppercase tracking-wider"
+							class="font-600 text-[11px] tracking-wider uppercase"
 							style="color: var(--fg-muted)"
 						>
 							Risk : Reward
 						</span>
-						<span class="text-sm font-700" style="color: var(--accent)">
+						<span class="font-700 text-sm" style="color: var(--accent)">
 							{formatRiskReward(strategy.tp_percentage, strategy.sl_percentage)}
 						</span>
 					</div>
@@ -333,12 +333,12 @@
 					<!-- Max Holding Period -->
 					<div class="flex flex-col">
 						<span
-							class="text-[11px] font-600 uppercase tracking-wider"
+							class="font-600 text-[11px] tracking-wider uppercase"
 							style="color: var(--fg-muted)"
 						>
 							Max Holding
 						</span>
-						<span class="flex items-center gap-1 text-sm font-700" style="color: var(--fg)">
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:clock" width="13" height="13" style="color: var(--fg-muted);" />
 							{strategy.max_holding_period_days} Days
 						</span>
@@ -347,14 +347,14 @@
 
 				<!-- Bottom Row: Rules Tags Preview (Left) + Timestamps (Right) -->
 				<div
-					class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between pt-3 border-t"
+					class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
 					style="border-color: var(--border);"
 				>
 					<!-- Left: Rules & Conditions Tags -->
 					{#if strategy.rules && strategy.rules.length > 0}
-						<div class="flex flex-1 flex-col gap-1.5 min-w-0">
+						<div class="flex min-w-0 flex-1 flex-col gap-1.5">
 							<div
-								class="flex items-center gap-1.5 text-xs font-600"
+								class="font-600 flex items-center gap-1.5 text-xs"
 								style="color: var(--fg-muted)"
 							>
 								<Icon icon="lucide:code-2" width="13" height="13" />
@@ -365,7 +365,7 @@
 								{#each strategy.rules as group, gIdx}
 									{#if gIdx > 0}
 										<span
-											class="rounded px-1.5 py-0.5 text-[10px] font-800 font-mono uppercase"
+											class="font-800 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
 											style="background-color: var(--accent-soft); color: var(--accent);"
 										>
 											{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
@@ -378,13 +378,13 @@
 									>
 										{#each group.conditions as condition, cIdx}
 											{#if cIdx > 0}
-												<span class="text-[10px] font-700 font-mono" style="color: var(--accent);">
+												<span class="font-700 font-mono text-[10px]" style="color: var(--accent);">
 													{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
 												</span>
 											{/if}
 
 											<span
-												class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-500"
+												class="font-500 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs"
 												style="
 													background-color: var(--bg-card-hover, var(--bg));
 													color: var(--fg);
@@ -411,7 +411,7 @@
 
 					<!-- Right: Timestamps (Edited at & Created at) -->
 					<div
-						class="flex flex-col sm:items-end gap-0.5 text-[11px] font-500 shrink-0 text-left sm:text-right"
+						class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
 						style="color: var(--fg-muted);"
 					>
 						<div class="inline-flex items-center gap-1">
@@ -433,7 +433,7 @@
 <Modal bind:open={duplicateOpen} title="Duplicate Trading Strategy">
 	{#snippet children()}
 		<form id="duplicate-form" onsubmit={handleDuplicate} class="flex flex-col gap-4">
-			<p class="text-sm font-400" style="color: var(--fg-muted)">
+			<p class="font-400 text-sm" style="color: var(--fg-muted)">
 				Create a duplicate copy of <b>"{duplicateTarget?.name}"</b> with all its rules and parameters.
 				Please choose a unique name.
 			</p>
@@ -447,7 +447,7 @@
 
 			{#if duplicateError}
 				<div
-					class="rounded-lg border px-4 py-3 text-sm font-500"
+					class="font-500 rounded-lg border px-4 py-3 text-sm"
 					style="background-color: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: var(--danger);"
 				>
 					{duplicateError}
@@ -459,7 +459,7 @@
 		<button
 			type="button"
 			onclick={() => (duplicateOpen = false)}
-			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-500 w-full rounded-lg border px-4 py-2 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -468,7 +468,7 @@
 			type="submit"
 			form="duplicate-form"
 			disabled={duplicateLoading || !duplicateNewName.trim()}
-			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm text-white transition-opacity duration-150 sm:w-auto"
 			style="background-color: var(--accent); opacity: {duplicateLoading ? '0.7' : '1'};"
 		>
 			<Icon icon="lucide:copy" width="15" height="15" />

@@ -16,7 +16,7 @@
 
 <button
 	onclick={handleToggle}
-	class="btn-interactive flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-(--bg-card-hover)"
+	class="btn-interactive flex size-9 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-(--bg-card-hover)"
 	style="color: var(--fg-muted);"
 	aria-label="Toggle theme"
 	title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}

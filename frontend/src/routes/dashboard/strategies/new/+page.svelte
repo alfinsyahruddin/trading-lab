@@ -39,7 +39,7 @@
 <div class="mb-4">
 	<a
 		href="/dashboard/strategies"
-		class="btn-interactive inline-flex items-center gap-1.5 text-xs font-600 transition-colors duration-150"
+		class="btn-interactive font-600 inline-flex items-center gap-1.5 text-xs transition-colors duration-150"
 		style="color: var(--fg-muted);"
 	>
 		<Icon icon="lucide:arrow-left" width="14" height="14" />
@@ -49,7 +49,7 @@
 
 <!-- Page Title -->
 <div class="mb-5 sm:mb-6">
-	<h1 class="text-xl sm:text-2xl font-700" style="color: var(--fg)">Create Trading Strategy</h1>
+	<h1 class="font-700 text-xl sm:text-2xl" style="color: var(--fg)">Create Trading Strategy</h1>
 	<p class="mt-0.5 text-xs sm:text-sm" style="color: var(--fg-muted)">
 		Configure target profit, stop loss, and multi-group conditional rules.
 	</p>

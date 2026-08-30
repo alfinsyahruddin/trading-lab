@@ -75,14 +75,14 @@
 	<!-- Background glow -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
 		<div
-			class="absolute -top-40 left-1/2 h-96 w-96 sm:h-125 sm:w-125 -translate-x-1/2 rounded-full opacity-10"
+			class="absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full opacity-10 sm:size-125"
 			style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);"
 		></div>
 	</div>
 
 	<div class="relative z-10 w-full max-w-sm">
 		<!-- Logo -->
-		<div class="mb-6 sm:mb-8 flex flex-col items-center">
+		<div class="mb-6 flex flex-col items-center sm:mb-8">
 			<img
 				src="/logo-dark.svg"
 				alt="Trading Lab"
@@ -99,10 +99,10 @@
 
 		<!-- Card -->
 		<div
-			class="rounded-2xl border p-6 sm:p-8 shadow-lg"
+			class="rounded-2xl border p-6 shadow-lg sm:p-8"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
-			<h1 class="mb-1 text-xl font-700" style="color: var(--fg)">Create account</h1>
+			<h1 class="font-700 mb-1 text-xl" style="color: var(--fg)">Create account</h1>
 			<p class="mb-6 text-sm" style="color: var(--fg-muted)">Join Trading Lab today.</p>
 
 			<form onsubmit={handleSubmit} class="flex flex-col gap-4">
@@ -151,7 +151,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="btn-interactive mt-1 w-full rounded-xl py-3 text-sm font-700 text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+					class="btn-interactive font-700 active:scale-0.98 mt-1 w-full rounded-xl py-3 text-sm text-white shadow-sm hover:shadow-md"
 					style="background-color: var(--accent); opacity: {loading ? '0.7' : '1'};"
 				>
 					{#if loading}

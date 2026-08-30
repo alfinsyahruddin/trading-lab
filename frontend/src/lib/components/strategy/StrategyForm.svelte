@@ -100,13 +100,13 @@
 		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<div class="flex items-center gap-2.5">
 				<div
-					class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+					class="flex size-9 shrink-0 items-center justify-center rounded-xl"
 					style="background-color: var(--accent-soft); color: var(--accent);"
 				>
 					<Icon icon="lucide:settings-2" width="18" height="18" />
 				</div>
 				<div>
-					<h2 class="text-sm sm:text-base font-700" style="color: var(--fg)">General Parameters</h2>
+					<h2 class="font-700 text-sm sm:text-base" style="color: var(--fg)">General Parameters</h2>
 					<p class="text-xs" style="color: var(--fg-muted)">
 						Define the identity, targets, and risk parameters of your strategy
 					</p>
@@ -137,8 +137,8 @@
 				/>
 			</div>
 
-			<div class="sm:col-span-2 flex flex-col gap-1.5">
-				<label for="strat-desc" class="text-sm font-500" style="color: var(--fg-muted)">
+			<div class="flex flex-col gap-1.5 sm:col-span-2">
+				<label for="strat-desc" class="font-500 text-sm" style="color: var(--fg-muted)">
 					Description (Optional)
 				</label>
 				<textarea
@@ -146,7 +146,7 @@
 					rows="2"
 					placeholder="Briefly describe the rationale or objective of this strategy..."
 					bind:value={description}
-					class="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all duration-150"
+					class="w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all duration-150 outline-none"
 					style="
 						background-color: var(--bg-input, var(--bg));
 						border-color: var(--border-strong);
@@ -156,10 +156,10 @@
 		</div>
 
 		<!-- Numeric Metrics Row: TP, SL, R:R, Max Holding -->
-		<div class="mt-5 sm:mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+		<div class="mt-5 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 			<!-- Take Profit -->
 			<div class="flex flex-col gap-1.5">
-				<label for="tp-input" class="text-sm font-500" style="color: var(--fg-muted)">
+				<label for="tp-input" class="font-500 text-sm" style="color: var(--fg-muted)">
 					Take Profit (%) <span style="color: var(--danger)">*</span>
 				</label>
 				<div class="relative">
@@ -171,7 +171,7 @@
 						placeholder="10.0"
 						bind:value={tpPercentage}
 						required
-						class="w-full rounded-xl border py-2.5 pl-3.5 pr-8 text-sm font-600 outline-none transition-colors duration-150"
+						class="font-600 w-full rounded-xl border py-2.5 pr-8 pl-3.5 text-sm transition-colors duration-150 outline-none"
 						style="
 							background-color: var(--bg-input, var(--bg));
 							border-color: var(--border-strong);
@@ -179,7 +179,7 @@
 						"
 					/>
 					<span
-						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-600"
+						class="font-600 pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs"
 						style="color: var(--fg-muted);"
 					>
 						%
@@ -189,7 +189,7 @@
 
 			<!-- Stop Loss -->
 			<div class="flex flex-col gap-1.5">
-				<label for="sl-input" class="text-sm font-500" style="color: var(--fg-muted)">
+				<label for="sl-input" class="font-500 text-sm" style="color: var(--fg-muted)">
 					Stop Loss (%) <span style="color: var(--danger)">*</span>
 				</label>
 				<div class="relative">
@@ -201,7 +201,7 @@
 						placeholder="5.0"
 						bind:value={slPercentage}
 						required
-						class="w-full rounded-xl border py-2.5 pl-3.5 pr-8 text-sm font-600 outline-none transition-colors duration-150"
+						class="font-600 w-full rounded-xl border py-2.5 pr-8 pl-3.5 text-sm transition-colors duration-150 outline-none"
 						style="
 							background-color: var(--bg-input, var(--bg));
 							border-color: var(--border-strong);
@@ -209,7 +209,7 @@
 						"
 					/>
 					<span
-						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-600"
+						class="font-600 pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs"
 						style="color: var(--fg-muted);"
 					>
 						%
@@ -219,7 +219,7 @@
 
 			<!-- Live Risk Reward Ratio Display -->
 			<div class="flex flex-col gap-1.5">
-				<span class="text-sm font-500" style="color: var(--fg-muted)"> Risk : Reward Ratio </span>
+				<span class="font-500 text-sm" style="color: var(--fg-muted)"> Risk : Reward Ratio </span>
 				<div
 					class="flex h-10.5 items-center justify-between rounded-xl border px-3.5 shadow-xs"
 					style="
@@ -227,10 +227,10 @@
 						border-color: rgba(48, 180, 201, 0.3);
 					"
 				>
-					<span class="text-xs font-600 uppercase tracking-wider" style="color: var(--fg-muted)">
+					<span class="font-600 text-xs tracking-wider uppercase" style="color: var(--fg-muted)">
 						Ratio
 					</span>
-					<span class="text-sm font-700" style="color: var(--accent)">
+					<span class="font-700 text-sm" style="color: var(--accent)">
 						{riskRewardRatio}
 					</span>
 				</div>
@@ -238,7 +238,7 @@
 
 			<!-- Max Holding Period -->
 			<div class="flex flex-col gap-1.5">
-				<label for="holding-input" class="text-sm font-500" style="color: var(--fg-muted)">
+				<label for="holding-input" class="font-500 text-sm" style="color: var(--fg-muted)">
 					Max Holding (Day) <span style="color: var(--danger)">*</span>
 				</label>
 				<div class="relative">
@@ -251,7 +251,7 @@
 						placeholder="30"
 						bind:value={maxHoldingPeriodDays}
 						required
-						class="w-full rounded-xl border py-2.5 pl-3.5 pr-14 text-sm font-600 outline-none transition-colors duration-150"
+						class="font-600 w-full rounded-xl border py-2.5 pr-14 pl-3.5 text-sm transition-colors duration-150 outline-none"
 						style="
 							background-color: var(--bg-input, var(--bg));
 							border-color: var(--border-strong);
@@ -259,7 +259,7 @@
 						"
 					/>
 					<span
-						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-500"
+						class="font-500 pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs"
 						style="color: var(--fg-muted);"
 					>
 						Days
@@ -275,7 +275,7 @@
 	<!-- Error Alert -->
 	{#if error}
 		<div
-			class="rounded-xl border p-4 text-sm font-500"
+			class="font-500 rounded-xl border p-4 text-sm"
 			style="background-color: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: var(--danger);"
 		>
 			<div class="flex items-center gap-2">
@@ -287,13 +287,13 @@
 
 	<!-- Form Action Bar -->
 	<div
-		class="sticky bottom-0 z-30 -mx-4 -mb-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3 border-t p-4 sm:mx-0 sm:mb-0 sm:rounded-2xl backdrop-blur-md"
+		class="sticky bottom-0 z-30 -mx-4 -mb-6 flex flex-col-reverse gap-2.5 border-t p-4 backdrop-blur-md sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:rounded-2xl"
 		style="background-color: var(--bg-card); border-color: var(--border);"
 	>
 		<button
 			type="button"
 			onclick={oncancel}
-			class="btn-interactive w-full sm:w-auto rounded-xl border px-5 py-2.5 text-sm font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-600 w-full rounded-xl border px-5 py-2.5 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -301,7 +301,7 @@
 		<button
 			type="submit"
 			disabled={loading || !name.trim()}
-			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-600 text-white shadow-md transition-all duration-150 disabled:opacity-50"
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm text-white shadow-md transition-all duration-150 disabled:opacity-50 sm:w-auto"
 			style="background-color: var(--accent);"
 		>
 			{#if loading}

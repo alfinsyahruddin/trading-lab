@@ -11,7 +11,7 @@
 </script>
 
 <span
-	class="inline-flex items-center rounded-full font-600 tracking-wide {size === 'sm'
+	class="font-600 inline-flex items-center rounded-full tracking-wide {size === 'sm'
 		? 'px-2 py-0 text-[10px]'
 		: 'px-2.5 py-0.5 text-xs'}"
 	style:background-color={role === 'ADMIN' ? 'var(--accent-soft)' : 'rgba(100,116,139,0.12)'}

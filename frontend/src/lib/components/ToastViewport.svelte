@@ -6,7 +6,7 @@
 </script>
 
 <div
-	class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-88 z-100 flex flex-col gap-2.5 pointer-events-none"
+	class="pointer-events-none fixed inset-x-4 bottom-4 z-100 flex flex-col gap-2.5 sm:left-auto sm:w-88"
 >
 	{#each toasts as toast (toast.id)}
 		<div
@@ -46,7 +46,7 @@
 			</div>
 
 			<!-- Message -->
-			<p class="flex-1 text-sm font-600 leading-snug" style="color: var(--fg)">
+			<p class="font-600 flex-1 text-sm leading-snug" style="color: var(--fg)">
 				{toast.message}
 			</p>
 

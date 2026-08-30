@@ -39,7 +39,7 @@
 	{#snippet footer()}
 		<button
 			onclick={handleCancel}
-			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-500 w-full rounded-lg border px-4 py-2 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			{cancelLabel}
@@ -47,7 +47,7 @@
 		<button
 			onclick={handleConfirm}
 			disabled={loading}
-			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm text-white transition-opacity duration-150 sm:w-auto"
 			style="background-color: var(--danger); opacity: {loading ? '0.7' : '1'};"
 		>
 			{#if loading}

@@ -70,4 +70,4 @@
 	});
 </script>
 
-<div bind:this={container} class="w-[120px] h-[40px]"></div>
+<div bind:this={container} class="h-10 w-30"></div>

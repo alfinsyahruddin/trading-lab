@@ -21,7 +21,7 @@
 			<Icon icon="lucide:clipboard-list" width="48" height="48" />
 		{/if}
 	</div>
-	<p class="text-sm font-500" style="color: var(--fg-muted)">{message}</p>
+	<p class="font-500 text-sm" style="color: var(--fg-muted)">{message}</p>
 	{#if children}
 		<div class="mt-4">
 			{@render children()}

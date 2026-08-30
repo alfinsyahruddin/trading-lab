@@ -151,12 +151,12 @@
 	style="background-color: var(--bg-card); border-color: var(--border);"
 >
 	<div
-		class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 border-b gap-4"
+		class="flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
 		style="border-color: var(--border);"
 	>
 		<div class="flex flex-col gap-1">
-			<span class="text-sm font-600" style="color: var(--fg)">Realized P/L</span>
-			<span class="text-lg font-700" style="color: {isProfit ? 'var(--success)' : 'var(--danger)'}">
+			<span class="font-600 text-sm" style="color: var(--fg)">Realized P/L</span>
+			<span class="font-700 text-lg" style="color: {isProfit ? 'var(--success)' : 'var(--danger)'}">
 				{formatPnlDisplay(pnl, pnlPercentage)}
 			</span>
 		</div>

@@ -83,7 +83,7 @@
 	>
 		<!-- Dialog -->
 		<div
-			class="animate-modal relative flex max-h-[calc(100dvh-1.25rem)] sm:max-h-[calc(100dvh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
+			class="animate-modal relative flex max-h-[calc(100dvh-1.25rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl sm:max-h-[calc(100dvh-2rem)]"
 			style="background-color: var(--bg-card); border-color: var(--border-strong);"
 			role="dialog"
 			aria-modal="true"
@@ -96,13 +96,13 @@
 			>
 				<div class="flex items-center gap-2.5">
 					<div
-						class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+						class="flex size-8 shrink-0 items-center justify-center rounded-lg"
 						style="background-color: var(--accent-soft); color: var(--accent);"
 					>
 						<Icon icon="lucide:sliders-horizontal" width="18" height="18" />
 					</div>
 					<div>
-						<h2 id="var-modal-title" class="text-sm sm:text-base font-700" style="color: var(--fg)">
+						<h2 id="var-modal-title" class="font-700 text-sm sm:text-base" style="color: var(--fg)">
 							Select Variable
 						</h2>
 						<p class="text-xs" style="color: var(--fg-muted)">
@@ -133,7 +133,7 @@
 						type="text"
 						placeholder="Search by code or description (e.g. pb, revenue, roa, price)..."
 						bind:value={searchQuery}
-						class="w-full rounded-xl border py-2 pl-9 sm:pl-10 pr-4 text-xs sm:text-sm outline-none transition-all duration-150"
+						class="w-full rounded-xl border py-2 pr-4 pl-9 text-xs transition-all duration-150 outline-none sm:pl-10 sm:text-sm"
 						style="
 							background-color: var(--bg-input, var(--bg));
 							border-color: var(--border-strong);
@@ -155,16 +155,16 @@
 			</div>
 
 			<!-- Body (Categorized list) -->
-			<div class="flex-1 overflow-y-auto px-3.5 py-3 sm:px-6 divide-y divide-transparent">
+			<div class="flex-1 divide-y divide-transparent overflow-y-auto px-3.5 py-3 sm:px-6">
 				{#if filteredCategories.length === 0}
 					<div class="flex flex-col items-center justify-center py-12 text-center">
 						<div
-							class="mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
+							class="mb-3 flex size-12 items-center justify-center rounded-xl"
 							style="background-color: var(--accent-soft); color: var(--accent);"
 						>
 							<Icon icon="lucide:search-x" width="24" height="24" />
 						</div>
-						<p class="text-sm font-600" style="color: var(--fg)">No variables found</p>
+						<p class="font-600 text-sm" style="color: var(--fg)">No variables found</p>
 						<p class="mt-1 text-xs" style="color: var(--fg-muted)">
 							Try searching with different keywords
 						</p>
@@ -175,7 +175,7 @@
 							<div class="flex flex-col gap-2.5">
 								<div class="flex items-center gap-2">
 									<h3
-										class="text-xs font-700 uppercase tracking-wider"
+										class="font-700 text-xs tracking-wider uppercase"
 										style="color: var(--accent);"
 									>
 										{category}
@@ -198,7 +198,7 @@
 										>
 											<div class="flex min-w-0 flex-1 flex-col items-start gap-1">
 												<span
-													class="inline-block shrink-0 rounded px-1.5 py-0.5 text-xs font-700 font-mono"
+													class="font-700 inline-block shrink-0 rounded px-1.5 py-0.5 font-mono text-xs"
 													style="
 														background-color: {isSelected ? 'var(--accent)' : 'var(--border)'};
 														color: {isSelected ? '#ffffff' : 'var(--fg)'};
@@ -208,7 +208,7 @@
 												</span>
 
 												<p
-													class="text-xs font-500 leading-snug line-clamp-1 truncate w-full"
+													class="font-500 line-clamp-1 w-full truncate text-xs leading-snug"
 													style="color: var(--fg-muted);"
 													title={v.description}
 												>
@@ -218,7 +218,7 @@
 
 											{#if isSelected}
 												<div
-													class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white"
+													class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-white"
 													style="background-color: var(--accent);"
 												>
 													<Icon icon="lucide:check" width="12" height="12" />
@@ -241,7 +241,7 @@
 				<button
 					type="button"
 					onclick={close}
-					class="btn-interactive w-full sm:w-auto rounded-xl border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+					class="btn-interactive font-500 w-full rounded-xl border px-4 py-2 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) sm:w-auto"
 					style="border-color: var(--border-strong); color: var(--fg-muted);"
 				>
 					Cancel
@@ -250,7 +250,7 @@
 					type="button"
 					onclick={handleSave}
 					disabled={!hasDifference}
-					class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl px-5 py-2 text-sm font-600 text-white shadow-sm transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+					class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-5 py-2 text-sm text-white shadow-sm transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
 					style="background-color: var(--accent);"
 				>
 					<Icon icon="lucide:check" width="16" height="16" />

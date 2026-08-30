@@ -42,7 +42,7 @@
 				<tr style="border-bottom: 1px solid var(--border); background-color: var(--bg-card);">
 					{#each columns as col}
 						<th
-							class="whitespace-nowrap px-4 py-3.5 text-left text-xs font-700 uppercase tracking-wider"
+							class="font-700 px-4 py-3.5 text-left text-xs tracking-wider whitespace-nowrap uppercase"
 							style="color: var(--fg-muted);"
 						>
 							{col.label}
@@ -50,7 +50,7 @@
 					{/each}
 					{#if actions}
 						<th
-							class="whitespace-nowrap px-4 py-3.5 text-right text-xs font-700 uppercase tracking-wider"
+							class="font-700 px-4 py-3.5 text-right text-xs tracking-wider whitespace-nowrap uppercase"
 							style="color: var(--fg-muted);"
 						>
 							Actions
@@ -104,7 +104,7 @@
 								((e.currentTarget as HTMLTableRowElement).style.backgroundColor = 'transparent')}
 						>
 							{#each columns as col}
-								<td class="px-4 py-3.5 font-400" style="color: var(--fg)">
+								<td class="font-400 px-4 py-3.5" style="color: var(--fg)">
 									{#if cell}
 										{@render cell(row, col)}
 									{:else}
@@ -113,7 +113,7 @@
 								</td>
 							{/each}
 							{#if actions}
-								<td class="whitespace-nowrap px-4 py-3.5 text-right">
+								<td class="px-4 py-3.5 text-right whitespace-nowrap">
 									{@render actions(row)}
 								</td>
 							{/if}

@@ -103,14 +103,14 @@
 	<!-- Background glow -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
 		<div
-			class="absolute -top-40 left-1/2 h-96 w-96 sm:h-125 sm:w-125 -translate-x-1/2 rounded-full opacity-10"
+			class="absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full opacity-10 sm:size-125"
 			style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);"
 		></div>
 	</div>
 
 	<div class="relative z-10 w-full max-w-sm">
 		<!-- Logo -->
-		<div class="mb-6 sm:mb-8 flex flex-col items-center">
+		<div class="mb-6 flex flex-col items-center sm:mb-8">
 			<img
 				src="/logo-dark.svg"
 				alt="Trading Lab"
@@ -127,10 +127,10 @@
 
 		<!-- Card -->
 		<div
-			class="rounded-2xl border p-6 sm:p-8 shadow-lg"
+			class="rounded-2xl border p-6 shadow-lg sm:p-8"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
-			<h1 class="mb-1 text-xl font-700" style="color: var(--fg)">Sign in</h1>
+			<h1 class="font-700 mb-1 text-xl" style="color: var(--fg)">Sign in</h1>
 			<p class="mb-6 text-sm" style="color: var(--fg-muted)">Enter your credentials to continue.</p>
 
 			<form onsubmit={handleSubmit} class="flex flex-col gap-4">
@@ -151,13 +151,13 @@
 
 				<!-- Remember me checkbox -->
 				<label
-					class="flex items-center gap-2 text-xs font-500 cursor-pointer select-none"
+					class="font-500 flex cursor-pointer items-center gap-2 text-xs select-none"
 					style="color: var(--fg-muted)"
 				>
 					<input
 						type="checkbox"
 						bind:checked={rememberMe}
-						class="h-4 w-4 rounded border transition-colors cursor-pointer accent-(--accent)"
+						class="size-4 cursor-pointer rounded border accent-(--accent) transition-colors"
 						style="border-color: var(--border-strong);"
 					/>
 					<span>Remember me</span>
@@ -175,7 +175,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="btn-interactive mt-1 w-full rounded-xl py-3 text-sm font-700 text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+					class="btn-interactive font-700 active:scale-0.98 mt-1 w-full rounded-xl py-3 text-sm text-white shadow-sm hover:shadow-md"
 					style="background-color: var(--accent); opacity: {loading ? '0.7' : '1'};"
 				>
 					{#if loading}
@@ -192,13 +192,13 @@
 			<!-- Quick Login Section (hidden if empty) -->
 			{#if rememberedAccounts.length > 0}
 				<div class="mt-6 border-t pt-5" style="border-color: var(--border);">
-					<p class="mb-3 text-xs font-600 uppercase tracking-wider" style="color: var(--fg-muted)">
+					<p class="font-600 mb-3 text-xs tracking-wider uppercase" style="color: var(--fg-muted)">
 						Quick Login
 					</p>
 					<div class="flex flex-col gap-2">
 						{#each rememberedAccounts as acc (acc.email)}
 							<div
-								class="btn-interactive group flex items-center justify-between gap-3 rounded-xl border p-2.5 transition-all duration-150 hover:bg-(--bg-card-hover) cursor-pointer"
+								class="btn-interactive group flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-2.5 transition-all duration-150 hover:bg-(--bg-card-hover)"
 								class:opacity-60={loading && loggingInEmail !== acc.email}
 								style="border-color: var(--border); background-color: var(--bg-input, var(--bg));"
 								onclick={() => handleQuickLogin(acc)}
@@ -209,9 +209,9 @@
 								}}
 							>
 								<!-- Avatar + Email + Badge role -->
-								<div class="flex items-center gap-2.5 min-w-0 flex-1">
+								<div class="flex min-w-0 flex-1 items-center gap-2.5">
 									<div
-										class="avatar-glass flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-xs text-xs font-600"
+										class="avatar-glass font-600 flex size-7 shrink-0 items-center justify-center rounded-full border text-xs shadow-xs"
 										style="color: var(--fg);"
 									>
 										{#if loggingInEmail === acc.email}
@@ -220,8 +220,8 @@
 											<Icon icon="lucide:user" width="13" height="13" />
 										{/if}
 									</div>
-									<div class="flex items-center gap-2 min-w-0 flex-1">
-										<span class="truncate text-xs font-600" style="color: var(--fg)">
+									<div class="flex min-w-0 flex-1 items-center gap-2">
+										<span class="font-600 truncate text-xs" style="color: var(--fg)">
 											{acc.email}
 										</span>
 										<RoleBadge role={acc.role} size="sm" />
@@ -233,7 +233,7 @@
 									type="button"
 									onclick={(e) => handleRemoveAccount(e, acc.email)}
 									disabled={loading}
-									class="btn-interactive flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-sm transition-colors duration-150 hover:bg-(--bg-card) opacity-60 hover:opacity-100 disabled:pointer-events-none"
+									class="btn-interactive flex size-6 shrink-0 items-center justify-center rounded-md text-sm opacity-60 transition-colors duration-150 hover:bg-(--bg-card) hover:opacity-100 disabled:pointer-events-none"
 									style="color: var(--fg-muted);"
 									title="Remove saved account"
 									aria-label={`Remove ${acc.email} from saved accounts`}

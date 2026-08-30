@@ -119,14 +119,14 @@
 
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 	<div>
-		<h1 class="text-2xl font-700" style="color: var(--fg)">Backtests</h1>
+		<h1 class="font-700 text-2xl" style="color: var(--fg)">Backtests</h1>
 		<p class="mt-0.5 text-sm" style="color: var(--fg-muted)">
 			Run and evaluate strategies on historical market data.
 		</p>
 	</div>
 	<a
 		href="/dashboard/backtests/new"
-		class="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 text-white shadow-sm hover:shadow-md hover:opacity-95 active:scale-95 w-full sm:w-auto"
+		class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
 		style="background-color: var(--accent);"
 	>
 		<Icon icon="lucide:play" width="16" height="16" />
@@ -135,7 +135,7 @@
 </div>
 
 {#if !loading}
-	<p class="mb-4 text-xs font-600 uppercase tracking-wider" style="color: var(--fg-muted)">
+	<p class="font-600 mb-4 text-xs tracking-wider uppercase" style="color: var(--fg-muted)">
 		{backtests.length}
 		{backtests.length === 1 ? 'backtest' : 'backtests'}
 	</p>
@@ -151,7 +151,7 @@
 				width="32"
 				height="32"
 			/>
-			<p class="text-sm font-500" style="color: var(--fg-muted)">Loading backtests…</p>
+			<p class="font-500 text-sm" style="color: var(--fg-muted)">Loading backtests…</p>
 		</div>
 	</div>
 {:else if backtests.length === 0}
@@ -160,18 +160,18 @@
 		style="background-color: var(--bg-card); border-color: var(--border);"
 	>
 		<div
-			class="animate-float mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+			class="animate-float mb-4 flex size-16 items-center justify-center rounded-2xl"
 			style="background-color: var(--accent-soft); color: var(--accent);"
 		>
 			<Icon icon="lucide:flask-conical" width="32" height="32" />
 		</div>
-		<h2 class="text-lg font-700" style="color: var(--fg)">No Backtests Yet</h2>
-		<p class="mt-1 max-w-md text-sm font-400" style="color: var(--fg-muted)">
+		<h2 class="font-700 text-lg" style="color: var(--fg)">No Backtests Yet</h2>
+		<p class="font-400 mt-1 max-w-md text-sm" style="color: var(--fg-muted)">
 			Run your first backtest to see how your strategies perform on historical data.
 		</p>
 		<a
 			href="/dashboard/backtests/new"
-			class="btn-interactive mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-600 text-white shadow-sm"
+			class="btn-interactive font-600 mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm text-white shadow-sm"
 			style="background-color: var(--accent);"
 		>
 			<Icon icon="lucide:play" width="16" height="16" />
@@ -183,7 +183,7 @@
 		{#each groupedBacktests as [strategyName, jobs]}
 			<div class="flex flex-col gap-3">
 				<div
-					class="flex items-center gap-2 text-sm font-600 uppercase tracking-wider"
+					class="font-600 flex items-center gap-2 text-sm tracking-wider uppercase"
 					style="color: var(--fg-muted)"
 				>
 					<Icon icon="lucide:candlestick-chart" width="16" height="16" />
@@ -193,15 +193,15 @@
 				<div class="flex flex-col gap-3">
 					{#each jobs as job (job.id)}
 						<div
-							class="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border p-4 transition-colors duration-200"
+							class="flex flex-col justify-between rounded-xl border p-4 transition-colors duration-200 sm:flex-row sm:items-center"
 							style="background-color: var(--bg-card); border-color: var(--border);"
 						>
 							<!-- Left Info -->
 							<div class="flex flex-col gap-2">
-								<div class="flex items-center gap-2 flex-wrap">
-									<h3 class="text-base font-700" style="color: var(--fg)">{job.name}</h3>
+								<div class="flex flex-wrap items-center gap-2">
+									<h3 class="font-700 text-base" style="color: var(--fg)">{job.name}</h3>
 									<span
-										class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-600"
+										class="font-600 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs"
 										style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
 									>
 										{job.year}
@@ -210,18 +210,18 @@
 								</div>
 
 								{#if job.status === 'FAILED'}
-									<p class="text-sm font-500" style="color: var(--danger)">
+									<p class="font-500 text-sm" style="color: var(--danger)">
 										{job.error_message || 'Unknown error occurred.'}
 									</p>
 								{:else if job.status === 'DONE' && job.result && job.portfolio_history}
-									<div class="flex items-center gap-4 mt-2 flex-wrap">
+									<div class="mt-2 flex flex-wrap items-center gap-4">
 										<div class="flex flex-col">
 											<span
-												class="text-[10px] font-600 uppercase tracking-wider"
+												class="font-600 text-[10px] tracking-wider uppercase"
 												style="color: var(--fg-muted)">Net P/L</span
 											>
 											<span
-												class="text-sm font-700"
+												class="font-700 text-sm"
 												style="color: {job.result.net_pnl >= 0
 													? 'var(--success)'
 													: 'var(--danger)'}"
@@ -231,10 +231,10 @@
 										</div>
 										<div class="flex flex-col">
 											<span
-												class="text-[10px] font-600 uppercase tracking-wider"
+												class="font-600 text-[10px] tracking-wider uppercase"
 												style="color: var(--fg-muted)">Win Rate</span
 											>
-											<span class="text-sm font-700" style="color: var(--fg)"
+											<span class="font-700 text-sm" style="color: var(--fg)"
 												>{job.result.win_rate.toFixed(1)}%</span
 											>
 										</div>
@@ -250,11 +250,11 @@
 							</div>
 
 							<!-- Right Actions -->
-							<div class="mt-4 sm:mt-0 flex items-center gap-2 self-start sm:self-center">
+							<div class="mt-4 flex items-center gap-2 self-start sm:mt-0 sm:self-center">
 								{#if job.status === 'DONE'}
 									<a
 										href="/dashboard/backtests/{job.id}"
-										class="btn-interactive flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+										class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
 										style="border-color: var(--border); color: var(--fg);"
 									>
 										<Icon icon="lucide:eye" width="14" height="14" />
@@ -264,7 +264,7 @@
 								<button
 									type="button"
 									onclick={() => openDelete(job)}
-									class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+									class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
 									style="border-color: var(--border); color: var(--fg-muted);"
 								>
 									<Icon icon="lucide:trash-2" width="14" height="14" />

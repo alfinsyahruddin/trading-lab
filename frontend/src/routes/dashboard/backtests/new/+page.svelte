@@ -135,7 +135,7 @@
 <div class="mb-4">
 	<a
 		href="/dashboard/backtests"
-		class="btn-interactive inline-flex items-center gap-1.5 text-xs font-600 transition-colors duration-150"
+		class="btn-interactive font-600 inline-flex items-center gap-1.5 text-xs transition-colors duration-150"
 		style="color: var(--fg-muted);"
 	>
 		<Icon icon="lucide:arrow-left" width="14" height="14" />
@@ -144,7 +144,7 @@
 </div>
 
 <div class="mb-5 sm:mb-6">
-	<h1 class="text-xl sm:text-2xl font-700" style="color: var(--fg)">Run Backtest</h1>
+	<h1 class="font-700 text-xl sm:text-2xl" style="color: var(--fg)">Run Backtest</h1>
 	<p class="mt-0.5 text-xs sm:text-sm" style="color: var(--fg-muted)">
 		Configure parameters and run your strategy against historical data.
 	</p>
@@ -152,7 +152,7 @@
 
 {#if loadingStrats}
 	<div class="flex min-h-40 items-center justify-center">
-		<Icon icon="lucide:loader-2" class="animate-spin text-accent" width="32" height="32" />
+		<Icon icon="lucide:loader-2" class="text-accent animate-spin" width="32" height="32" />
 	</div>
 {:else}
 	<div
@@ -168,7 +168,7 @@
 			/>
 
 			<div class="flex flex-col gap-1.5">
-				<span class="text-sm font-500" style="color: var(--fg-muted)">Backtest Data Year</span>
+				<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Data Year</span>
 				<SegmentedControl options={yearOptions} bind:value={formYear} />
 			</div>
 
@@ -176,7 +176,7 @@
 				<TextField label="Backtest Name" bind:value={formName} required />
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+			<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 				<div class="flex flex-col gap-1">
 					<TextField
 						label="Initial Cash"
@@ -187,7 +187,7 @@
 						step="any"
 						required
 					/>
-					<span class="text-xs font-500" style="color: var(--fg-muted)">
+					<span class="font-500 text-xs" style="color: var(--fg-muted)">
 						Rp {formatRupiah(Number(formInitialCash))}
 					</span>
 				</div>
@@ -202,7 +202,7 @@
 						step="1"
 						required
 					/>
-					<span class="text-xs font-500" style="color: var(--fg-muted)">
+					<span class="font-500 text-xs" style="color: var(--fg-muted)">
 						Max Buy Value: Rp {formatRupiah(
 							Number(formInitialCash) / (Number(formMaxHoldingStocks) || 1)
 						)} ({(100 / (Number(formMaxHoldingStocks) || 1)).toFixed(1)}% per stock)
@@ -217,7 +217,7 @@
 				required
 			/>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+			<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 				<TextField
 					label="Buy Fee (%)"
 					type="number"
@@ -239,13 +239,13 @@
 			</div>
 
 			<div
-				class="mt-4 flex items-center justify-end gap-3 pt-4 border-t"
+				class="mt-4 flex items-center justify-end gap-3 border-t pt-4"
 				style="border-color: var(--border);"
 			>
 				<button
 					type="button"
 					onclick={() => goto('/dashboard/backtests')}
-					class="btn-interactive rounded-lg border px-5 py-2.5 text-sm font-500 transition-colors"
+					class="btn-interactive font-500 rounded-lg border px-5 py-2.5 text-sm transition-colors"
 					style="border-color: var(--border); color: var(--fg-muted);"
 				>
 					Cancel
@@ -253,7 +253,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="btn-interactive inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-600 text-white transition-opacity"
+					class="btn-interactive font-600 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm text-white transition-opacity"
 					style="background-color: var(--accent); opacity: {loading ? '0.7' : '1'};"
 				>
 					{#if loading}

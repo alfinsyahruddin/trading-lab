@@ -132,7 +132,7 @@
 			{#each navItems as item}
 				<a
 					href={item.href}
-					class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-500 transition-colors duration-150"
+					class="font-500 flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm transition-colors duration-150"
 					class:active={isActive(item.href)}
 					aria-current={isActive(item.href) ? 'page' : undefined}
 				>
@@ -146,8 +146,8 @@
 		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- User info: Name + compact RoleBadge below (desktop only) -->
 			{#if user}
-				<div class="hidden flex-col items-end gap-1 sm:flex text-right">
-					<p class="text-sm font-600 leading-none" style="color: var(--fg)">{user.name}</p>
+				<div class="hidden flex-col items-end gap-1 text-right sm:flex">
+					<p class="font-600 text-sm leading-none" style="color: var(--fg)">{user.name}</p>
 					<RoleBadge role={user.role} size="sm" />
 				</div>
 			{/if}
@@ -159,7 +159,7 @@
 					type="button"
 					onclick={toggleUserMenu}
 					data-user-menu-btn
-					class="avatar-glass btn-interactive flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
+					class="avatar-glass btn-interactive flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 active:scale-95 sm:size-9"
 					title={user ? `${user.name} (${user.email})` : 'User menu'}
 					aria-label={user ? `User menu for ${user.name}` : 'User menu'}
 					aria-haspopup="menu"
@@ -173,14 +173,14 @@
 					<div
 						data-user-menu
 						role="menu"
-						class="animate-dropdown absolute right-0 top-full mt-2 w-60 rounded-xl border shadow-xl z-50 overflow-hidden py-1"
+						class="animate-dropdown absolute top-full right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border py-1 shadow-xl"
 						style="background-color: var(--bg-card); border-color: var(--border-strong);"
 					>
 						<!-- User Details Header -->
 						{#if user}
 							<div class="border-b px-4 py-3" style="border-color: var(--border);">
-								<p class="text-sm font-600 truncate" style="color: var(--fg)">{user.name}</p>
-								<p class="text-xs truncate font-400 mt-0.5" style="color: var(--fg-muted)">
+								<p class="font-600 truncate text-sm" style="color: var(--fg)">{user.name}</p>
+								<p class="font-400 mt-0.5 truncate text-xs" style="color: var(--fg-muted)">
 									{user.email}
 								</p>
 								<div class="mt-2">
@@ -195,7 +195,7 @@
 								type="button"
 								role="menuitem"
 								onclick={openEditProfile}
-								class="btn-interactive flex w-full items-center gap-2.5 px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left"
+								class="btn-interactive font-500 flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover)"
 								style="color: var(--fg);"
 							>
 								<Icon
@@ -211,7 +211,7 @@
 								type="button"
 								role="menuitem"
 								onclick={openChangePassword}
-								class="btn-interactive flex w-full items-center gap-2.5 px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left"
+								class="btn-interactive font-500 flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover)"
 								style="color: var(--fg);"
 							>
 								<Icon
@@ -224,7 +224,7 @@
 							</button>
 						</div>
 
-						<div class="border-t my-1" style="border-color: var(--border);"></div>
+						<div class="my-1 border-t" style="border-color: var(--border);"></div>
 
 						<!-- Logout Action -->
 						<div class="py-1">
@@ -233,7 +233,7 @@
 								role="menuitem"
 								onclick={handleLogout}
 								disabled={loggingOut}
-								class="btn-interactive flex w-full items-center gap-2.5 px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left disabled:opacity-50"
+								class="btn-interactive font-500 flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) disabled:opacity-50"
 								style="color: var(--danger);"
 							>
 								{#if loggingOut}
@@ -254,7 +254,7 @@
 				type="button"
 				onclick={toggleMobileMenu}
 				data-mobile-menu-btn
-				class="btn-interactive flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border transition-all duration-150 sm:hidden hover:bg-(--bg-card-hover) active:scale-90"
+				class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-all duration-150 hover:bg-(--bg-card-hover) active:scale-90 sm:hidden sm:size-9"
 				style="border-color: var(--border); color: var(--fg);"
 				aria-label="Toggle navigation menu"
 				aria-expanded={mobileMenuOpen}
@@ -268,7 +268,7 @@
 	{#if mobileMenuOpen}
 		<div
 			data-mobile-menu
-			class="animate-dropdown border-b px-4 py-3 sm:hidden shadow-lg"
+			class="animate-dropdown border-b px-4 py-3 shadow-lg sm:hidden"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
 			<nav class="flex flex-col gap-1">
@@ -276,7 +276,7 @@
 					<a
 						href={item.href}
 						onclick={() => (mobileMenuOpen = false)}
-						class="btn-interactive flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-500 transition-colors duration-150"
+						class="btn-interactive font-500 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150"
 						class:active={isActive(item.href)}
 						aria-current={isActive(item.href) ? 'page' : undefined}
 					>
@@ -292,7 +292,7 @@
 					style="border-color: var(--border);"
 				>
 					<div class="flex flex-col">
-						<span class="text-sm font-600" style="color: var(--fg)">{user.name}</span>
+						<span class="font-600 text-sm" style="color: var(--fg)">{user.name}</span>
 						<span class="text-xs" style="color: var(--fg-muted)">{user.email}</span>
 					</div>
 					<RoleBadge role={user.role} size="sm" />
@@ -302,7 +302,7 @@
 					<button
 						type="button"
 						onclick={openEditProfile}
-						class="btn-interactive flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left"
+						class="btn-interactive font-500 flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover)"
 						style="color: var(--fg);"
 					>
 						<Icon icon="lucide:user-pen" width="16" height="16" style="color: var(--fg-muted);" />
@@ -312,7 +312,7 @@
 					<button
 						type="button"
 						onclick={openChangePassword}
-						class="btn-interactive flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left"
+						class="btn-interactive font-500 flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover)"
 						style="color: var(--fg);"
 					>
 						<Icon icon="lucide:key-round" width="16" height="16" style="color: var(--fg-muted);" />
@@ -323,7 +323,7 @@
 						type="button"
 						onclick={handleLogout}
 						disabled={loggingOut}
-						class="btn-interactive flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) text-left disabled:opacity-50"
+						class="btn-interactive font-500 flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-(--bg-card-hover) disabled:opacity-50"
 						style="color: var(--danger);"
 					>
 						{#if loggingOut}

@@ -31,7 +31,7 @@
 >
 	<!-- Sliding iOS Neutral Pill Indicator -->
 	<div
-		class="ios-segmented-thumb absolute rounded-[7px] pointer-events-none"
+		class="ios-segmented-thumb pointer-events-none absolute rounded-[7px]"
 		style="
 			top: 2px;
 			bottom: 2px;

@@ -126,14 +126,14 @@
 	<!-- Header Section -->
 	<div class="mb-5 flex items-start gap-3">
 		<div
-			class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm font-700"
+			class="font-700 flex size-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm"
 			style="background-color: var(--accent-soft); color: var(--accent);"
 		>
 			<Icon icon="lucide:code-2" width="20" height="20" />
 		</div>
 		<div>
-			<h3 class="text-base font-700 leading-tight" style="color: var(--fg)">Where Conditions</h3>
-			<p class="text-xs sm:text-sm font-400" style="color: var(--fg-muted)">
+			<h3 class="font-700 text-base leading-tight" style="color: var(--fg)">Where Conditions</h3>
+			<p class="font-400 text-xs sm:text-sm" style="color: var(--fg-muted)">
 				Combine rules into groups to filter the universe.
 			</p>
 		</div>
@@ -144,7 +144,7 @@
 		{#each groups as group, groupIdx}
 			<!-- Group Container Card -->
 			<div
-				class="flex flex-col rounded-xl border p-3.5 sm:p-5 transition-all duration-150"
+				class="flex flex-col rounded-xl border p-3.5 transition-all duration-150 sm:p-5"
 				style="
 					background-color: var(--bg-card-hover, var(--bg));
 					border-color: var(--border);
@@ -153,9 +153,9 @@
 				<!-- Group Header -->
 				<div class="mb-3.5 flex items-center justify-between">
 					<div class="flex items-center gap-2">
-						<span class="font-mono text-xs font-700" style="color: var(--fg-muted)">{'{ }'}</span>
+						<span class="font-700 font-mono text-xs" style="color: var(--fg-muted)">{'{ }'}</span>
 						<span
-							class="text-xs font-700 uppercase tracking-wider font-mono"
+							class="font-700 font-mono text-xs tracking-wider uppercase"
 							style="color: var(--fg-muted)"
 						>
 							GROUP {groupIdx + 1}
@@ -166,7 +166,7 @@
 						<button
 							type="button"
 							onclick={() => removeGroup(groupIdx)}
-							class="btn-interactive flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+							class="btn-interactive flex size-7 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
 							style="color: var(--fg-muted);"
 							title="Delete Group {groupIdx + 1}"
 							aria-label="Delete Group {groupIdx + 1}"
@@ -182,21 +182,21 @@
 						{@const varMeta = getVariable(condition.variable)}
 						<!-- Condition Row -->
 						<div
-							class="flex flex-col gap-2 rounded-xl border p-2.5 sm:border-0 sm:p-0 sm:flex-row sm:items-center sm:gap-2.5"
+							class="flex flex-col gap-2 rounded-xl border p-2.5 sm:flex-row sm:items-center sm:gap-2.5 sm:border-0 sm:p-0"
 							style="border-color: var(--border);"
 						>
 							<!-- 1. Variable Selector Button (Full width on mobile, auto width on desktop) -->
 							<button
 								type="button"
 								onclick={() => openVariableModal(groupIdx, condIdx)}
-								class="btn-interactive flex h-10 w-full sm:w-auto sm:flex-1 sm:max-w-xs md:max-w-sm min-w-0 items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm font-500 transition-colors duration-150"
+								class="btn-interactive font-500 flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm transition-colors duration-150 sm:w-auto sm:max-w-xs sm:flex-1 md:max-w-sm"
 								style="
 									background-color: var(--bg-card);
 									border-color: var(--border-strong);
 									color: var(--fg);
 								"
 							>
-								<div class="flex flex-1 min-w-0 items-center gap-2">
+								<div class="flex min-w-0 flex-1 items-center gap-2">
 									<Icon
 										icon="lucide:activity"
 										class="shrink-0"
@@ -204,12 +204,12 @@
 										width="16"
 										height="16"
 									/>
-									<span class="truncate font-500 min-w-0">
+									<span class="font-500 min-w-0 truncate">
 										{varMeta ? varMeta.name : condition.variable || 'Select variable'}
 									</span>
 									{#if varMeta}
 										<span
-											class="shrink-0 rounded px-1.5 py-0.5 text-[11px] font-700 font-mono"
+											class="font-700 shrink-0 rounded px-1.5 py-0.5 font-mono text-[11px]"
 											style="background-color: var(--accent-soft); color: var(--accent);"
 										>
 											{varMeta.code}
@@ -218,7 +218,7 @@
 								</div>
 								<Icon
 									icon="lucide:chevron-down"
-									class="shrink-0 ml-1.5"
+									class="ml-1.5 shrink-0"
 									style="color: var(--fg-muted);"
 									width="16"
 									height="16"
@@ -226,13 +226,13 @@
 							</button>
 
 							<!-- Operator + Value Input + Remove Button Row on Mobile (Inline on Desktop) -->
-							<div class="flex flex-1 min-w-0 items-center gap-2 w-full sm:w-auto">
+							<div class="flex w-full min-w-0 flex-1 items-center gap-2 sm:w-auto">
 								<!-- 2. Operator Selector Dropdown -->
-								<div class="relative flex-1 sm:flex-initial sm:w-48 lg:w-56 min-w-0">
+								<div class="relative min-w-0 flex-1 sm:w-48 sm:flex-initial lg:w-56">
 									<select
 										value={condition.operator}
 										onchange={(e) => (condition.operator = e.currentTarget.value)}
-										class="h-10 w-full appearance-none rounded-xl border pl-3 pr-8 text-xs sm:text-sm font-500 outline-none transition-colors duration-150 truncate"
+										class="font-500 h-10 w-full appearance-none truncate rounded-xl border pr-8 pl-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
 										style="
 											background-color: var(--bg-card);
 											border-color: var(--border-strong);
@@ -252,14 +252,14 @@
 								</div>
 
 								<!-- 3. Value Input (Adapts based on operator) -->
-								<div class="flex flex-1 min-w-0 items-center">
+								<div class="flex min-w-0 flex-1 items-center">
 									{#if condition.operator === 'is'}
 										<!-- Selector for null / true / false -->
 										<div class="relative w-full min-w-0">
 											<select
 												value={condition.value}
 												onchange={(e) => (condition.value = e.currentTarget.value)}
-												class="h-10 w-full appearance-none rounded-xl border pl-3 pr-8 text-xs sm:text-sm font-500 outline-none transition-colors duration-150"
+												class="font-500 h-10 w-full appearance-none rounded-xl border pr-8 pl-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
 												style="
 													background-color: var(--bg-card);
 													border-color: var(--border-strong);
@@ -284,7 +284,7 @@
 											placeholder="e.g. BBCA, BBRI"
 											value={condition.value}
 											oninput={(e) => (condition.value = e.currentTarget.value)}
-											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs sm:text-sm outline-none transition-colors duration-150"
+											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
 											style="
 												background-color: var(--bg-card);
 												border-color: var(--border-strong);
@@ -297,7 +297,7 @@
 											placeholder="e.g. %bank%"
 											value={condition.value}
 											oninput={(e) => (condition.value = e.currentTarget.value)}
-											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs sm:text-sm outline-none transition-colors duration-150"
+											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
 											style="
 												background-color: var(--bg-card);
 												border-color: var(--border-strong);
@@ -310,7 +310,7 @@
 											placeholder="0"
 											value={condition.value}
 											oninput={(e) => (condition.value = e.currentTarget.value)}
-											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs sm:text-sm outline-none transition-colors duration-150"
+											class="h-10 w-full min-w-0 rounded-xl border px-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
 											style="
 												background-color: var(--bg-card);
 												border-color: var(--border-strong);
@@ -324,7 +324,7 @@
 								<button
 									type="button"
 									onclick={() => removeCondition(groupIdx, condIdx)}
-									class="btn-interactive flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border sm:border-0 sm:rounded-lg sm:h-9 sm:w-9 transition-colors duration-150 hover:bg-(--bg-card) hover:text-red-500"
+									class="btn-interactive flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors duration-150 hover:bg-(--bg-card) hover:text-red-500 sm:size-9 sm:rounded-lg sm:border-0"
 									style="border-color: var(--border-strong); color: var(--fg-muted);"
 									title="Remove condition"
 									aria-label="Remove condition"
@@ -343,7 +343,7 @@
 								>
 									<!-- Sliding Pill Indicator -->
 									<div
-										class="absolute rounded-md pointer-events-none"
+										class="pointer-events-none absolute rounded-md"
 										style="
 											top: 2px;
 											bottom: 2px;
@@ -359,7 +359,7 @@
 									<button
 										type="button"
 										onclick={() => toggleConditionConnector(groupIdx, condIdx)}
-										class="btn-interactive relative z-10 rounded-md px-2.5 py-0.5 text-xs font-700 transition-colors duration-150"
+										class="btn-interactive font-700 relative z-10 rounded-md px-2.5 py-0.5 text-xs transition-colors duration-150"
 										style="
 											color: {condition.connector_to_next === 'AND' || !condition.connector_to_next
 											? '#ffffff'
@@ -371,7 +371,7 @@
 									<button
 										type="button"
 										onclick={() => toggleConditionConnector(groupIdx, condIdx)}
-										class="btn-interactive relative z-10 rounded-md px-2.5 py-0.5 text-xs font-700 transition-colors duration-150"
+										class="btn-interactive font-700 relative z-10 rounded-md px-2.5 py-0.5 text-xs transition-colors duration-150"
 										style="
 											color: {condition.connector_to_next === 'OR' ? '#ffffff' : 'var(--fg-muted)'};
 										"
@@ -389,7 +389,7 @@
 						<button
 							type="button"
 							onclick={() => addCondition(groupIdx)}
-							class="btn-interactive inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-600 transition-colors duration-150 hover:bg-(--bg-card)"
+							class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors duration-150 hover:bg-(--bg-card)"
 							style="color: var(--accent);"
 						>
 							<Icon icon="lucide:plus" width="14" height="14" />
@@ -409,7 +409,7 @@
 					>
 						<!-- Sliding Pill Indicator -->
 						<div
-							class="absolute rounded-md pointer-events-none"
+							class="pointer-events-none absolute rounded-md"
 							style="
 								top: 2px;
 								bottom: 2px;
@@ -425,7 +425,7 @@
 						<button
 							type="button"
 							onclick={() => toggleGroupConnector(groupIdx)}
-							class="btn-interactive relative z-10 rounded-md px-3 py-1 text-xs font-700 transition-colors duration-150"
+							class="btn-interactive font-700 relative z-10 rounded-md px-3 py-1 text-xs transition-colors duration-150"
 							style="
 								color: {group.connector_to_next === 'AND' || !group.connector_to_next
 								? '#ffffff'
@@ -437,7 +437,7 @@
 						<button
 							type="button"
 							onclick={() => toggleGroupConnector(groupIdx)}
-							class="btn-interactive relative z-10 rounded-md px-3 py-1 text-xs font-700 transition-colors duration-150"
+							class="btn-interactive font-700 relative z-10 rounded-md px-3 py-1 text-xs transition-colors duration-150"
 							style="
 								color: {group.connector_to_next === 'OR' ? '#ffffff' : 'var(--fg-muted)'};
 							"
@@ -454,7 +454,7 @@
 		<button
 			type="button"
 			onclick={addGroup}
-			class="btn-interactive flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3.5 text-sm font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive font-600 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3.5 text-sm transition-colors duration-150 hover:bg-(--bg-card-hover)"
 			style="border-color: var(--border-strong); color: var(--fg);"
 		>
 			<Icon icon="lucide:plus" width="16" height="16" />

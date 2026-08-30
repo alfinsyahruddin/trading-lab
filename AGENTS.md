@@ -45,6 +45,8 @@ trading-lab/
 │   │   │   └── helpers/      # Client-side session, theme, and reactive toast helpers
 │   │   └── routes/           # SvelteKit client-side routes (+layout, +page)
 │   ├── tests/unit/           # Vitest unit & component tests
+│   ├── eslint.config.js      # ESLint flat config (Svelte 5, TS, Tailwind plugin)
+│   ├── .prettierrc           # Prettier config with Svelte & Tailwind sorting plugins
 │   ├── package.json          # Frontend dependencies & scripts
 │   ├── tsconfig.json         # TypeScript configuration
 │   ├── vite.config.ts        # Vite & Tailwind setup
@@ -160,6 +162,7 @@ cargo clippy --all-targets --all-features --locked -- -D warnings
 - **Mode**: Pure Client-Side Rendering (CSR / SPA mode: `export const ssr = false;` in `src/routes/+layout.ts`)
 - **Package Manager & Runtime**: [Bun](https://bun.sh/)
 - **Styling**: [TailwindCSS v4](https://tailwindcss.com/) with CSS variables
+- **Linting & Formatting**: ESLint 9 (with `eslint-plugin-tailwindcss` & `eslint-plugin-svelte`) + Prettier (with `prettier-plugin-tailwindcss` & `prettier-plugin-svelte`)
 - **Icons**: `@iconify/svelte` (Lucide icon set)
 - **Charts**: `lightweight-charts` (TradingView)
 - **Testing**: [Vitest](https://vitest.dev/) with `@testing-library/svelte` and `jsdom`
@@ -223,13 +226,19 @@ bun run dev
 # Run Svelte and TypeScript diagnostics
 bun run check
 
+# Run ESLint (checks Tailwind semantics, CSS conflicts, shorthands, and Svelte/TS code style)
+bun run lint
+
+# Auto-fix ESLint issues
+bun run lint:fix
+
 # Run unit and component tests (Vitest)
 bun run test:unit
 
-# Check Prettier formatting
+# Check Prettier formatting & Tailwind class order
 bun run format:check
 
-# Auto-format codebase
+# Auto-format codebase & Tailwind class order
 bun run format
 ```
 
@@ -260,5 +269,14 @@ Before completing any task, ensure you have verified your changes against the ap
 
 ### For Frontend Changes:
 1. `bun run check` produces zero errors and zero warnings.
-2. `bun run test:unit` passes all test suites.
-3. `bun run format:check` reports clean formatting.
+2. `bun run lint` completes with zero errors.
+3. `bun run test:unit` passes all test suites.
+4. `bun run format:check` reports clean formatting.
+
+---
+
+## 6. Git & Commit Guidelines
+
+- **Do NOT use Conventional Commits**: Never use prefixes like `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `style:`, `test:`, etc.
+- **Message Style**: Write concise, clear, and descriptive natural language summaries (e.g., `Add trading strategy duplication`, `Fix navbar alignment on mobile`, `Update ESLint and Prettier configurations`).
+

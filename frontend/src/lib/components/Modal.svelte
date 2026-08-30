@@ -50,7 +50,7 @@
 					class="flex shrink-0 items-center justify-between border-b px-4 py-3.5 sm:px-6 sm:py-4"
 					style="border-color: var(--border);"
 				>
-					<h2 id="modal-title" class="text-base font-700" style="color: var(--fg)">
+					<h2 id="modal-title" class="font-700 text-base" style="color: var(--fg)">
 						{title}
 					</h2>
 					<button
@@ -65,7 +65,7 @@
 			{/if}
 
 			<!-- Body -->
-			<div class="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+			<div class="flex-1 overflow-y-auto p-4 sm:px-6 sm:py-5">
 				{@render children()}
 			</div>
 

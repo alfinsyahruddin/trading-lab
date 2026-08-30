@@ -29,7 +29,7 @@
 
 <div class="flex flex-col gap-1.5">
 	{#if label}
-		<label for={inputId} class="text-sm font-500" style="color: var(--fg-muted)">
+		<label for={inputId} class="font-500 text-sm" style="color: var(--fg-muted)">
 			{label}{#if required}<span style="color: var(--danger)"> *</span>{/if}
 		</label>
 	{/if}
@@ -43,7 +43,7 @@
 		{min}
 		{max}
 		bind:value
-		class="w-full rounded-lg border px-3.5 py-2.5 text-base sm:text-sm font-400 outline-none transition-all duration-150"
+		class="font-400 w-full rounded-lg border px-3.5 py-2.5 text-base transition-all duration-150 outline-none sm:text-sm"
 		style="
 			background-color: var(--bg-input, var(--bg));
 			border-color: {error ? 'var(--danger)' : 'var(--border-strong)'};
