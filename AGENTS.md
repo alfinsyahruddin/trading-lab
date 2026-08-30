@@ -1,86 +1,224 @@
-# Trading Lab Contributor Guide
+# Trading Lab — Agent & Contributor Guide
 
-## Repository Layout
+Welcome to the **Trading Lab** codebase. This document outlines the architectural principles, workflows, coding conventions, and verification steps for AI agents and human contributors working across the backend and frontend.
 
-- `backend/` is the Rust API.
-- `frontend/` is the SvelteKit 5 web client; do not add backend concerns there.
-- Keep backend code in the established layers: `entities`, `enums`, `guards`, `helpers`,
-  `repositories`, `services`, `routes`, and `setup`.
-- SQL migrations belong in `backend/migrations/` and are automatically applied at API startup.
+---
 
-## Backend Workflow
+## 1. Repository Overview & Architecture
 
-Run commands from `backend/`:
+Trading Lab is a full-stack platform consisting of a high-performance **Rust backend** and a modern **SvelteKit 5 single-page application (SPA)**.
+
+```
+trading-lab/
+├── backend/                  # Rust API service (Actix-web, SQLx, Redis)
+│   ├── migrations/           # SQLx database migration files
+│   ├── src/                  # Layered backend source code
+│   │   ├── constants/        # Global constants
+│   │   ├── entities/         # Domain models, error types, responses, configuration
+│   │   ├── enums/            # System enums (e.g., UserRole, TokenType)
+│   │   ├── guards/           # Actix-web request extractors (auth & RBAC)
+│   │   ├── helpers/          # Cryptography, JWT, hashing utilities
+│   │   ├── repositories/     # Database access layer (PostgreSQL / SQLx)
+│   │   ├── routes/           # HTTP route handlers
+│   │   ├── services/         # Business logic and session management
+│   │   ├── setup/            # Infrastructure initializers (DB, Redis, HTTP client)
+│   │   ├── di.rs             # Dependency injection container
+│   │   ├── http.rs           # HTTP middleware, CORS, JSON configuration
+│   │   ├── lib.rs            # Library entrypoint
+│   │   └── main.rs           # Application server entrypoint
+│   ├── tests/                # Integration and contract tests
+│   ├── Cargo.toml            # Rust dependencies & profiles
+│   ├── Dockerfile            # Container build specification
+│   ├── docker-compose.yml    # Docker Compose for PostgreSQL & Redis
+│   ├── .env.example          # Host environment template
+│   └── .env.docker.example   # Docker container environment template
+│
+├── frontend/                 # SvelteKit 5 SPA (CSR only, Bun, TailwindCSS v4)
+│   ├── src/
+│   │   ├── app.css           # TailwindCSS v4 & CSS design token theme
+│   │   ├── app.html          # HTML template shell
+│   │   ├── lib/
+│   │   │   ├── api.ts        # Typed REST API client & response unwrapper
+│   │   │   ├── constants.ts  # Shared client constants & storage keys
+│   │   │   ├── types.ts      # TypeScript interfaces and types
+│   │   │   ├── components/   # Reusable Svelte 5 UI components
+│   │   │   └── helpers/      # Client-side session, theme, and reactive toast helpers
+│   │   └── routes/           # SvelteKit client-side routes (+layout, +page)
+│   ├── tests/unit/           # Vitest unit & component tests
+│   ├── package.json          # Frontend dependencies & scripts
+│   ├── tsconfig.json         # TypeScript configuration
+│   ├── vite.config.ts        # Vite & Tailwind setup
+│   └── .env.example          # Frontend environment template
+│
+└── AGENTS.md                 # This guide
+```
+
+---
+
+## 2. Backend Guidelines (Rust)
+
+### Tech Stack
+- **Framework**: [Actix-web 4](https://actix.rs/)
+- **Database**: PostgreSQL 16 via [SQLx 0.8](https://github.com/launchbadge/sqlx) (async, compile-time checked / parameterized queries)
+- **Session Cache**: Redis 7 via `redis-rs` (connection manager with Tokio)
+- **Security**: Argon2id for password hashing, `jsonwebtoken` for access/refresh tokens
+- **Validation**: `validator` crate for request payload validation
+
+### Layered Architecture
+Backend logic is strictly segregated into layers:
+1. **Entities & DTOs** (`src/entities/`): Request/response structs, configurations (`AppConfig`), and errors (`AppError`).
+2. **Guards / Extractors** (`src/guards/`):
+   - `AuthenticatedUser`: Validates JWT access token and active session in Redis; extracts user claims.
+   - `RequireAdmin`: Ensures the authenticated user possesses the `ADMIN` role.
+3. **Helpers** (`src/helpers/`): Pure utility functions (`hash_helper` for Argon2, `token_helper` for JWT signing/decoding).
+4. **Repositories** (`src/repositories/`): Direct SQLx queries against PostgreSQL. Repositories handle database interactions only.
+5. **Services** (`src/services/`): Business logic, orchestration between repositories and Redis session store (`AuthService`, `UserService`, `SessionService`).
+6. **Routes** (`src/routes/`): Thin HTTP controllers that extract parameters/guards, invoke services, and transform results using response traits.
+7. **Dependency Injection** (`src/di.rs`): `AppDependencies` struct registered with Actix `app_data`.
+
+### API Envelope & Contract
+All responses must strictly adhere to the unified JSON envelope:
+```json
+{
+  "data": T | null,
+  "status": 200,
+  "message": "Optional message" | null,
+  "timestamp": "2026-08-30T00:00:00.000Z"
+}
+```
+- Handlers should return `AppResponse<T>` (defined as `Result<Json<BaseResponse<T>>, AppError>`).
+- Use the `IntoResponseTrait` helper `service_call().await.json()` or string helper `.json()` instead of manually constructing JSON envelopes.
+- Route handlers must remain thin without business logic.
+
+### Error Handling & Invariants
+- Use `Result<T, AppError>` for all fallible backend operations and propagate with `?`.
+- `AppError` maps domain errors (`BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `Internal`) to standard HTTP statuses and unified error responses.
+- Database, Redis, and JWT errors implement `From<...>` for `AppError`, logging details to stderr and masking internal implementation details as `AppError::Internal`.
+- Avoid `unwrap()` and `expect()` in production code. Only use them in tests where panic on failure is expected.
+
+### Authentication & Sessions
+- **Password Hashing**: Always use Argon2id via `hash_helper`. Never use plain hashes or unauthenticated algorithms.
+- **Session Lifecycle**: Each login generates a JWT pair containing a session ID (`sid`). The session is recorded in Redis under `auth:session:{user_id}:{session_id}` with TTL.
+- **Session Revocation**: Any critical mutation (user logout, password update, role change, or account deletion) **must** revoke all active sessions in Redis.
+- **RBAC**: Public registration `/api/users/register` always assigns the `MEMBER` role. Only authenticated `ADMIN` users can access user management or create `ADMIN` accounts.
+
+### Database & Migrations
+- Migrations reside in `backend/migrations/` with format `YYYYMMDDNNNN_description.sql`.
+- Migrations are applied automatically on startup (`setup_db.rs`).
+- **Never modify existing migration files** that have already run. Always create a new sequential migration.
+- Always use parameterized queries in SQLx. Map unique constraint violations (e.g. duplicate email) to `AppError::conflict`.
+
+### Backend Development Workflow
+Run all backend commands from the `backend/` directory:
 
 ```sh
+# Start PostgreSQL & Redis services
 docker compose --env-file .env.docker up -d
+
+# Run API server on host
 cargo run
+
+# Check formatting
 cargo fmt --check
+
+# Run tests
 cargo test
+
+# Run strict Clippy lints
 cargo clippy --all-targets --all-features --locked -- -D warnings
 ```
 
-Docker Compose intentionally starts only PostgreSQL and Redis. Run the Rust API on the host; it
-loads `backend/.env`.
+---
 
-## Configuration and Secrets
+## 3. Frontend Guidelines (SvelteKit & Svelte 5)
 
-- `backend/.env` configures host-run development.
-- `backend/.env.docker` configures the PostgreSQL and Redis containers.
-- Keep both files synchronized for database and Redis credentials: host URLs use `localhost` /
-  `127.0.0.1`, Docker URLs use service names.
-- Update `.env.example` and `.env.docker.example` whenever configuration keys change.
-- Never log JWTs, passwords, password hashes, refresh tokens, or full connection strings.
-- Do not embed environment-specific credentials in Rust code, migrations, tests, or README
-  examples. The administrator seed is the sole deliberate development exception.
+### Tech Stack
+- **Framework**: [SvelteKit 2](https://kit.svelte.dev/) with **Svelte 5 Runes**
+- **Mode**: Pure Client-Side Rendering (CSR / SPA mode: `export const ssr = false;` in `src/routes/+layout.ts`)
+- **Package Manager & Runtime**: [Bun](https://bun.sh/)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/) with CSS variables
+- **Icons**: `@iconify/svelte` (Lucide icon set)
+- **Charts**: `lightweight-charts` (TradingView)
+- **Testing**: [Vitest](https://vitest.dev/) with `@testing-library/svelte` and `jsdom`
 
-## API and Authentication Rules
+### State & Runes Conventions
+- All Svelte components must use **Svelte 5 Runes**:
+  - `$props()` for component properties.
+  - `$state()` for reactive variables.
+  - `$derived()` for computed/derived values.
+  - `$effect()` for side effects.
+- Reactive modules outside `.svelte` files must use the `.svelte.ts` extension (e.g., `src/lib/helpers/toast.svelte.ts`).
 
-- Preserve the shared JSON envelope: `data`, `status`, `message`, and `timestamp`.
-- Keep route handlers thin. Return service results with the response traits, e.g.
-  `user_service.list().await.json()`, rather than manually constructing envelopes.
-- Public registration always assigns `MEMBER`; only authenticated `ADMIN` users may use user CRUD
-  endpoints or create administrators.
-- Passwords must use Argon2 helpers. Do not replace them with fast hashes or plaintext storage.
-- JWTs include a Redis-backed session ID. Any password, role, or deletion change must revoke the
-  affected sessions.
+### Routing & Client-Side Auth Guards
+- Since the app is pure CSR, route guards run on the client:
+  - `src/routes/+page.ts`, `login/+page.ts`, `register/+page.ts`: Redirect authenticated users to `/dashboard`.
+  - `src/routes/dashboard/+layout.ts`: Checks `getToken()`; redirects unauthenticated visitors to `/login`.
+  - `src/routes/dashboard/users/+page.svelte`: Client-side admin verification (redirects non-admin users to `/dashboard`).
+- All backend routes independently enforce authentication and authorization.
 
-## Database and Redis Changes
+### API Client
+- `src/lib/api.ts` wraps all network requests, attaches `Authorization: Bearer <token>`, unwraps `BaseResponse<T>`, and raises typed `ApiError` instances on failure.
+- When calling backend endpoints, do not fetch directly from components; use or extend `src/lib/api.ts`.
 
-- Add a new timestamp-prefixed migration; never edit a migration that may already have run.
-- Preserve the PostgreSQL `user_role` enum values `ADMIN` and `MEMBER` unless an explicit data
-  migration accompanies the change.
-- Use parameterized SQLx queries and map duplicate email errors to the API conflict response.
-- Treat Redis as the authoritative store for active session validity; namespace new keys under
-  `auth:`.
+### Design System & Styling
+- Defined in `src/app.css` via Tailwind v4 `@theme` tokens:
+  - `--color-brand-cyan`: Primary accent `#30B4C9` (buttons, active states, badges)
+  - `--color-brand-navy-dark`: Dark background `#2A344C`
+  - `--color-brand-navy-card`: Dark card background `#3C486A`
+  - `--color-brand-light-bg`: Light background `#EEF0F6`
+  - `--color-brand-light-card`: Light card/modal background `#FFFFFF`
+  - Font: `Montserrat`
+- Always use semantic utility classes and custom property tokens rather than arbitrary hardcoded hex codes.
 
-## Rust Conventions
-
-- Use `Result<T, AppError>` for fallible backend operations and propagate with `?`.
-- Avoid `unwrap()` and `expect()` outside tests.
-- Borrow strings as `&str` where ownership is unnecessary; avoid incidental cloning.
-- Add focused unit tests for pure helpers and route/integration tests for public behavior.
-- Before handoff, run formatting, tests, and strict Clippy. Do not silence a lint without a
-  documented, justified `#[expect(...)]`.
-
-## Frontend Workflow
-
-Run commands from `frontend/`:
+### Frontend Development Workflow
+Run all frontend commands from the `frontend/` directory:
 
 ```sh
+# Install dependencies
 bun install
+
+# Start local development server (port 3000)
 bun run dev
+
+# Run Svelte and TypeScript diagnostics
 bun run check
+
+# Run unit and component tests (Vitest)
 bun run test:unit
+
+# Check Prettier formatting
 bun run format:check
+
+# Auto-format codebase
+bun run format
 ```
 
-The frontend dev server runs on `http://localhost:3000`. It expects the backend API
-at `PUBLIC_API_BASE_URL` (default `http://127.0.0.1:8000`), configured in `frontend/.env`.
+> **Note on Testing**: Always run tests using `bun run test:unit` (or `bun run test`). Avoid running `bun test` directly, as Vitest is configured for DOM/Svelte component testing.
 
-- Frontend runs entirely client-side (CSR / SPA mode, `ssr = false`).
-- Tokens are stored in `localStorage` for client-side API calls and load route guards.
-- Route guards are enforced client-side and by the backend API.
-- All Svelte components use Svelte 5 runes (`$props`, `$state`, `$derived`, `$effect`).
-- Design tokens are CSS custom properties in `src/app.css`; avoid hardcoding colours.
-- Add unit tests to `tests/unit/` for helpers, components, and route guards.
+---
+
+## 4. Environment & Secrets Management
+
+- **Backend Host**: Configured via `backend/.env` (reads `127.0.0.1` / `localhost` for local services).
+- **Backend Docker**: Configured via `backend/.env.docker` (used by Docker Compose for container port/credential setup).
+- **Frontend**: Configured via `frontend/.env` (`PUBLIC_API_BASE_URL=http://127.0.0.1:8000`).
+- Synchronize `.env.example` and `.env.docker.example` whenever environment variables change.
+- **Never commit secrets, passwords, API tokens, or production credentials to git.**
+- Never log full JWT tokens, hashes, or database connection strings with passwords.
+
+---
+
+## 5. Verification Checklist for Agents
+
+Before completing any task, ensure you have verified your changes against the appropriate toolchains:
+
+### For Backend Changes:
+1. `cargo fmt --check` passes cleanly.
+2. `cargo test` passes all tests.
+3. `cargo clippy --all-targets --all-features --locked -- -D warnings` completes with zero warnings/errors.
+4. Database migrations have been tested against local PostgreSQL if schema was modified.
+
+### For Frontend Changes:
+1. `bun run check` produces zero errors and zero warnings.
+2. `bun run test:unit` passes all test suites.
+3. `bun run format:check` reports clean formatting.
