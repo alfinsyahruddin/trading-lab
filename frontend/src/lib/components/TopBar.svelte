@@ -10,7 +10,6 @@
 	import type { UserResponse } from '$lib/types';
 
 	let user = $state<UserResponse | null>(null);
-	let avatarMenuOpen = $state(false);
 	let mobileMenuOpen = $state(false);
 	let loggingOut = $state(false);
 
@@ -32,14 +31,8 @@
 		return $page.url.pathname.startsWith(href);
 	}
 
-	function toggleAvatarMenu() {
-		avatarMenuOpen = !avatarMenuOpen;
-		if (avatarMenuOpen) mobileMenuOpen = false;
-	}
-
 	function toggleMobileMenu() {
 		mobileMenuOpen = !mobileMenuOpen;
-		if (mobileMenuOpen) avatarMenuOpen = false;
 	}
 
 	async function handleLogout() {
@@ -57,12 +50,9 @@
 		}
 	}
 
-	// Close menus when clicking outside or pressing Escape
+	// Close mobile menu when clicking outside or pressing Escape
 	function handleWindowClick(e: MouseEvent) {
 		const target = e.target as HTMLElement;
-		if (!target.closest('[data-avatar-menu]')) {
-			avatarMenuOpen = false;
-		}
 		if (!target.closest('[data-mobile-menu]') && !target.closest('[data-mobile-menu-btn]')) {
 			mobileMenuOpen = false;
 		}
@@ -70,7 +60,6 @@
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
-			avatarMenuOpen = false;
 			mobileMenuOpen = false;
 		}
 	}
@@ -83,8 +72,8 @@
 	style="background-color: var(--bg-card); border-color: var(--border);"
 >
 	<div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-6 sm:px-6">
-		<!-- Left: Logo + Desktop Nav -->
-		<div class="flex items-center gap-3 sm:gap-6">
+		<!-- Left: Logo + Theme toggle -->
+		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- Logo (no hover background) -->
 			<a
 				href="/dashboard"
@@ -104,23 +93,26 @@
 				/>
 			</a>
 
-			<!-- Desktop Nav -->
-			<nav class="hidden items-center gap-1 sm:flex">
-				{#each navItems as item}
-					<a
-						href={item.href}
-						class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-500 transition-colors duration-150"
-						class:active={isActive(item.href)}
-						aria-current={isActive(item.href) ? 'page' : undefined}
-					>
-						<Icon icon={item.icon} width="16" height="16" />
-						<span>{item.label}</span>
-					</a>
-				{/each}
-			</nav>
+			<!-- Theme toggle -->
+			<ThemeToggle />
 		</div>
 
-		<!-- Right: User info + Theme toggle + Avatar + Mobile hamburger -->
+		<!-- Center: Desktop Nav -->
+		<nav class="hidden items-center gap-1 sm:flex">
+			{#each navItems as item}
+				<a
+					href={item.href}
+					class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-500 transition-colors duration-150"
+					class:active={isActive(item.href)}
+					aria-current={isActive(item.href) ? 'page' : undefined}
+				>
+					<Icon icon={item.icon} width="16" height="16" />
+					<span>{item.label}</span>
+				</a>
+			{/each}
+		</nav>
+
+		<!-- Right: User info + Avatar + Logout + Mobile hamburger -->
 		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- User info: Name + compact RoleBadge below (desktop only) -->
 			{#if user}
@@ -130,48 +122,32 @@
 				</div>
 			{/if}
 
-			<!-- Theme toggle -->
-			<ThemeToggle />
-
-			<!-- Avatar with dropdown -->
-			<div class="relative" data-avatar-menu>
-				<button
-					onclick={toggleAvatarMenu}
-					class="btn-interactive flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-white shadow-xs hover:scale-105 hover:opacity-90"
-					style="background-color: var(--accent);"
-					aria-label="User menu"
-					aria-expanded={avatarMenuOpen}
-				>
-					<Icon icon="lucide:user" width="16" height="16" />
-				</button>
-
-				<!-- Dropdown -->
-				{#if avatarMenuOpen}
-					<div
-						class="animate-dropdown absolute right-0 top-full mt-2 w-48 sm:w-36 overflow-hidden rounded-xl border shadow-xl z-50"
-						style="background-color: var(--bg-card); border-color: var(--border-strong);"
-					>
-						{#if user}
-							<div class="border-b px-3.5 py-2.5 sm:hidden" style="border-color: var(--border);">
-								<p class="text-sm font-600 truncate" style="color: var(--fg)">{user.name}</p>
-								<div class="mt-1 flex items-center justify-between gap-1">
-									<p class="text-xs truncate" style="color: var(--fg-muted)">{user.email}</p>
-									<RoleBadge role={user.role} size="sm" />
-								</div>
-							</div>
-						{/if}
-						<button
-							onclick={handleLogout}
-							disabled={loggingOut}
-							class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover) active:opacity-75"
-							style="color: var(--danger);"
-						>
-							<Icon icon="lucide:log-out" width="15" height="15" />
-							{loggingOut ? 'Logging out…' : 'Logout'}
-						</button>
-					</div>
-				{/if}
+			<!-- Avatar -->
+			<div
+				class="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-white shadow-xs"
+				style="background-color: var(--accent);"
+				title={user ? `${user.name} (${user.email})` : 'User avatar'}
+				aria-label={user ? user.name : 'User avatar'}
+			>
+				<Icon icon="lucide:user" width="16" height="16" />
 			</div>
+
+			<!-- Logout Button -->
+			<button
+				type="button"
+				onclick={handleLogout}
+				disabled={loggingOut}
+				class="btn-interactive flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-(--bg-card-hover) active:scale-95 disabled:opacity-50"
+				style="color: var(--danger);"
+				aria-label="Logout"
+				title={loggingOut ? 'Logging out…' : 'Logout'}
+			>
+				{#if loggingOut}
+					<Icon icon="lucide:loader-2" class="animate-spin" width="18" height="18" />
+				{:else}
+					<Icon icon="lucide:log-out" width="18" height="18" />
+				{/if}
+			</button>
 
 			<!-- Mobile hamburger button -->
 			<button

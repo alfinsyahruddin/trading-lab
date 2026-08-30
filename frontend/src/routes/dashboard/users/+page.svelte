@@ -43,6 +43,18 @@
 	let deleteLoading = $state(false);
 	let deleteTarget = $state<UserResponse | null>(null);
 
+	function formatDate(dateStr: string): string {
+		const d = new Date(dateStr);
+		if (isNaN(d.getTime())) return dateStr;
+		const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+		const day = d.getDate();
+		const month = d.toLocaleDateString('en-US', { month: 'short' });
+		const year = d.getFullYear();
+		const hours = String(d.getHours()).padStart(2, '0');
+		const minutes = String(d.getMinutes()).padStart(2, '0');
+		return `${weekday}, ${day} ${month} ${year} • ${hours}.${minutes}`;
+	}
+
 	// ── Table columns ──────────────────────────────────────────────────────
 	const columns = [
 		{ key: 'name', label: 'Name' },
@@ -51,12 +63,7 @@
 		{
 			key: 'created_at',
 			label: 'Created',
-			render: (row: UserResponse) =>
-				new Date(row.created_at).toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric'
-				})
+			render: (row: UserResponse) => formatDate(row.created_at)
 		}
 	];
 
