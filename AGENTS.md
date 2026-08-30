@@ -2,8 +2,8 @@
 
 ## Repository Layout
 
-- `backend/` is the Rust API. It is the only implemented application today.
-- `frontend/` is reserved for the web client; do not add backend concerns there.
+- `backend/` is the Rust API.
+- `frontend/` is the SvelteKit 5 web client; do not add backend concerns there.
 - Keep backend code in the established layers: `entities`, `enums`, `guards`, `helpers`,
   `repositories`, `services`, `routes`, and `setup`.
 - SQL migrations belong in `backend/migrations/` and are automatically applied at API startup.
@@ -62,3 +62,25 @@ loads `backend/.env`.
 - Add focused unit tests for pure helpers and route/integration tests for public behavior.
 - Before handoff, run formatting, tests, and strict Clippy. Do not silence a lint without a
   documented, justified `#[expect(...)]`.
+
+## Frontend Workflow
+
+Run commands from `frontend/`:
+
+```sh
+bun install
+bun run dev
+bun run check
+bun run test:unit
+bun run format:check
+```
+
+The frontend dev server runs on `http://localhost:3000`. It expects the backend API
+at `PUBLIC_API_BASE_URL` (default `http://127.0.0.1:8000`), configured in `frontend/.env`.
+
+- Frontend runs entirely client-side (CSR / SPA mode, `ssr = false`).
+- Tokens are stored in `localStorage` for client-side API calls and load route guards.
+- Route guards are enforced client-side and by the backend API.
+- All Svelte components use Svelte 5 runes (`$props`, `$state`, `$derived`, `$effect`).
+- Design tokens are CSS custom properties in `src/app.css`; avoid hardcoding colours.
+- Add unit tests to `tests/unit/` for helpers, components, and route guards.

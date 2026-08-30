@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-family-sans: 'Montserrat', system-ui, sans-serif;
+
+	/* Accent */
+	--color-accent: #30b4c9;
+	--color-accent-hover: #2a9fb2;
+	--color-accent-soft: rgba(48, 180, 201, 0.12);
+
+	/* Status colors */
+	--color-success: #22c55e;
+	--color-danger: #ef4444;
+	--color-warning: #f59e0b;
+}
+
+/* CSS custom properties for theming (light default) */
+:root {
+	--bg: #ffffff;
+	--bg-card: #eef0f6;
+	--bg-card-hover: #e4e7f0;
+	--fg: #1e293b;
+	--fg-muted: #64748b;
+	--border: #e2e8f0;
+	--border-strong: #cbd5e1;
+	--accent: #30b4c9;
+	--accent-hover: #2a9fb2;
+	--accent-soft: rgba(48, 180, 201, 0.12);
+	--success: #22c55e;
+	--danger: #ef4444;
+	--warning: #f59e0b;
+}
+
+:root.dark {
+	--bg: #2a344c;
+	--bg-card: #3c486a;
+	--bg-card-hover: #485580;
+	--fg: #f1f5f9;
+	--fg-muted: #94a3b8;
+	--border: rgba(255, 255, 255, 0.1);
+	--border-strong: rgba(255, 255, 255, 0.18);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: var(--bg);
+	color: var(--fg);
+	font-family: 'Montserrat', system-ui, sans-serif;
+	line-height: 1.6;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease;
+}
+
+/* Smooth transitions for theme changes */
+*,
+*::before,
+*::after {
+	transition-property: background-color, border-color, color;
+	transition-duration: 0.15s;
+	transition-timing-function: ease;
+}
+
+/* Utility: card style */
+.card {
+	background-color: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--fg-muted);
+}
