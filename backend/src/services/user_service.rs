@@ -6,10 +6,13 @@ use validator::Validate;
 use crate::{
     entities::{
         app_error::AppError,
-        user::{AdminCreateUserRequest, AdminUpdateUserRequest, RegisterRequest, UserResponse},
+        user::{
+            AdminCreateUserRequest, AdminUpdateUserRequest, ChangePasswordRequest, RegisterRequest,
+            UpdateProfileRequest, UserResponse,
+        },
     },
     enums::user_role::UserRole,
-    helpers::hash_helper::hash_password,
+    helpers::hash_helper::{hash_password, verify_password},
     repositories::user_repository::UserRepository,
     services::{auth_service::normalize_email, session_service::SessionService},
 };
@@ -63,6 +66,43 @@ impl UserService {
 
     pub async fn get(&self, id: Uuid) -> Result<UserResponse, AppError> {
         self.users.find_by_id(id).await.map(Into::into)
+    }
+
+    pub async fn update_profile(
+        &self,
+        id: Uuid,
+        request: UpdateProfileRequest,
+    ) -> Result<UserResponse, AppError> {
+        request
+            .validate()
+            .map_err(|_| AppError::bad_request("Invalid profile update request"))?;
+        let name = normalize_name(request.name)?;
+        let email = normalize_email(&request.email);
+        let user = self
+            .users
+            .update(id, Some(&name), Some(&email), None, None)
+            .await?;
+        Ok(user.into())
+    }
+
+    pub async fn change_password(
+        &self,
+        id: Uuid,
+        request: ChangePasswordRequest,
+    ) -> Result<(), AppError> {
+        request
+            .validate()
+            .map_err(|_| AppError::bad_request("Invalid password change request"))?;
+        let user = self.users.find_by_id(id).await?;
+        if !verify_password(&request.current_password, &user.password_hash)? {
+            return Err(AppError::bad_request("Current password is incorrect"));
+        }
+        let password_hash = hash_password(&request.new_password)?;
+        self.users
+            .update(id, None, None, Some(&password_hash), None)
+            .await?;
+        self.sessions.revoke_all_user_sessions(id).await?;
+        Ok(())
     }
 
     pub async fn update(

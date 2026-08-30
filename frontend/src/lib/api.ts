@@ -174,6 +174,40 @@ export function refreshTokens(refreshToken: string): Promise<LoginResponse> {
 	});
 }
 
+// --- Profile & Account ---
+
+export function getCurrentUser(token?: string): Promise<UserResponse> {
+	return request<UserResponse>('/api/users/me', { method: 'GET' }, token);
+}
+
+export function updateProfile(
+	data: { name: string; email: string },
+	token?: string
+): Promise<UserResponse> {
+	return request<UserResponse>(
+		'/api/users/me',
+		{
+			method: 'PATCH',
+			body: JSON.stringify(data)
+		},
+		token
+	);
+}
+
+export function changePassword(
+	data: { current_password: string; new_password: string },
+	token?: string
+): Promise<string> {
+	return request<string>(
+		'/api/users/me/password',
+		{
+			method: 'POST',
+			body: JSON.stringify(data)
+		},
+		token
+	);
+}
+
 // --- Users (Admin only) ---
 
 export function listUsers(token?: string): Promise<UserResponse[]> {

@@ -33,6 +33,10 @@ import {
 	getToken,
 	getRefreshToken,
 	getUser,
+	updateUserSession,
+	getRememberedAccounts,
+	saveRememberedAccount,
+	removeRememberedAccount,
 	clearSession
 } from '$lib/helpers/session';
 import type { UserResponse } from '$lib/types';
@@ -82,8 +86,39 @@ describe('session helper', () => {
 		expect(getUser()).toBeNull();
 	});
 
+	it('updateUserSession updates stored user in localStorage', () => {
+		persistSession('access-token', 'refresh-token', mockUser);
+		const updatedUser = { ...mockUser, name: 'Updated Name', email: 'updated@mail.com' };
+		updateUserSession(updatedUser);
+		expect(getUser()?.name).toBe('Updated Name');
+		expect(getUser()?.email).toBe('updated@mail.com');
+	});
+
 	it('getUser handles corrupted JSON gracefully', () => {
 		localStorage.setItem('trading_lab_user', 'not-valid-json{');
 		expect(getUser()).toBeNull();
+	});
+
+	it('manages remembered accounts in localStorage', () => {
+		expect(getRememberedAccounts()).toEqual([]);
+
+		saveRememberedAccount({ name: 'User A', email: 'a@mail.com', role: 'MEMBER' });
+		expect(getRememberedAccounts()).toHaveLength(1);
+		expect(getRememberedAccounts()[0].email).toBe('a@mail.com');
+
+		// Adding second account brings it to the top
+		saveRememberedAccount({ name: 'User B', email: 'b@mail.com', role: 'ADMIN' });
+		expect(getRememberedAccounts()).toHaveLength(2);
+		expect(getRememberedAccounts()[0].email).toBe('b@mail.com');
+
+		// Re-saving existing account brings it to the top
+		saveRememberedAccount({ name: 'User A Updated', email: 'a@mail.com', role: 'ADMIN' });
+		expect(getRememberedAccounts()).toHaveLength(2);
+		expect(getRememberedAccounts()[0].name).toBe('User A Updated');
+
+		// Remove account
+		removeRememberedAccount('b@mail.com');
+		expect(getRememberedAccounts()).toHaveLength(1);
+		expect(getRememberedAccounts()[0].email).toBe('a@mail.com');
 	});
 });

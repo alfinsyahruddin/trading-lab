@@ -9,6 +9,13 @@ export interface UserResponse {
 	updated_at: string;
 }
 
+export interface RememberedAccount {
+	email: string;
+	name: string;
+	role: UserRole;
+	password?: string;
+}
+
 export interface TokenResponse {
 	access_token: string;
 	refresh_token: string;

@@ -1,5 +1,5 @@
-import { LS_REFRESH, LS_TOKEN, LS_USER } from '$lib/constants';
-import type { UserResponse } from '$lib/types';
+import { LS_REFRESH, LS_REMEMBERED_ACCOUNTS, LS_TOKEN, LS_USER } from '$lib/constants';
+import type { RememberedAccount, UserResponse } from '$lib/types';
 
 /**
  * Persists auth session to localStorage for client-side API calls and auth guards.
@@ -33,6 +33,40 @@ export function getUser(): UserResponse | null {
 	} catch {
 		return null;
 	}
+}
+
+/** Updates the stored user object in localStorage. */
+export function updateUserSession(user: UserResponse): void {
+	localStorage.setItem(LS_USER, JSON.stringify(user));
+}
+
+/** Returns the list of remembered accounts for quick login. */
+export function getRememberedAccounts(): RememberedAccount[] {
+	const raw = localStorage.getItem(LS_REMEMBERED_ACCOUNTS);
+	if (!raw) return [];
+	try {
+		const parsed = JSON.parse(raw);
+		return Array.isArray(parsed) ? parsed : [];
+	} catch {
+		return [];
+	}
+}
+
+/** Adds or updates an account in the remembered accounts list (brought to top). */
+export function saveRememberedAccount(account: RememberedAccount): void {
+	const accounts = getRememberedAccounts().filter(
+		(a) => a.email.toLowerCase() !== account.email.toLowerCase()
+	);
+	accounts.unshift(account);
+	localStorage.setItem(LS_REMEMBERED_ACCOUNTS, JSON.stringify(accounts));
+}
+
+/** Removes an account from the remembered accounts list. */
+export function removeRememberedAccount(email: string): void {
+	const accounts = getRememberedAccounts().filter(
+		(a) => a.email.toLowerCase() !== email.toLowerCase()
+	);
+	localStorage.setItem(LS_REMEMBERED_ACCOUNTS, JSON.stringify(accounts));
 }
 
 /**

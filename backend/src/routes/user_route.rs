@@ -52,6 +52,39 @@ pub async fn logout(
         .json()
 }
 
+#[get("/api/users/me")]
+pub async fn get_current_user(
+    user_service: Data<UserService>,
+    user: AuthenticatedUser,
+) -> AppResponse<UserResponse> {
+    user_service.get(user.claims.sub).await.json()
+}
+
+#[patch("/api/users/me")]
+pub async fn update_current_user_profile(
+    user_service: Data<UserService>,
+    user: AuthenticatedUser,
+    body: Json<crate::entities::user::UpdateProfileRequest>,
+) -> AppResponse<UserResponse> {
+    user_service
+        .update_profile(user.claims.sub, body.into_inner())
+        .await
+        .json()
+}
+
+#[post("/api/users/me/password")]
+pub async fn change_current_user_password(
+    user_service: Data<UserService>,
+    user: AuthenticatedUser,
+    body: Json<crate::entities::user::ChangePasswordRequest>,
+) -> AppResponse<String> {
+    user_service
+        .change_password(user.claims.sub, body.into_inner())
+        .await
+        .map(|_| String::from("Password changed successfully"))
+        .json()
+}
+
 #[post("/api/users")]
 pub async fn create_user(
     user_service: Data<UserService>,
