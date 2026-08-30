@@ -26,6 +26,7 @@
 	const navItems = $derived([
 		{ href: '/dashboard', label: 'Dashboard', icon: 'lucide:home' },
 		{ href: '/dashboard/strategies', label: 'Trading Strategy', icon: 'lucide:candlestick-chart' },
+		{ href: '/dashboard/backtests', label: 'Backtest', icon: 'lucide:flask-conical' },
 		...(user?.role === 'ADMIN'
 			? [{ href: '/dashboard/users', label: 'Users', icon: 'lucide:users' }]
 			: [])

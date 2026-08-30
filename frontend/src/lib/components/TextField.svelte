@@ -6,7 +6,10 @@
 		placeholder = '',
 		error = '',
 		disabled = false,
-		required = false
+		required = false,
+		step,
+		min,
+		max
 	}: {
 		label?: string;
 		value?: string;
@@ -15,9 +18,13 @@
 		error?: string;
 		disabled?: boolean;
 		required?: boolean;
+		step?: string | number;
+		min?: string | number;
+		max?: string | number;
 	} = $props();
 
 	const inputId = $derived(label ? `field-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined);
+	const computedStep = $derived(step !== undefined ? step : type === 'number' ? 'any' : undefined);
 </script>
 
 <div class="flex flex-col gap-1.5">
@@ -32,6 +39,9 @@
 		{placeholder}
 		{disabled}
 		{required}
+		step={computedStep}
+		{min}
+		{max}
 		bind:value
 		class="w-full rounded-lg border px-3.5 py-2.5 text-base sm:text-sm font-400 outline-none transition-all duration-150"
 		style="

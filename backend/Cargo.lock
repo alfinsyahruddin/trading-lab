@@ -2759,6 +2759,7 @@ dependencies = [
  "actix-cors",
  "actix-web",
  "argon2",
+ "async-trait",
  "chrono",
  "dotenvy",
  "futures-util",

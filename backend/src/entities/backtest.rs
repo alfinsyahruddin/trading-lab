@@ -1,0 +1,375 @@
+use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
+use uuid::Uuid;
+use validator::Validate;
+
+use crate::enums::backtest_status::BacktestStatus;
+
+#[derive(Debug, FromRow)]
+pub struct BacktestJobRecord {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub strategy_id: Uuid,
+    pub strategy_name: String,
+    pub name: String,
+    pub year: i32,
+    pub initial_cash: f64,
+    pub max_holding_stocks: i32,
+    pub backtest_duration_months: i32,
+    pub buy_fee_percentage: f64,
+    pub sell_fee_percentage: f64,
+    pub status: BacktestStatus,
+    pub error_message: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, FromRow)]
+pub struct BacktestResultRecord {
+    pub id: Uuid,
+    pub backtest_job_id: Uuid,
+    pub available_cash: f64,
+    pub trades_processed: i32,
+    pub net_pnl: f64,
+    pub net_pnl_percentage: f64,
+    pub gross_pnl: f64,
+    pub gross_pnl_percentage: f64,
+    pub win_rate: f64,
+    pub profit_factor: f64,
+    pub wins: i32,
+    pub losses: i32,
+    pub sharpe_ratio: f64,
+    pub max_profit: f64,
+    pub max_profit_percentage: f64,
+    pub max_loss: f64,
+    pub max_loss_percentage: f64,
+    pub avg_profit: f64,
+    pub avg_profit_percentage: f64,
+    pub avg_loss: f64,
+    pub avg_loss_percentage: f64,
+    pub avg_hold_time_days: f64,
+    pub total_fees: f64,
+    pub avg_win_hold_days: f64,
+    pub avg_loss_hold_days: f64,
+    pub portfolio_volatility: f64,
+}
+
+#[derive(Debug, FromRow)]
+pub struct BacktestPortfolioHistoryRecord {
+    pub id: Uuid,
+    pub backtest_job_id: Uuid,
+    pub date: NaiveDate,
+    pub net_value: f64,
+    pub gross_value: f64,
+}
+
+#[derive(Debug, FromRow)]
+pub struct BacktestTradeRecord {
+    pub id: Uuid,
+    pub backtest_job_id: Uuid,
+    pub code: String,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+    pub exit_reason: String,
+    pub lot: i32,
+    pub buy_price: f64,
+    pub buy_value: f64,
+    pub sell_price: f64,
+    pub sell_value: f64,
+    pub buy_fee: f64,
+    pub sell_fee: f64,
+    pub buy_date: NaiveDate,
+    pub sell_date: NaiveDate,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BacktestJobResponse {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub strategy_id: Uuid,
+    pub strategy_name: String,
+    pub name: String,
+    pub year: i32,
+    pub initial_cash: f64,
+    pub max_holding_stocks: i32,
+    pub backtest_duration_months: i32,
+    pub buy_fee_percentage: f64,
+    pub sell_fee_percentage: f64,
+    pub status: BacktestStatus,
+    pub error_message: Option<String>,
+    pub result: Option<BacktestResultResponse>,
+    pub portfolio_history: Option<Vec<PortfolioHistoryResponse>>,
+    pub most_traded: Option<Vec<MostTradedResponse>>,
+    pub top_gainers: Option<Vec<TopEntryResponse>>,
+    pub top_losers: Option<Vec<TopEntryResponse>>,
+    pub trade_history: Option<Vec<TradeHistoryResponse>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BacktestResultResponse {
+    pub available_cash: f64,
+    pub trades_processed: i32,
+    pub net_pnl: f64,
+    pub net_pnl_percentage: f64,
+    pub gross_pnl: f64,
+    pub gross_pnl_percentage: f64,
+    pub win_rate: f64,
+    pub profit_factor: f64,
+    pub wins: i32,
+    pub losses: i32,
+    pub sharpe_ratio: f64,
+    pub max_profit: f64,
+    pub max_profit_percentage: f64,
+    pub max_loss: f64,
+    pub max_loss_percentage: f64,
+    pub avg_profit: f64,
+    pub avg_profit_percentage: f64,
+    pub avg_loss: f64,
+    pub avg_loss_percentage: f64,
+    pub avg_hold_time_days: f64,
+    pub total_fees: f64,
+    pub avg_win_hold_days: f64,
+    pub avg_loss_hold_days: f64,
+    pub portfolio_volatility: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PortfolioHistoryResponse {
+    pub date: NaiveDate,
+    pub net_value: f64,
+    pub gross_value: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MostTradedResponse {
+    pub code: String,
+    pub total: i64,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TopEntryResponse {
+    pub code: String,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TradeHistoryResponse {
+    pub id: Uuid,
+    pub code: String,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+    pub exit_reason: String,
+    pub lot: i32,
+    pub buy_price: f64,
+    pub buy_value: f64,
+    pub sell_price: f64,
+    pub sell_value: f64,
+    pub buy_fee: f64,
+    pub sell_fee: f64,
+    pub buy_date: NaiveDate,
+    pub sell_date: NaiveDate,
+}
+
+#[derive(Clone, Debug, Deserialize, Validate)]
+pub struct CreateBacktestJobRequest {
+    pub strategy_id: Uuid,
+    #[validate(length(min = 1, max = 255))]
+    pub name: String,
+    #[validate(range(min = 2020, max = 2030))]
+    pub year: i32,
+    #[validate(range(min = 1_000_000.0, max = 100_000_000_000.0))]
+    pub initial_cash: f64,
+    #[validate(range(min = 1, max = 50))]
+    pub max_holding_stocks: i32,
+    pub backtest_duration_months: i32,
+    #[validate(range(min = 0.0, max = 10.0))]
+    pub buy_fee_percentage: f64,
+    #[validate(range(min = 0.0, max = 10.0))]
+    pub sell_fee_percentage: f64,
+}
+
+impl From<BacktestResultRecord> for BacktestResultResponse {
+    fn from(record: BacktestResultRecord) -> Self {
+        Self {
+            available_cash: record.available_cash,
+            trades_processed: record.trades_processed,
+            net_pnl: record.net_pnl,
+            net_pnl_percentage: record.net_pnl_percentage,
+            gross_pnl: record.gross_pnl,
+            gross_pnl_percentage: record.gross_pnl_percentage,
+            win_rate: record.win_rate,
+            profit_factor: record.profit_factor,
+            wins: record.wins,
+            losses: record.losses,
+            sharpe_ratio: record.sharpe_ratio,
+            max_profit: record.max_profit,
+            max_profit_percentage: record.max_profit_percentage,
+            max_loss: record.max_loss,
+            max_loss_percentage: record.max_loss_percentage,
+            avg_profit: record.avg_profit,
+            avg_profit_percentage: record.avg_profit_percentage,
+            avg_loss: record.avg_loss,
+            avg_loss_percentage: record.avg_loss_percentage,
+            avg_hold_time_days: record.avg_hold_time_days,
+            total_fees: record.total_fees,
+            avg_win_hold_days: record.avg_win_hold_days,
+            avg_loss_hold_days: record.avg_loss_hold_days,
+            portfolio_volatility: record.portfolio_volatility,
+        }
+    }
+}
+
+impl From<BacktestPortfolioHistoryRecord> for PortfolioHistoryResponse {
+    fn from(record: BacktestPortfolioHistoryRecord) -> Self {
+        Self {
+            date: record.date,
+            net_value: record.net_value,
+            gross_value: record.gross_value,
+        }
+    }
+}
+
+impl From<BacktestTradeRecord> for TradeHistoryResponse {
+    fn from(record: BacktestTradeRecord) -> Self {
+        Self {
+            id: record.id,
+            code: record.code,
+            pnl: record.pnl,
+            pnl_percentage: record.pnl_percentage,
+            exit_reason: record.exit_reason,
+            lot: record.lot,
+            buy_price: record.buy_price,
+            buy_value: record.buy_value,
+            sell_price: record.sell_price,
+            sell_value: record.sell_value,
+            buy_fee: record.buy_fee,
+            sell_fee: record.sell_fee,
+            buy_date: record.buy_date,
+            sell_date: record.sell_date,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_validate_create_backtest_job_request() {
+        let valid = CreateBacktestJobRequest {
+            strategy_id: Uuid::new_v4(),
+            name: "Momentum Backtest 2024".to_string(),
+            year: 2024,
+            initial_cash: 100_000_000.0,
+            max_holding_stocks: 3,
+            backtest_duration_months: 12,
+            buy_fee_percentage: 0.15,
+            sell_fee_percentage: 0.25,
+        };
+        assert!(valid.validate().is_ok());
+
+        let invalid_name = CreateBacktestJobRequest {
+            name: "".to_string(),
+            ..valid.clone()
+        };
+        assert!(invalid_name.validate().is_err());
+
+        let invalid_year = CreateBacktestJobRequest {
+            year: 2010,
+            ..valid.clone()
+        };
+        assert!(invalid_year.validate().is_err());
+
+        let invalid_cash = CreateBacktestJobRequest {
+            initial_cash: 500.0,
+            ..valid.clone()
+        };
+        assert!(invalid_cash.validate().is_err());
+
+        let invalid_holding = CreateBacktestJobRequest {
+            max_holding_stocks: 0,
+            ..valid.clone()
+        };
+        assert!(invalid_holding.validate().is_err());
+
+        let invalid_fees = CreateBacktestJobRequest {
+            buy_fee_percentage: -1.0,
+            ..valid
+        };
+        assert!(invalid_fees.validate().is_err());
+    }
+
+    #[test]
+    fn should_convert_records_to_responses() {
+        let job_id = Uuid::new_v4();
+        let result_record = BacktestResultRecord {
+            id: Uuid::new_v4(),
+            backtest_job_id: job_id,
+            available_cash: 105_000_000.0,
+            trades_processed: 10,
+            net_pnl: 5_000_000.0,
+            net_pnl_percentage: 5.0,
+            gross_pnl: 5_500_000.0,
+            gross_pnl_percentage: 5.5,
+            win_rate: 70.0,
+            profit_factor: 2.1,
+            wins: 7,
+            losses: 3,
+            sharpe_ratio: 1.45,
+            max_profit: 2_000_000.0,
+            max_profit_percentage: 6.0,
+            max_loss: -800_000.0,
+            max_loss_percentage: -2.4,
+            avg_profit: 1_000_000.0,
+            avg_profit_percentage: 3.0,
+            avg_loss: -500_000.0,
+            avg_loss_percentage: -1.5,
+            avg_hold_time_days: 5.2,
+            total_fees: 500_000.0,
+            avg_win_hold_days: 6.0,
+            avg_loss_hold_days: 3.3,
+            portfolio_volatility: 12.5,
+        };
+
+        let res = BacktestResultResponse::from(result_record);
+        assert_eq!(res.trades_processed, 10);
+        assert_eq!(res.win_rate, 70.0);
+        assert_eq!(res.net_pnl, 5_000_000.0);
+    }
+
+    #[test]
+    fn should_serialize_backtest_status_in_job_response() {
+        let job = BacktestJobResponse {
+            id: Uuid::new_v4(),
+            user_id: Uuid::new_v4(),
+            strategy_id: Uuid::new_v4(),
+            strategy_name: "Strategy A".to_string(),
+            name: "Job A".to_string(),
+            year: 2024,
+            initial_cash: 100_000_000.0,
+            max_holding_stocks: 3,
+            backtest_duration_months: 12,
+            buy_fee_percentage: 0.15,
+            sell_fee_percentage: 0.25,
+            status: BacktestStatus::Processing,
+            error_message: None,
+            result: None,
+            portfolio_history: None,
+            most_traded: None,
+            top_gainers: None,
+            top_losers: None,
+            trade_history: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let json = serde_json::to_string(&job).expect("serialize job");
+        assert!(json.contains("\"status\":\"PROCESSING\""));
+    }
+}

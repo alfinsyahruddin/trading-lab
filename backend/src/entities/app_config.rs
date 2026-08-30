@@ -11,6 +11,7 @@ pub struct AppConfig {
     pub access_token_expiration_seconds: u64,
     pub refresh_token_expiration_seconds: u64,
     pub cors_allowed_origin: String,
+    pub sectors_api_key: String,
 }
 
 impl AppConfig {
@@ -34,6 +35,7 @@ impl AppConfig {
                 .map_err(|_| "REFRESH_TOKEN_EXPIRATION_SECONDS must be an integer")?,
             cors_allowed_origin: env::var("CORS_ALLOWED_ORIGIN")
                 .unwrap_or_else(|_| "http://localhost:3000".into()),
+            sectors_api_key: required("SECTORS_API_KEY")?,
         })
     }
 }

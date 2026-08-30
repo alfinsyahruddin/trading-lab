@@ -114,6 +114,17 @@ All responses must strictly adhere to the unified JSON envelope:
   - `DELETE /api/strategies/{id}`: Delete a strategy.
   - `POST /api/strategies/{id}/duplicate`: Duplicate an existing strategy with a new unique name.
 
+### Backtest Domain
+- **Data Model**: `backtest_jobs`, `backtest_results`, `backtest_portfolio_history`, and `backtest_trades` store backtest execution metadata, aggregate performance statistics, equity curves, and individual trade executions.
+- **Unique Name Constraint**: Backtest job names are unique per user via `UNIQUE(user_id, name)`.
+- **Third-Party Client**: `SectorsClientTrait` and `SectorsClient` fetch data from the Sectors.app API (`/v2/companies/` screener and `/v2/daily/{symbol}/` daily transactions) with Redis caching (no expiration), 429 retries (2x with 1s delay), and console logging on cache misses.
+- **Simulation Engine**: Asynchronous simulation via `tokio::spawn` calculating P/L, win rate, profit factor, Sharpe ratio (2% risk-free rate), portfolio volatility, and tracking daily equity curve values.
+- **Endpoints**:
+  - `GET /api/backtests`: List all backtests owned by the authenticated user with sparkline history.
+  - `GET /api/backtests/{id}`: Retrieve full backtest details, metrics, portfolio history, top gainers/losers, most traded, and trade history.
+  - `POST /api/backtests`: Create and trigger background backtest simulation.
+  - `DELETE /api/backtests/{id}`: Delete a backtest job and its cascade data.
+
 ### Database & Migrations
 - Migrations reside in `backend/migrations/` with format `YYYYMMDDNNNN_description.sql`.
 - Migrations are applied automatically on startup (`setup_db.rs`).
@@ -169,12 +180,21 @@ cargo clippy --all-targets --all-features --locked -- -D warnings
   - `src/routes/dashboard/strategies/+page.svelte`: Card list view for trading strategies with duplicate, edit, and delete workflows.
   - `src/routes/dashboard/strategies/new/+page.svelte`: Create trading strategy page.
   - `src/routes/dashboard/strategies/[id]/edit/+page.svelte`: Edit trading strategy page.
+  - `src/routes/dashboard/backtests/+page.svelte`: Grouped card list view for backtests with sparklines and polling.
+  - `src/routes/dashboard/backtests/new/+page.svelte`: Run backtest configuration form.
+  - `src/routes/dashboard/backtests/[id]/+page.svelte`: Comprehensive backtest results and performance view.
 - All backend routes independently enforce authentication and authorization.
 
 ### Strategy Components & Rule Builder
 - `src/lib/components/strategy/StrategyForm.svelte`: Core parameter controls (name, desc, public/private toggle, TP%, SL%, live Risk-to-Reward calculation, max holding days).
 - `src/lib/components/strategy/WhereConditionsBuilder.svelte`: Dynamic multi-group rule builder with intra-group and inter-group `AND`/`OR` connectors and adaptive operator inputs.
 - `src/lib/components/strategy/VariablePickerModal.svelte`: Categorized variable catalog with live search, item format `<b><code></b> <description>`, selection checkmarks, and conditional Save enablement.
+
+### Backtest Components
+- `src/lib/components/backtest/StatusBadge.svelte`: Theme-aware badge indicator for `PENDING`, `PROCESSING`, `DONE`, and `FAILED` states.
+- `src/lib/components/backtest/HalfDoughnutChart.svelte`: Semicircle SVG chart visualizing wins vs losses with centered total trade count.
+- `src/lib/components/backtest/PortfolioChart.svelte`: Baseline equity curve with Net/Gross segmented toggle and Jakarta time rendering.
+- `src/lib/components/backtest/BacktestResultPreview.svelte`: Compact sparkline area chart preview for backtest list cards.
 
 ### API Client
 - `src/lib/api.ts` wraps all network requests, attaches `Authorization: Bearer <token>`, unwraps `BaseResponse<T>`, and raises typed `ApiError` instances on failure.

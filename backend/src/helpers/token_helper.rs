@@ -95,6 +95,7 @@ mod tests {
             access_token_expiration_seconds: 60,
             refresh_token_expiration_seconds: 60,
             cors_allowed_origin: "http://localhost:3000".into(),
+            sectors_api_key: "test_key".into(),
         };
 
         let tokens = create_token_pair(&user, Uuid::new_v4(), &config).expect("tokens encode");

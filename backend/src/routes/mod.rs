@@ -1,3 +1,4 @@
+pub mod backtest_route;
 pub mod trading_strategy_route;
 pub mod user_route;
 
@@ -29,7 +30,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(trading_strategy_route::create_strategy)
         .service(trading_strategy_route::update_strategy)
         .service(trading_strategy_route::delete_strategy)
-        .service(trading_strategy_route::duplicate_strategy);
+        .service(trading_strategy_route::duplicate_strategy)
+        .service(backtest_route::list_backtests)
+        .service(backtest_route::get_backtest)
+        .service(backtest_route::create_backtest)
+        .service(backtest_route::delete_backtest);
 }
 
 #[get("/")]

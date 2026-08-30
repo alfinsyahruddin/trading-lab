@@ -5,7 +5,9 @@ import type {
 	TradingStrategy,
 	UpdateStrategyPayload,
 	UserResponse,
-	UserRole
+	UserRole,
+	BacktestJob,
+	CreateBacktestPayload
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -291,4 +293,29 @@ export function duplicateTradingStrategy(
 		{ method: 'POST', body: JSON.stringify({ name }) },
 		token
 	);
+}
+
+// --- Backtests ---
+
+export function listBacktests(token?: string): Promise<BacktestJob[]> {
+	return request<BacktestJob[]>('/api/backtests', { method: 'GET' }, token);
+}
+
+export function getBacktest(token: string | undefined, id: string): Promise<BacktestJob> {
+	return request<BacktestJob>(`/api/backtests/${id}`, { method: 'GET' }, token);
+}
+
+export function createBacktest(
+	token: string | undefined,
+	data: CreateBacktestPayload
+): Promise<BacktestJob> {
+	return request<BacktestJob>(
+		'/api/backtests',
+		{ method: 'POST', body: JSON.stringify(data) },
+		token
+	);
+}
+
+export function deleteBacktest(token: string | undefined, id: string): Promise<void> {
+	return request<void>(`/api/backtests/${id}`, { method: 'DELETE' }, token);
 }
