@@ -37,8 +37,8 @@
 :root.dark {
 	--bg: #2a344c;
 	--bg-card: #3c486a;
-	--bg-card-hover: #485580;
-	--bg-input: #2a344c;
+	--bg-card-hover: #384365;
+	--bg-input: #384365;
 	--fg: #f1f5f9;
 	--fg-muted: #94a3b8;
 	--border: rgba(255, 255, 255, 0.1);

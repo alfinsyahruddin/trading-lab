@@ -1,0 +1,316 @@
+<script lang="ts">
+	import Icon from '@iconify/svelte';
+	import TextField from '$lib/components/TextField.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import WhereConditionsBuilder from './WhereConditionsBuilder.svelte';
+	import { formatRiskReward } from '$lib/constants';
+	import type { CreateStrategyPayload, StrategyRuleGroup, TradingStrategy } from '$lib/types';
+
+	let {
+		initialData,
+		loading = false,
+		error = '',
+		submitLabel = 'Save Strategy',
+		onsubmit,
+		oncancel
+	}: {
+		initialData?: Partial<TradingStrategy>;
+		loading?: boolean;
+		error?: string;
+		submitLabel?: string;
+		onsubmit: (data: CreateStrategyPayload) => void;
+		oncancel: () => void;
+	} = $props();
+
+	let name = $state('');
+	let description = $state('');
+	let isPublic = $state(false);
+	let tpPercentage = $state('10');
+	let slPercentage = $state('5');
+	let maxHoldingPeriodDays = $state('30');
+	let rules = $state<StrategyRuleGroup[]>([
+		{
+			id: crypto.randomUUID(),
+			connector_to_next: null,
+			conditions: [
+				{
+					id: crypto.randomUUID(),
+					variable: 'price',
+					operator: '>',
+					value: '50',
+					connector_to_next: null
+				}
+			]
+		}
+	]);
+
+	// Sync when initialData changes
+	let initialDataLoaded = false;
+	$effect(() => {
+		if (initialData && !initialDataLoaded) {
+			initialDataLoaded = true;
+			name = initialData.name || '';
+			description = initialData.description || '';
+			isPublic = initialData.is_public ?? false;
+			tpPercentage =
+				initialData.tp_percentage !== undefined ? String(initialData.tp_percentage) : '10';
+			slPercentage =
+				initialData.sl_percentage !== undefined ? String(initialData.sl_percentage) : '5';
+			maxHoldingPeriodDays =
+				initialData.max_holding_period_days !== undefined
+					? String(initialData.max_holding_period_days)
+					: '30';
+			if (initialData.rules && initialData.rules.length > 0) {
+				rules = JSON.parse(JSON.stringify(initialData.rules));
+			}
+		}
+	});
+
+	// Computed Risk-Reward Ratio
+	const riskRewardRatio = $derived.by(() => {
+		const tp = parseFloat(tpPercentage);
+		const sl = parseFloat(slPercentage);
+		return formatRiskReward(tp, sl);
+	});
+
+	function handleSubmit(e: Event) {
+		e.preventDefault();
+		const tp = parseFloat(tpPercentage);
+		const sl = parseFloat(slPercentage);
+		const days = parseInt(maxHoldingPeriodDays, 10);
+
+		onsubmit({
+			name: name.trim(),
+			description: description.trim() || null,
+			is_public: isPublic,
+			tp_percentage: isNaN(tp) ? 0 : tp,
+			sl_percentage: isNaN(sl) ? 0 : sl,
+			max_holding_period_days: isNaN(days) ? 1 : days,
+			rules
+		});
+	}
+</script>
+
+<form onsubmit={handleSubmit} class="flex flex-col gap-6">
+	<!-- Top Section: Core Parameters Card -->
+	<div
+		class="flex flex-col rounded-2xl border p-3.5 sm:p-6"
+		style="background-color: var(--bg-card); border-color: var(--border);"
+	>
+		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div class="flex items-center gap-2.5">
+				<div
+					class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+					style="background-color: var(--accent-soft); color: var(--accent);"
+				>
+					<Icon icon="lucide:settings-2" width="18" height="18" />
+				</div>
+				<div>
+					<h2 class="text-sm sm:text-base font-700" style="color: var(--fg)">General Parameters</h2>
+					<p class="text-xs" style="color: var(--fg-muted)">
+						Define the identity, targets, and risk parameters of your strategy
+					</p>
+				</div>
+			</div>
+
+			<!-- Public / Private Segmented Toggle -->
+			<div class="self-start sm:self-auto">
+				<SegmentedControl
+					options={[
+						{ value: false, label: 'Private', icon: 'lucide:lock' },
+						{ value: true, label: 'Public', icon: 'lucide:globe' }
+					]}
+					bind:value={isPublic}
+				/>
+			</div>
+		</div>
+
+		<!-- Name & Description -->
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			<div class="sm:col-span-2">
+				<TextField
+					label="Strategy Name"
+					type="text"
+					placeholder="e.g. High Yield Growth Scanner"
+					bind:value={name}
+					required
+				/>
+			</div>
+
+			<div class="sm:col-span-2 flex flex-col gap-1.5">
+				<label for="strat-desc" class="text-sm font-500" style="color: var(--fg-muted)">
+					Description (Optional)
+				</label>
+				<textarea
+					id="strat-desc"
+					rows="2"
+					placeholder="Briefly describe the rationale or objective of this strategy..."
+					bind:value={description}
+					class="w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all duration-150"
+					style="
+						background-color: var(--bg-input, var(--bg));
+						border-color: var(--border-strong);
+						color: var(--fg);
+					"></textarea>
+			</div>
+		</div>
+
+		<!-- Numeric Metrics Row: TP, SL, R:R, Max Holding -->
+		<div class="mt-5 sm:mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+			<!-- Take Profit -->
+			<div class="flex flex-col gap-1.5">
+				<label for="tp-input" class="text-sm font-500" style="color: var(--fg-muted)">
+					Take Profit (%) <span style="color: var(--danger)">*</span>
+				</label>
+				<div class="relative">
+					<input
+						id="tp-input"
+						type="number"
+						step="any"
+						min="0.01"
+						placeholder="10.0"
+						bind:value={tpPercentage}
+						required
+						class="w-full rounded-xl border py-2.5 pl-3.5 pr-8 text-sm font-600 outline-none transition-colors duration-150"
+						style="
+							background-color: var(--bg-input, var(--bg));
+							border-color: var(--border-strong);
+							color: var(--success);
+						"
+					/>
+					<span
+						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-600"
+						style="color: var(--fg-muted);"
+					>
+						%
+					</span>
+				</div>
+			</div>
+
+			<!-- Stop Loss -->
+			<div class="flex flex-col gap-1.5">
+				<label for="sl-input" class="text-sm font-500" style="color: var(--fg-muted)">
+					Stop Loss (%) <span style="color: var(--danger)">*</span>
+				</label>
+				<div class="relative">
+					<input
+						id="sl-input"
+						type="number"
+						step="any"
+						min="0.01"
+						placeholder="5.0"
+						bind:value={slPercentage}
+						required
+						class="w-full rounded-xl border py-2.5 pl-3.5 pr-8 text-sm font-600 outline-none transition-colors duration-150"
+						style="
+							background-color: var(--bg-input, var(--bg));
+							border-color: var(--border-strong);
+							color: var(--danger);
+						"
+					/>
+					<span
+						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-600"
+						style="color: var(--fg-muted);"
+					>
+						%
+					</span>
+				</div>
+			</div>
+
+			<!-- Live Risk Reward Ratio Display -->
+			<div class="flex flex-col gap-1.5">
+				<span class="text-sm font-500" style="color: var(--fg-muted)"> Risk : Reward Ratio </span>
+				<div
+					class="flex h-10.5 items-center justify-between rounded-xl border px-3.5 shadow-xs"
+					style="
+						background-color: var(--accent-soft);
+						border-color: rgba(48, 180, 201, 0.3);
+					"
+				>
+					<span class="text-xs font-600 uppercase tracking-wider" style="color: var(--fg-muted)">
+						Ratio
+					</span>
+					<span class="text-sm font-700" style="color: var(--accent)">
+						{riskRewardRatio}
+					</span>
+				</div>
+			</div>
+
+			<!-- Max Holding Period -->
+			<div class="flex flex-col gap-1.5">
+				<label for="holding-input" class="text-sm font-500" style="color: var(--fg-muted)">
+					Max Holding (Day) <span style="color: var(--danger)">*</span>
+				</label>
+				<div class="relative">
+					<input
+						id="holding-input"
+						type="number"
+						step="1"
+						min="1"
+						max="3650"
+						placeholder="30"
+						bind:value={maxHoldingPeriodDays}
+						required
+						class="w-full rounded-xl border py-2.5 pl-3.5 pr-14 text-sm font-600 outline-none transition-colors duration-150"
+						style="
+							background-color: var(--bg-input, var(--bg));
+							border-color: var(--border-strong);
+							color: var(--fg);
+						"
+					/>
+					<span
+						class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-500"
+						style="color: var(--fg-muted);"
+					>
+						Days
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bottom Section: Where Conditions Builder -->
+	<WhereConditionsBuilder bind:groups={rules} />
+
+	<!-- Error Alert -->
+	{#if error}
+		<div
+			class="rounded-xl border p-4 text-sm font-500"
+			style="background-color: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: var(--danger);"
+		>
+			<div class="flex items-center gap-2">
+				<Icon icon="lucide:alert-circle" width="16" height="16" />
+				<span>{error}</span>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Form Action Bar -->
+	<div
+		class="sticky bottom-0 z-30 -mx-4 -mb-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3 border-t p-4 sm:mx-0 sm:mb-0 sm:rounded-2xl backdrop-blur-md"
+		style="background-color: var(--bg-card); border-color: var(--border);"
+	>
+		<button
+			type="button"
+			onclick={oncancel}
+			class="btn-interactive w-full sm:w-auto rounded-xl border px-5 py-2.5 text-sm font-600 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			style="border-color: var(--border-strong); color: var(--fg-muted);"
+		>
+			Cancel
+		</button>
+		<button
+			type="submit"
+			disabled={loading || !name.trim()}
+			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-600 text-white shadow-md transition-all duration-150 disabled:opacity-50"
+			style="background-color: var(--accent);"
+		>
+			{#if loading}
+				<Icon icon="lucide:loader-2" class="animate-spin" width="18" height="18" />
+				<span>Saving…</span>
+			{:else}
+				<Icon icon="lucide:check" width="18" height="18" />
+				<span>{submitLabel}</span>
+			{/if}
+		</button>
+	</div>
+</form>

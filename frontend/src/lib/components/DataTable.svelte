@@ -37,7 +37,7 @@
 	style="border-color: var(--border); background-color: var(--bg-card);"
 >
 	<div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-		<table class="w-full min-w-[560px] text-sm">
+		<table class="w-full min-w-140 text-sm">
 			<thead>
 				<tr style="border-bottom: 1px solid var(--border); background-color: var(--bg-card);">
 					{#each columns as col}

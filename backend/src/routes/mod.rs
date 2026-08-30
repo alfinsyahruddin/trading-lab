@@ -1,3 +1,4 @@
+pub mod trading_strategy_route;
 pub mod user_route;
 
 use actix_web::{get, web, HttpResponse};
@@ -19,7 +20,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(user_route::list_users)
         .service(user_route::get_user)
         .service(user_route::update_user)
-        .service(user_route::delete_user);
+        .service(user_route::delete_user)
+        .service(trading_strategy_route::list_strategies)
+        .service(trading_strategy_route::get_strategy)
+        .service(trading_strategy_route::create_strategy)
+        .service(trading_strategy_route::update_strategy)
+        .service(trading_strategy_route::delete_strategy)
+        .service(trading_strategy_route::duplicate_strategy);
 }
 
 #[get("/")]

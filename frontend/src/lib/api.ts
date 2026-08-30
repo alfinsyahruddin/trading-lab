@@ -1,5 +1,12 @@
-import type { LoginResponse, UserResponse } from '$lib/types';
-import type { UserRole } from '$lib/types';
+import { clearSession, getRefreshToken, getToken, persistSession } from '$lib/helpers/session';
+import type {
+	CreateStrategyPayload,
+	LoginResponse,
+	TradingStrategy,
+	UpdateStrategyPayload,
+	UserResponse,
+	UserRole
+} from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 
@@ -20,12 +27,77 @@ interface ApiEnvelope<T> {
 	timestamp: string;
 }
 
-async function request<T>(path: string, init?: RequestInit, token?: string): Promise<T> {
+let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * Handles terminal authentication failure: clears localStorage and redirects to /login.
+ */
+export function handleAuthFailure(): void {
+	clearSession();
+	if (
+		typeof window !== 'undefined' &&
+		!window.location.pathname.startsWith('/login') &&
+		!window.location.pathname.startsWith('/register')
+	) {
+		window.location.href = '/login';
+	}
+}
+
+/**
+ * Attempts to obtain a new access token using the stored refresh token.
+ * Deduplicates simultaneous concurrent refresh requests.
+ */
+export async function attemptTokenRefresh(): Promise<string | null> {
+	const refreshToken = getRefreshToken();
+	if (!refreshToken) {
+		handleAuthFailure();
+		return null;
+	}
+
+	if (refreshPromise) {
+		return refreshPromise;
+	}
+
+	refreshPromise = (async () => {
+		try {
+			const res = await fetch(`${BASE_URL}/api/users/refresh`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refresh_token: refreshToken })
+			});
+
+			const envelope: ApiEnvelope<LoginResponse> = await res.json();
+			if (!res.ok || envelope.status >= 400 || !envelope.data) {
+				handleAuthFailure();
+				return null;
+			}
+
+			const { user, tokens } = envelope.data;
+			persistSession(tokens.access_token, tokens.refresh_token, user);
+			return tokens.access_token;
+		} catch {
+			handleAuthFailure();
+			return null;
+		} finally {
+			refreshPromise = null;
+		}
+	})();
+
+	return refreshPromise;
+}
+
+async function request<T>(
+	path: string,
+	init?: RequestInit,
+	token?: string,
+	retryOnAuth = true
+): Promise<T> {
+	const authToken = token ?? getToken() ?? undefined;
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	};
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`;
+	if (authToken) {
+		headers['Authorization'] = `Bearer ${authToken}`;
 	}
 
 	const res = await fetch(`${BASE_URL}${path}`, {
@@ -33,10 +105,43 @@ async function request<T>(path: string, init?: RequestInit, token?: string): Pro
 		headers: { ...headers, ...(init?.headers ?? {}) }
 	});
 
-	const envelope: ApiEnvelope<T> = await res.json();
+	let envelope: ApiEnvelope<T>;
+	try {
+		envelope = await res.json();
+	} catch {
+		if (
+			res.status === 401 &&
+			retryOnAuth &&
+			path !== '/api/users/login' &&
+			path !== '/api/users/register' &&
+			path !== '/api/users/refresh'
+		) {
+			const newToken = await attemptTokenRefresh();
+			if (newToken) {
+				return request<T>(path, init, newToken, false);
+			}
+		}
+		throw new ApiError('An unexpected server response occurred', res.status);
+	}
 
 	if (!res.ok || envelope.status >= 400) {
-		throw new ApiError(envelope.message || 'An unexpected error occurred', envelope.status);
+		if (
+			(res.status === 401 || envelope.status === 401) &&
+			retryOnAuth &&
+			path !== '/api/users/login' &&
+			path !== '/api/users/register' &&
+			path !== '/api/users/refresh'
+		) {
+			const newToken = await attemptTokenRefresh();
+			if (newToken) {
+				return request<T>(path, init, newToken, false);
+			}
+		}
+
+		throw new ApiError(
+			envelope.message || 'An unexpected error occurred',
+			envelope.status || res.status
+		);
 	}
 
 	return envelope.data as T;
@@ -58,7 +163,7 @@ export function register(name: string, email: string, password: string): Promise
 	});
 }
 
-export function logout(token: string): Promise<string> {
+export function logout(token?: string): Promise<string> {
 	return request<string>('/api/users/logout', { method: 'POST' }, token);
 }
 
@@ -71,23 +176,23 @@ export function refreshTokens(refreshToken: string): Promise<LoginResponse> {
 
 // --- Users (Admin only) ---
 
-export function listUsers(token: string): Promise<UserResponse[]> {
+export function listUsers(token?: string): Promise<UserResponse[]> {
 	return request<UserResponse[]>('/api/users', { method: 'GET' }, token);
 }
 
-export function getUser(token: string, id: string): Promise<UserResponse> {
+export function getUser(token: string | undefined, id: string): Promise<UserResponse> {
 	return request<UserResponse>(`/api/users/${id}`, { method: 'GET' }, token);
 }
 
 export function createUser(
-	token: string,
+	token: string | undefined,
 	data: { name: string; email: string; password: string; role: UserRole }
 ): Promise<UserResponse> {
 	return request<UserResponse>('/api/users', { method: 'POST', body: JSON.stringify(data) }, token);
 }
 
 export function updateUser(
-	token: string,
+	token: string | undefined,
 	id: string,
 	data: { name?: string; email?: string; password?: string; role?: UserRole }
 ): Promise<UserResponse> {
@@ -98,6 +203,58 @@ export function updateUser(
 	);
 }
 
-export function deleteUser(token: string, id: string): Promise<string> {
+export function deleteUser(token: string | undefined, id: string): Promise<string> {
 	return request<string>(`/api/users/${id}`, { method: 'DELETE' }, token);
+}
+
+// --- Trading Strategies ---
+
+export function listTradingStrategies(token?: string): Promise<TradingStrategy[]> {
+	return request<TradingStrategy[]>('/api/strategies', { method: 'GET' }, token);
+}
+
+export function getTradingStrategy(
+	token: string | undefined,
+	id: string
+): Promise<TradingStrategy> {
+	return request<TradingStrategy>(`/api/strategies/${id}`, { method: 'GET' }, token);
+}
+
+export function createTradingStrategy(
+	token: string | undefined,
+	data: CreateStrategyPayload
+): Promise<TradingStrategy> {
+	return request<TradingStrategy>(
+		'/api/strategies',
+		{ method: 'POST', body: JSON.stringify(data) },
+		token
+	);
+}
+
+export function updateTradingStrategy(
+	token: string | undefined,
+	id: string,
+	data: UpdateStrategyPayload
+): Promise<TradingStrategy> {
+	return request<TradingStrategy>(
+		`/api/strategies/${id}`,
+		{ method: 'PATCH', body: JSON.stringify(data) },
+		token
+	);
+}
+
+export function deleteTradingStrategy(token: string | undefined, id: string): Promise<string> {
+	return request<string>(`/api/strategies/${id}`, { method: 'DELETE' }, token);
+}
+
+export function duplicateTradingStrategy(
+	token: string | undefined,
+	id: string,
+	name: string
+): Promise<TradingStrategy> {
+	return request<TradingStrategy>(
+		`/api/strategies/${id}/duplicate`,
+		{ method: 'POST', body: JSON.stringify({ name }) },
+		token
+	);
 }

@@ -102,6 +102,18 @@ All responses must strictly adhere to the unified JSON envelope:
 - **Session Revocation**: Any critical mutation (user logout, password update, role change, or account deletion) **must** revoke all active sessions in Redis.
 - **RBAC**: Public registration `/api/users/register` always assigns the `MEMBER` role. Only authenticated `ADMIN` users can access user management or create `ADMIN` accounts.
 
+### Trading Strategy Domain
+- **Data Model**: `trading_strategies` stores strategy metadata (name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days) and dynamic multi-group filtering rules in `rules JSONB`.
+- **Unique Name Constraint**: Strategy names are unique per user via `UNIQUE(user_id, name)`. Duplicate naming attempts return `AppError::Conflict` (409).
+- **User Scoping**: User strategy listing is strictly scoped to the authenticated user (`WHERE user_id = $1`).
+- **Endpoints**:
+  - `GET /api/strategies`: List all strategies owned by the authenticated user.
+  - `GET /api/strategies/{id}`: Retrieve strategy details.
+  - `POST /api/strategies`: Create a new strategy.
+  - `PATCH /api/strategies/{id}`: Update an existing strategy.
+  - `DELETE /api/strategies/{id}`: Delete a strategy.
+  - `POST /api/strategies/{id}/duplicate`: Duplicate an existing strategy with a new unique name.
+
 ### Database & Migrations
 - Migrations reside in `backend/migrations/` with format `YYYYMMDDNNNN_description.sql`.
 - Migrations are applied automatically on startup (`setup_db.rs`).
@@ -154,7 +166,15 @@ cargo clippy --all-targets --all-features --locked -- -D warnings
   - `src/routes/+page.ts`, `login/+page.ts`, `register/+page.ts`: Redirect authenticated users to `/dashboard`.
   - `src/routes/dashboard/+layout.ts`: Checks `getToken()`; redirects unauthenticated visitors to `/login`.
   - `src/routes/dashboard/users/+page.svelte`: Client-side admin verification (redirects non-admin users to `/dashboard`).
+  - `src/routes/dashboard/strategies/+page.svelte`: Card list view for trading strategies with duplicate, edit, and delete workflows.
+  - `src/routes/dashboard/strategies/new/+page.svelte`: Create trading strategy page.
+  - `src/routes/dashboard/strategies/[id]/edit/+page.svelte`: Edit trading strategy page.
 - All backend routes independently enforce authentication and authorization.
+
+### Strategy Components & Rule Builder
+- `src/lib/components/strategy/StrategyForm.svelte`: Core parameter controls (name, desc, public/private toggle, TP%, SL%, live Risk-to-Reward calculation, max holding days).
+- `src/lib/components/strategy/WhereConditionsBuilder.svelte`: Dynamic multi-group rule builder with intra-group and inter-group `AND`/`OR` connectors and adaptive operator inputs.
+- `src/lib/components/strategy/VariablePickerModal.svelte`: Categorized variable catalog with live search, item format `<b><code></b> <description>`, selection checkmarks, and conditional Save enablement.
 
 ### API Client
 - `src/lib/api.ts` wraps all network requests, attaches `Authorization: Bearer <token>`, unwraps `BaseResponse<T>`, and raises typed `ApiError` instances on failure.
