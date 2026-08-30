@@ -1,78 +1,64 @@
 <script lang="ts">
-	import { toasts } from '$lib/helpers/toast';
+	import Icon from '@iconify/svelte';
+	import { toasts, dismissToast } from '$lib/helpers/toast.svelte';
+	import { fly } from 'svelte/transition';
+	import { backOut, backIn } from 'svelte/easing';
 </script>
 
-{#if toasts.length > 0}
-	<div
-		class="fixed right-4 top-4 z-100 flex flex-col gap-2"
-		style="min-width: 280px; max-width: 360px;"
-	>
-		{#each toasts as toast (toast.id)}
+<div
+	class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-88 z-100 flex flex-col gap-2.5 pointer-events-none"
+>
+	{#each toasts as toast (toast.id)}
+		<div
+			in:fly={{ x: 150, duration: 400, easing: backOut }}
+			out:fly={{ x: 150, duration: 300, easing: backIn }}
+			class="pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-3.5 shadow-xl backdrop-blur-xl"
+			style="
+				background-color: {toast.type === 'success'
+				? 'rgba(34, 197, 94, 0.14)'
+				: toast.type === 'error'
+					? 'rgba(239, 68, 68, 0.14)'
+					: 'rgba(48, 180, 201, 0.14)'};
+				border-color: {toast.type === 'success'
+				? 'rgba(34, 197, 94, 0.35)'
+				: toast.type === 'error'
+					? 'rgba(239, 68, 68, 0.35)'
+					: 'rgba(48, 180, 201, 0.35)'};
+				box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+			"
+		>
+			<!-- Icon -->
 			<div
-				class="flex items-start gap-3 rounded-xl border px-4 py-3.5 shadow-lg"
-				style="
-					background-color: var(--bg-card);
-					border-color: {toast.type === 'success'
-					? 'rgba(34,197,94,0.3)'
-					: toast.type === 'error'
-						? 'rgba(239,68,68,0.3)'
-						: 'rgba(48,180,201,0.3)'};
-					border-left: 3px solid {toast.type === 'success'
+				class="shrink-0"
+				style="color: {toast.type === 'success'
 					? 'var(--success)'
 					: toast.type === 'error'
 						? 'var(--danger)'
-						: 'var(--accent)'};
-				"
+						: 'var(--accent)'}"
 			>
-				<!-- Icon -->
-				<div
-					class="mt-0.5 shrink-0"
-					style="color: {toast.type === 'success'
-						? 'var(--success)'
-						: toast.type === 'error'
-							? 'var(--danger)'
-							: 'var(--accent)'}"
-				>
-					{#if toast.type === 'success'}
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-						>
-							<path d="M20 6L9 17l-5-5" />
-						</svg>
-					{:else if toast.type === 'error'}
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-						>
-							<circle cx="12" cy="12" r="10" />
-							<path d="M12 8v4M12 16h.01" />
-						</svg>
-					{:else}
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-						>
-							<circle cx="12" cy="12" r="10" />
-							<path d="M12 16v-4M12 8h.01" />
-						</svg>
-					{/if}
-				</div>
-				<!-- Message -->
-				<p class="text-sm font-500 leading-snug" style="color: var(--fg)">{toast.message}</p>
+				{#if toast.type === 'success'}
+					<Icon icon="lucide:check-circle" width="18" height="18" />
+				{:else if toast.type === 'error'}
+					<Icon icon="lucide:alert-circle" width="18" height="18" />
+				{:else}
+					<Icon icon="lucide:info" width="18" height="18" />
+				{/if}
 			</div>
-		{/each}
-	</div>
-{/if}
+
+			<!-- Message -->
+			<p class="flex-1 text-sm font-600 leading-snug" style="color: var(--fg)">
+				{toast.message}
+			</p>
+
+			<!-- Dismiss button -->
+			<button
+				onclick={() => dismissToast(toast.id)}
+				class="btn-interactive -mr-1 rounded-lg p-1 transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10"
+				style="color: var(--fg-muted);"
+				aria-label="Dismiss notification"
+			>
+				<Icon icon="lucide:x" width="14" height="14" />
+			</button>
+		</div>
+	{/each}
+</div>

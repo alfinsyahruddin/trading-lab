@@ -13,13 +13,15 @@
 		rows,
 		loading = false,
 		emptyMessage = 'No records found.',
-		actions
+		actions,
+		cell
 	}: {
 		columns: Column<T>[];
 		rows: T[];
 		loading?: boolean;
 		emptyMessage?: string;
 		actions?: Snippet<[T]>;
+		cell?: Snippet<[T, Column<T>]>;
 	} = $props();
 
 	function getCellValue(row: T, col: Column<T>): string {
@@ -31,16 +33,16 @@
 </script>
 
 <div
-	class="overflow-hidden rounded-xl border"
+	class="overflow-hidden rounded-xl border shadow-xs"
 	style="border-color: var(--border); background-color: var(--bg-card);"
 >
-	<div class="overflow-x-auto">
-		<table class="w-full text-sm">
+	<div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+		<table class="w-full min-w-[560px] text-sm">
 			<thead>
 				<tr style="border-bottom: 1px solid var(--border); background-color: var(--bg-card);">
 					{#each columns as col}
 						<th
-							class="px-4 py-3.5 text-left text-xs font-700 uppercase tracking-wider"
+							class="whitespace-nowrap px-4 py-3.5 text-left text-xs font-700 uppercase tracking-wider"
 							style="color: var(--fg-muted);"
 						>
 							{col.label}
@@ -48,7 +50,7 @@
 					{/each}
 					{#if actions}
 						<th
-							class="px-4 py-3.5 text-right text-xs font-700 uppercase tracking-wider"
+							class="whitespace-nowrap px-4 py-3.5 text-right text-xs font-700 uppercase tracking-wider"
 							style="color: var(--fg-muted);"
 						>
 							Actions
@@ -103,11 +105,15 @@
 						>
 							{#each columns as col}
 								<td class="px-4 py-3.5 font-400" style="color: var(--fg)">
-									{getCellValue(row, col)}
+									{#if cell}
+										{@render cell(row, col)}
+									{:else}
+										{getCellValue(row, col)}
+									{/if}
 								</td>
 							{/each}
 							{#if actions}
-								<td class="px-4 py-3.5 text-right">
+								<td class="whitespace-nowrap px-4 py-3.5 text-right">
 									{@render actions(row)}
 								</td>
 							{/if}

@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
-// toast.ts uses $state (Svelte 5 runes), so we need to mock it
-// to avoid "runes can only be used in .svelte files" errors
-vi.mock('$lib/helpers/toast', () => {
+// Mock toast.svelte.ts for unit testing
+vi.mock('$lib/helpers/toast.svelte', () => {
 	const toasts: Array<{ id: number; type: string; message: string }> = [];
 	let nextId = 0;
 
@@ -15,18 +14,25 @@ vi.mock('$lib/helpers/toast', () => {
 		}, duration);
 	}
 
+	function dismissToast(id: number) {
+		const idx = toasts.findIndex((t) => t.id === id);
+		if (idx !== -1) toasts.splice(idx, 1);
+	}
+
 	return {
 		toasts,
 		showToast,
+		dismissToast,
 		toast: {
 			success: (msg: string, d?: number) => showToast('success', msg, d),
 			error: (msg: string, d?: number) => showToast('error', msg, d),
-			info: (msg: string, d?: number) => showToast('info', msg, d)
+			info: (msg: string, d?: number) => showToast('info', msg, d),
+			dismiss: (id: number) => dismissToast(id)
 		}
 	};
 });
 
-import { toast, toasts } from '$lib/helpers/toast';
+import { toast, toasts, dismissToast } from '$lib/helpers/toast.svelte';
 
 describe('toast helper', () => {
 	beforeEach(() => {
@@ -75,7 +81,23 @@ describe('toast helper', () => {
 	it('toasts have unique ids', () => {
 		toast.success('A');
 		toast.success('B');
-		const ids = toasts.map((t) => t.id);
+		const ids = (toasts as Array<{ id: number }>).map((t) => t.id);
 		expect(new Set(ids).size).toBe(ids.length);
+	});
+
+	it('dismissToast removes a toast by id', () => {
+		toast.success('To dismiss');
+		expect(toasts).toHaveLength(1);
+		const id = toasts[0].id;
+		dismissToast(id);
+		expect(toasts).toHaveLength(0);
+	});
+
+	it('toast.dismiss removes a toast by id', () => {
+		toast.error('To dismiss');
+		expect(toasts).toHaveLength(1);
+		const id = toasts[0].id;
+		toast.dismiss(id);
+		expect(toasts).toHaveLength(0);
 	});
 });

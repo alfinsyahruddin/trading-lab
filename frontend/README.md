@@ -8,6 +8,7 @@ SvelteKit 5 Single Page Application (CSR Only) for the Trading Lab platform.
 - **TypeScript**
 - **Bun**
 - **TailwindCSS v4**
+- **@iconify/svelte** (Lucide icons)
 - **TradingView Lightweight Charts** (installed, ready for future chart pages)
 - **Vitest** + **@testing-library/svelte**
 
@@ -45,14 +46,14 @@ The dev server runs on `http://localhost:3000`. Expects the backend API at
 
 ## Design System
 
-| Token      | Value      | Usage                               |
-| ---------- | ---------- | ----------------------------------- |
-| Accent     | `#30B4C9`  | Primary buttons, active nav, badges |
-| Dark BG    | `#2A344C`  | Page background (dark mode)         |
-| Dark Card  | `#3C486A`  | Card background (dark mode)         |
-| Light BG   | `#FFFFFF`  | Page background (light mode)        |
-| Light Card | `#EEF0F6`  | Card background (light mode)        |
-| Font       | Montserrat | All text                            |
+| Token      | Value      | Usage                                    |
+| ---------- | ---------- | ---------------------------------------- |
+| Accent     | `#30B4C9`  | Primary buttons, active nav, badges      |
+| Dark BG    | `#2A344C`  | Page background (dark mode)              |
+| Dark Card  | `#3C486A`  | Card background (dark mode)              |
+| Light BG   | `#EEF0F6`  | Page background (light mode)             |
+| Light Card | `#FFFFFF`  | Card/table/modal background (light mode) |
+| Font       | Montserrat | All text                                 |
 
 ## Project Structure
 

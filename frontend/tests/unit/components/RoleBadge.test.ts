@@ -26,4 +26,10 @@ describe('RoleBadge', () => {
 		const style = badge.getAttribute('style') || '';
 		expect(style).toContain('var(--fg-muted)');
 	});
+
+	it('supports compact sm size', () => {
+		render(RoleBadge, { props: { role: 'ADMIN', size: 'sm' } });
+		const badge = screen.getByText('ADMIN');
+		expect(badge.className).toContain('text-[10px]');
+	});
 });

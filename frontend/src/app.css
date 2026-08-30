@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
 	--font-family-sans: 'Montserrat', system-ui, sans-serif;
 
@@ -16,9 +18,10 @@
 
 /* CSS custom properties for theming (light default) */
 :root {
-	--bg: #ffffff;
-	--bg-card: #eef0f6;
-	--bg-card-hover: #e4e7f0;
+	--bg: #eef0f6;
+	--bg-card: #ffffff;
+	--bg-card-hover: #f4f6fa;
+	--bg-input: #ffffff;
 	--fg: #1e293b;
 	--fg-muted: #64748b;
 	--border: #e2e8f0;
@@ -35,17 +38,36 @@
 	--bg: #2a344c;
 	--bg-card: #3c486a;
 	--bg-card-hover: #485580;
+	--bg-input: #2a344c;
 	--fg: #f1f5f9;
 	--fg-muted: #94a3b8;
 	--border: rgba(255, 255, 255, 0.1);
 	--border-strong: rgba(255, 255, 255, 0.18);
 }
 
-* {
-	box-sizing: border-box;
+/* Theme-adaptive logo switching */
+.logo-dark-theme {
+	display: none !important;
+}
+.logo-light-theme {
+	display: block !important;
+}
+:root.dark .logo-dark-theme {
+	display: block !important;
+}
+:root.dark .logo-light-theme {
+	display: none !important;
+}
+
+html {
+	overflow-x: hidden;
 }
 
 body {
+	min-height: 100vh;
+	min-height: 100dvh;
+	overflow-x: hidden;
+	-webkit-tap-highlight-color: transparent;
 	background-color: var(--bg);
 	color: var(--fg);
 	font-family: 'Montserrat', system-ui, sans-serif;
@@ -62,6 +84,101 @@ body {
 	transition-property: background-color, border-color, color;
 	transition-duration: 0.15s;
 	transition-timing-function: ease;
+}
+
+/* Micro-animation keyframes */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes enterFadeSlideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-8px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes enterFadeScale {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes toastSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-12px) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes floatGentle {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+@keyframes pulseSoft {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.85;
+		transform: scale(1.03);
+	}
+}
+
+/* Micro-animation utility classes */
+.animate-fade-in {
+	animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-dropdown {
+	animation: enterFadeSlideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	transform-origin: top;
+}
+
+.animate-modal {
+	animation: enterFadeScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast {
+	animation: toastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+	animation: floatGentle 3s ease-in-out infinite;
+}
+
+.btn-interactive {
+	transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-interactive:active {
+	transform: scale(0.97);
 }
 
 /* Utility: card style */

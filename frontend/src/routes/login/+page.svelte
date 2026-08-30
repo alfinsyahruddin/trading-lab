@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
 	import { login } from '$lib/api';
 	import { ApiError } from '$lib/api';
 	import { persistSession } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast';
+	import { toast } from '$lib/helpers/toast.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -34,38 +35,37 @@
 </script>
 
 <div
-	class="flex min-h-screen items-center justify-center px-6 py-12"
+	class="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 sm:py-12"
 	style="background: linear-gradient(135deg, var(--bg) 0%, var(--bg-card) 100%);"
 >
 	<!-- Background glow -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
 		<div
-			class="absolute -top-40 left-1/2 h-125 w-125 -translate-x-1/2 rounded-full opacity-10"
+			class="absolute -top-40 left-1/2 h-96 w-96 sm:h-125 sm:w-125 -translate-x-1/2 rounded-full opacity-10"
 			style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);"
 		></div>
 	</div>
 
 	<div class="relative z-10 w-full max-w-sm">
 		<!-- Logo -->
-		<div class="mb-8 flex flex-col items-center">
-			<img src="/favicon.svg" alt="Trading Lab" class="mb-4 h-14 w-14" />
+		<div class="mb-6 sm:mb-8 flex flex-col items-center">
 			<img
 				src="/logo-dark.svg"
 				alt="Trading Lab"
-				class="hidden h-7 dark:block"
+				class="logo-dark-theme h-7"
 				style="max-width: 160px;"
 			/>
 			<img
 				src="/logo-light.svg"
 				alt="Trading Lab"
-				class="block h-7 dark:hidden"
+				class="logo-light-theme h-7"
 				style="max-width: 160px;"
 			/>
 		</div>
 
 		<!-- Card -->
 		<div
-			class="rounded-2xl border p-8 shadow-lg"
+			class="rounded-2xl border p-6 sm:p-8 shadow-lg"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
 			<h1 class="mb-1 text-xl font-700" style="color: var(--fg)">Sign in</h1>
@@ -75,7 +75,7 @@
 				<TextField
 					label="Email"
 					type="email"
-					placeholder="admin@mail.com"
+					placeholder="john@mail.com"
 					bind:value={email}
 					required
 				/>
@@ -99,26 +99,12 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="mt-1 w-full rounded-xl py-3 text-sm font-700 text-white transition-opacity duration-150"
+					class="btn-interactive mt-1 w-full rounded-xl py-3 text-sm font-700 text-white shadow-sm hover:shadow-md active:scale-[0.98]"
 					style="background-color: var(--accent); opacity: {loading ? '0.7' : '1'};"
 				>
 					{#if loading}
 						<span class="flex items-center justify-center gap-2">
-							<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-								<circle
-									class="opacity-25"
-									cx="12"
-									cy="12"
-									r="10"
-									stroke="currentColor"
-									stroke-width="4"
-								></circle>
-								<path
-									class="opacity-75"
-									fill="currentColor"
-									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-								></path>
-							</svg>
+							<Icon icon="lucide:loader-2" class="animate-spin" width="16" height="16" />
 							Signing in…
 						</span>
 					{:else}

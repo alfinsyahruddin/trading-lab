@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
 	import Modal from './Modal.svelte';
 
 	let {
@@ -38,7 +39,7 @@
 	{#snippet footer()}
 		<button
 			onclick={handleCancel}
-			class="rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			{cancelLabel}
@@ -46,20 +47,12 @@
 		<button
 			onclick={handleConfirm}
 			disabled={loading}
-			class="rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
 			style="background-color: var(--danger); opacity: {loading ? '0.7' : '1'};"
 		>
 			{#if loading}
 				<span class="flex items-center gap-2">
-					<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-						></circle>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-						></path>
-					</svg>
+					<Icon icon="lucide:loader-2" class="animate-spin" width="16" height="16" />
 					Loading...
 				</span>
 			{:else}

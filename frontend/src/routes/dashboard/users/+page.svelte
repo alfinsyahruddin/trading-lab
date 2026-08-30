@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import Icon from '@iconify/svelte';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -10,7 +11,7 @@
 	import { listUsers, createUser, updateUser, deleteUser } from '$lib/api';
 	import { ApiError } from '$lib/api';
 	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast';
+	import { toast } from '$lib/helpers/toast.svelte';
 	import type { UserResponse, UserRole } from '$lib/types';
 
 	// ── State ──────────────────────────────────────────────────────────────
@@ -199,7 +200,7 @@
 </script>
 
 <!-- Page header -->
-<div class="mb-6 flex items-center justify-between">
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 	<div>
 		<h1 class="text-2xl font-700" style="color: var(--fg)">Users</h1>
 		<p class="mt-0.5 text-sm" style="color: var(--fg-muted)">
@@ -208,19 +209,10 @@
 	</div>
 	<button
 		onclick={openCreate}
-		class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 text-white transition-opacity duration-150 hover:opacity-90"
+		class="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 text-white shadow-sm hover:shadow-md hover:opacity-95 active:scale-95 w-full sm:w-auto"
 		style="background-color: var(--accent);"
 	>
-		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2.5"
-		>
-			<path d="M12 5v14M5 12h14" />
-		</svg>
+		<Icon icon="lucide:plus" width="16" height="16" />
 		New User
 	</button>
 </div>
@@ -240,50 +232,41 @@
 	{loading}
 	emptyMessage="No users found. Create one to get started."
 >
+	{#snippet cell(row: UserResponse, col)}
+		{#if col.key === 'role'}
+			<RoleBadge role={row.role} size="sm" />
+		{:else if col.key === 'name'}
+			<span class="font-600">{row.name}</span>
+		{:else if col.key === 'email'}
+			<span class="text-xs sm:text-sm">{row.email}</span>
+		{:else if col.render}
+			{col.render(row)}
+		{:else}
+			{(row as unknown as Record<string, unknown>)[col.key as string] ?? '—'}
+		{/if}
+	{/snippet}
 	{#snippet actions(row: UserResponse)}
 		<div class="flex items-center justify-end gap-1">
 			<!-- Edit button -->
 			<button
 				onclick={() => openEdit(row)}
-				class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-(--bg-card-hover)"
+				class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-(--bg-card-hover) active:scale-90"
 				style="color: var(--fg-muted);"
 				title="Edit user"
 				aria-label="Edit {row.name}"
 			>
-				<svg
-					width="14"
-					height="14"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-					<path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-				</svg>
+				<Icon icon="lucide:pencil" width="14" height="14" />
 			</button>
 			<!-- Delete button (don't allow deleting self) -->
 			{#if row.id !== currentUser?.id}
 				<button
 					onclick={() => openDelete(row)}
-					class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+					class="btn-interactive flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950 active:scale-90"
 					style="color: var(--fg-muted);"
 					title="Delete user"
 					aria-label="Delete {row.name}"
 				>
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-					>
-						<polyline points="3 6 5 6 21 6" />
-						<path d="M19 6l-1 14H6L5 6" />
-						<path d="M10 11v6M14 11v6" />
-						<path d="M9 6V4h6v2" />
-					</svg>
+					<Icon icon="lucide:trash-2" width="14" height="14" />
 				</button>
 			{/if}
 		</div>
@@ -330,7 +313,7 @@
 	{#snippet footer()}
 		<button
 			onclick={() => (createOpen = false)}
-			class="rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -339,7 +322,7 @@
 			type="submit"
 			form="create-form"
 			disabled={createLoading}
-			class="rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
 			style="background-color: var(--accent); opacity: {createLoading ? '0.7' : '1'};"
 		>
 			{createLoading ? 'Creating…' : 'Create User'}
@@ -374,7 +357,7 @@
 	{#snippet footer()}
 		<button
 			onclick={() => (editOpen = false)}
-			class="rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
+			class="btn-interactive w-full sm:w-auto rounded-lg border px-4 py-2 text-sm font-500 transition-colors duration-150 hover:bg-(--bg-card-hover)"
 			style="border-color: var(--border-strong); color: var(--fg-muted);"
 		>
 			Cancel
@@ -383,7 +366,7 @@
 			type="submit"
 			form="edit-form"
 			disabled={editLoading}
-			class="rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
+			class="btn-interactive w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-600 text-white transition-opacity duration-150"
 			style="background-color: var(--accent); opacity: {editLoading ? '0.7' : '1'};"
 		>
 			{editLoading ? 'Saving…' : 'Save Changes'}

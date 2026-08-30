@@ -24,9 +24,18 @@ export function showToast(type: ToastType, message: string, duration = 4000): vo
 	}, duration);
 }
 
+/**
+ * Dismisses a toast immediately by ID.
+ */
+export function dismissToast(id: number): void {
+	const idx = toasts.findIndex((t) => t.id === id);
+	if (idx !== -1) toasts.splice(idx, 1);
+}
+
 /** Convenience toast helpers */
 export const toast = {
 	success: (msg: string, duration?: number) => showToast('success', msg, duration),
 	error: (msg: string, duration?: number) => showToast('error', msg, duration),
-	info: (msg: string, duration?: number) => showToast('info', msg, duration)
+	info: (msg: string, duration?: number) => showToast('info', msg, duration),
+	dismiss: (id: number) => dismissToast(id)
 };

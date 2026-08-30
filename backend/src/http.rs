@@ -1,24 +1,31 @@
-use actix_web::{
-    error::InternalError, http::header, middleware::DefaultHeaders, web, ResponseError,
-};
+use actix_cors::Cors;
+use actix_web::{error::InternalError, web, ResponseError};
 
 use crate::entities::app_error::AppError;
 
-pub fn cors_headers(allowed_origin: &str) -> DefaultHeaders {
-    DefaultHeaders::new()
-        .add((
-            header::ACCESS_CONTROL_ALLOW_ORIGIN,
-            allowed_origin.to_owned(),
-        ))
-        .add((
-            header::ACCESS_CONTROL_ALLOW_METHODS,
-            "POST, GET, PATCH, DELETE, OPTIONS",
-        ))
-        .add((
-            header::ACCESS_CONTROL_ALLOW_HEADERS,
-            "Authorization, Content-Type",
-        ))
-        .add((header::ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"))
+pub fn cors(allowed_origin: &str) -> Cors {
+    let mut cors = Cors::default()
+        .allow_any_method()
+        .allow_any_header()
+        .supports_credentials()
+        .max_age(3600);
+
+    for origin in allowed_origin.split(',') {
+        let trimmed = origin.trim();
+        if !trimmed.is_empty() {
+            cors = cors.allowed_origin(trimmed);
+        }
+    }
+
+    if allowed_origin.contains("localhost:3000") && !allowed_origin.contains("127.0.0.1:3000") {
+        cors = cors.allowed_origin("http://127.0.0.1:3000");
+    } else if allowed_origin.contains("127.0.0.1:3000")
+        && !allowed_origin.contains("localhost:3000")
+    {
+        cors = cors.allowed_origin("http://localhost:3000");
+    }
+
+    cors
 }
 
 pub fn json_config() -> web::JsonConfig {

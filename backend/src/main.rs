@@ -34,7 +34,7 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(middleware::Compress::default())
             .wrap(middleware::NormalizePath::trim())
-            .wrap(http::cors_headers(&config.cors_allowed_origin))
+            .wrap(http::cors(&config.cors_allowed_origin))
             .app_data(http::json_config())
             .configure(|service_config| dependencies.configure(service_config))
             .configure(routes::configure)

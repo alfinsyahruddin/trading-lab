@@ -36,9 +36,9 @@
 		bind:value
 		{disabled}
 		{required}
-		class="select-field w-full cursor-pointer appearance-none rounded-lg border px-3.5 py-2.5 text-sm font-400 outline-none transition-all duration-150"
+		class="select-field w-full cursor-pointer appearance-none rounded-lg border px-3.5 py-2.5 text-base sm:text-sm font-400 outline-none transition-all duration-150"
 		style="
-			background-color: var(--bg);
+			background-color: var(--bg-input, var(--bg));
 			border-color: {error ? 'var(--danger)' : 'var(--border-strong)'};
 			color: var(--fg);
 		"
