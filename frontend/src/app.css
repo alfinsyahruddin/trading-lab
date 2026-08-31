@@ -285,3 +285,7 @@ textarea:disabled,
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--fg-muted);
 }
+
+#tv-attr-logo {
+	display: none !important;
+}

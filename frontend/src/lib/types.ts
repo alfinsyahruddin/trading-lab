@@ -53,7 +53,6 @@ export interface TradingStrategy {
 	user_id: string;
 	name: string;
 	description: string | null;
-	is_public: boolean;
 	tp_percentage: number;
 	sl_percentage: number;
 	risk_reward_ratio: number | null;
@@ -66,7 +65,6 @@ export interface TradingStrategy {
 export interface CreateStrategyPayload {
 	name: string;
 	description?: string | null;
-	is_public?: boolean;
 	tp_percentage: number;
 	sl_percentage: number;
 	max_holding_period_days: number;
@@ -76,7 +74,6 @@ export interface CreateStrategyPayload {
 export interface UpdateStrategyPayload {
 	name?: string;
 	description?: string | null;
-	is_public?: boolean;
 	tp_percentage?: number;
 	sl_percentage?: number;
 	max_holding_period_days?: number;
@@ -98,6 +95,7 @@ export interface BacktestJob {
 	backtest_duration_months: number;
 	buy_fee_percentage: number;
 	sell_fee_percentage: number;
+	is_public: boolean;
 	status: BacktestStatus;
 	error_message: string | null;
 	result: BacktestResult | null;
@@ -181,4 +179,9 @@ export interface CreateBacktestPayload {
 	backtest_duration_months: number;
 	buy_fee_percentage: number;
 	sell_fee_percentage: number;
+	is_public?: boolean;
+}
+
+export interface UpdateBacktestPayload {
+	is_public?: boolean;
 }

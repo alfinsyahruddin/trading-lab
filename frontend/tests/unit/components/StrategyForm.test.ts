@@ -28,8 +28,7 @@ describe('StrategyForm', () => {
 				name: 'Breakout Alpha',
 				tp_percentage: 10,
 				sl_percentage: 5,
-				max_holding_period_days: 30,
-				is_public: false
+				max_holding_period_days: 30
 			})
 		);
 	});

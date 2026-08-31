@@ -26,7 +26,6 @@ pub struct TradingStrategyRecord {
     pub user_id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub is_public: bool,
     pub tp_percentage: f64,
     pub sl_percentage: f64,
     pub max_holding_period_days: i32,
@@ -41,7 +40,6 @@ pub struct TradingStrategyResponse {
     pub user_id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub is_public: bool,
     pub tp_percentage: f64,
     pub sl_percentage: f64,
     pub risk_reward_ratio: Option<f64>,
@@ -64,7 +62,6 @@ impl From<TradingStrategyRecord> for TradingStrategyResponse {
             user_id: record.user_id,
             name: record.name,
             description: record.description,
-            is_public: record.is_public,
             tp_percentage: record.tp_percentage,
             sl_percentage: record.sl_percentage,
             risk_reward_ratio,
@@ -81,7 +78,6 @@ pub struct CreateTradingStrategyRequest {
     #[validate(length(min = 1, max = 255))]
     pub name: String,
     pub description: Option<String>,
-    pub is_public: Option<bool>,
     #[validate(range(min = 0.0001, max = 10000.0))]
     pub tp_percentage: f64,
     #[validate(range(min = 0.0001, max = 10000.0))]
@@ -96,7 +92,6 @@ pub struct UpdateTradingStrategyRequest {
     #[validate(length(min = 1, max = 255))]
     pub name: Option<String>,
     pub description: Option<String>,
-    pub is_public: Option<bool>,
     #[validate(range(min = 0.0001, max = 10000.0))]
     pub tp_percentage: Option<f64>,
     #[validate(range(min = 0.0001, max = 10000.0))]
@@ -110,7 +105,6 @@ impl UpdateTradingStrategyRequest {
     pub const fn is_empty(&self) -> bool {
         self.name.is_none()
             && self.description.is_none()
-            && self.is_public.is_none()
             && self.tp_percentage.is_none()
             && self.sl_percentage.is_none()
             && self.max_holding_period_days.is_none()
@@ -135,7 +129,6 @@ mod tests {
             user_id: Uuid::new_v4(),
             name: "Momentum Alpha".to_string(),
             description: Some("Test strategy".to_string()),
-            is_public: false,
             tp_percentage: 10.0,
             sl_percentage: 5.0,
             max_holding_period_days: 30,
@@ -155,7 +148,6 @@ mod tests {
         let valid = CreateTradingStrategyRequest {
             name: "Valid Strategy".to_string(),
             description: None,
-            is_public: Some(true),
             tp_percentage: 15.0,
             sl_percentage: 5.0,
             max_holding_period_days: 10,
@@ -166,7 +158,6 @@ mod tests {
         let invalid = CreateTradingStrategyRequest {
             name: "".to_string(),
             description: None,
-            is_public: None,
             tp_percentage: -1.0,
             sl_percentage: 0.0,
             max_holding_period_days: 0,
@@ -180,7 +171,6 @@ mod tests {
         let empty = UpdateTradingStrategyRequest {
             name: None,
             description: None,
-            is_public: None,
             tp_percentage: None,
             sl_percentage: None,
             max_holding_period_days: None,
@@ -191,7 +181,6 @@ mod tests {
         let non_empty = UpdateTradingStrategyRequest {
             name: Some("New Name".to_string()),
             description: None,
-            is_public: None,
             tp_percentage: None,
             sl_percentage: None,
             max_holding_period_days: None,

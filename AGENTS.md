@@ -105,7 +105,7 @@ All responses must strictly adhere to the unified JSON envelope:
 - **RBAC**: Public registration `/api/users/register` always assigns the `MEMBER` role. Only authenticated `ADMIN` users can access user management or create `ADMIN` accounts.
 
 ### Trading Strategy Domain
-- **Data Model**: `trading_strategies` stores strategy metadata (name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days) and dynamic multi-group filtering rules in `rules JSONB`.
+- **Data Model**: `trading_strategies` stores strategy metadata (name, description, tp_percentage, sl_percentage, max_holding_period_days) and dynamic multi-group filtering rules in `rules JSONB`.
 - **Unique Name Constraint**: Strategy names are unique per user via `UNIQUE(user_id, name)`. Duplicate naming attempts return `AppError::Conflict` (409).
 - **User Scoping**: User strategy listing is strictly scoped to the authenticated user (`WHERE user_id = $1`).
 - **Endpoints**:
@@ -117,7 +117,7 @@ All responses must strictly adhere to the unified JSON envelope:
   - `POST /api/strategies/{id}/duplicate`: Duplicate an existing strategy with a new unique name.
 
 ### Backtest Domain
-- **Data Model**: `backtest_jobs`, `backtest_results`, `backtest_portfolio_history`, and `backtest_trades` store backtest execution metadata, aggregate performance statistics, equity curves, and individual trade executions.
+- **Data Model**: `backtest_jobs`, `backtest_results`, `backtest_portfolio_history`, and `backtest_trades` store backtest execution metadata (including `is_public`), aggregate performance statistics, equity curves, and individual trade executions.
 - **Unique Name Constraint**: Backtest job names are unique per user via `UNIQUE(user_id, name)`.
 - **Third-Party Client**: `SectorsClientTrait` and `SectorsClient` fetch data from the Sectors.app API (`/v2/companies/` screener and `/v2/daily/{symbol}/` daily transactions) with Redis caching (no expiration), 429 retries (2x with 1s delay), and console logging on cache misses.
 - **Simulation Engine**: Asynchronous simulation via `tokio::spawn` calculating P/L, win rate, profit factor, Sharpe ratio (2% risk-free rate), portfolio volatility, and tracking daily equity curve values.

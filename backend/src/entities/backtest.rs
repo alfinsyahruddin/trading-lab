@@ -19,6 +19,7 @@ pub struct BacktestJobRecord {
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
+    pub is_public: bool,
     pub status: BacktestStatus,
     pub error_message: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -96,6 +97,7 @@ pub struct BacktestJobResponse {
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
+    pub is_public: bool,
     pub status: BacktestStatus,
     pub error_message: Option<String>,
     pub result: Option<BacktestResultResponse>,
@@ -181,6 +183,7 @@ pub struct CreateBacktestJobRequest {
     pub strategy_id: Uuid,
     #[validate(length(min = 1, max = 255))]
     pub name: String,
+    pub is_public: Option<bool>,
     #[validate(range(min = 2020, max = 2030))]
     pub year: i32,
     #[validate(range(min = 1_000_000.0, max = 100_000_000_000.0))]
@@ -192,6 +195,17 @@ pub struct CreateBacktestJobRequest {
     pub buy_fee_percentage: f64,
     #[validate(range(min = 0.0, max = 10.0))]
     pub sell_fee_percentage: f64,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct UpdateBacktestJobRequest {
+    pub is_public: Option<bool>,
+}
+
+impl UpdateBacktestJobRequest {
+    pub const fn is_empty(&self) -> bool {
+        self.is_public.is_none()
+    }
 }
 
 impl From<BacktestResultRecord> for BacktestResultResponse {
@@ -265,6 +279,7 @@ mod tests {
         let valid = CreateBacktestJobRequest {
             strategy_id: Uuid::new_v4(),
             name: "Momentum Backtest 2024".to_string(),
+            is_public: Some(true),
             year: 2024,
             initial_cash: 100_000_000.0,
             max_holding_stocks: 3,
@@ -357,6 +372,7 @@ mod tests {
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,
+            is_public: false,
             status: BacktestStatus::Processing,
             error_message: None,
             result: None,

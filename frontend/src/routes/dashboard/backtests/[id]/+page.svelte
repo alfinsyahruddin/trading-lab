@@ -4,11 +4,13 @@
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
-	import { getBacktest, getTradingStrategy, ApiError } from '$lib/api';
+	import { getBacktest, getTradingStrategy, updateBacktest, ApiError } from '$lib/api';
 	import { getToken } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
+	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
 	import type { BacktestJob, TradingStrategy } from '$lib/types';
 
 	let job = $state<BacktestJob | null>(null);
@@ -16,6 +18,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
+	let updatingVisibility = $state(false);
 
 	const id = $derived($page.params.id);
 
@@ -60,7 +63,7 @@
 						if (job.status === 'DONE' || job.status === 'FAILED') {
 							stopPolling();
 						}
-					} catch (_e) {
+					} catch {
 						// Polling error silently ignored
 					}
 				}
@@ -72,6 +75,31 @@
 		if (pollInterval) {
 			clearInterval(pollInterval);
 			pollInterval = null;
+		}
+	}
+
+	async function handleVisibilityChange(newIsPublic: boolean) {
+		if (!job || updatingVisibility) return;
+		if (job.is_public === newIsPublic) return;
+
+		const prev = job.is_public;
+		job.is_public = newIsPublic;
+		updatingVisibility = true;
+
+		try {
+			const token = getToken();
+			if (!token) {
+				goto('/login');
+				return;
+			}
+			const updated = await updateBacktest(token, job.id, { is_public: newIsPublic });
+			job.is_public = updated.is_public;
+			toast.success(`Backtest is now ${newIsPublic ? 'Public' : 'Private'}.`);
+		} catch (err) {
+			job.is_public = prev;
+			toast.error(err instanceof ApiError ? err.message : 'Failed to update visibility.');
+		} finally {
+			updatingVisibility = false;
 		}
 	}
 
@@ -107,6 +135,12 @@
 			return { bg: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', label: 'TAKE PROFIT' };
 		return { bg: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)', label: 'MAX HOLD' };
 	}
+
+	function formatDuration(months: number): string {
+		if (months === 12) return '1 Year';
+		if (months === 1) return '1 Month';
+		return `${months} Months`;
+	}
 </script>
 
 <div class="mb-4">
@@ -135,23 +169,107 @@
 		<p class="font-600 text-sm" style="color: var(--danger)">{error}</p>
 	</div>
 {:else if job}
-	<!-- Header -->
+	<!-- Backtest Card (like in backtest list, but without bottom section) -->
 	<div class="mb-6">
-		<div class="flex flex-col gap-2">
-			<div class="flex flex-wrap items-center gap-3">
-				<h1 class="font-700 text-2xl" style="color: var(--fg)">{job.name}</h1>
-				<StatusBadge status={job.status} />
-				<span
-					class="font-600 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs"
-					style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
-				>
-					{job.year}
-				</span>
+		<div
+			class="flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<!-- Top Row: Title + Year + Status + Visibility Toggle -->
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex flex-wrap items-center gap-2">
+					<h1 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
+						{job.name}
+					</h1>
+					<span
+						class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
+						style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
+					>
+						<Icon icon="lucide:calendar" width="12" height="12" style="color: var(--fg-muted);" />
+						<span>{job.year}</span>
+					</span>
+					<StatusBadge status={job.status} />
+				</div>
+
+				<!-- Small Public/Private Toggle -->
+				<div class="w-38 self-start sm:self-auto">
+					<SegmentedControl
+						size="sm"
+						options={[
+							{ value: false, label: 'Private', icon: 'lucide:lock' },
+							{ value: true, label: 'Public', icon: 'lucide:globe' }
+						]}
+						value={job.is_public}
+						onchange={handleVisibilityChange}
+					/>
+				</div>
 			</div>
-			<p class="font-500 flex items-center gap-1.5 text-sm" style="color: var(--fg-muted)">
-				<Icon icon="lucide:candlestick-chart" width="16" height="16" />
-				<span>{strategy?.name || job.strategy_name}</span>
-			</p>
+
+			<!-- Middle Row: Parameters Grid (Initial Cash, Duration, Max Stocks, Fees) -->
+			<div
+				class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-4 sm:gap-3"
+				style="background-color: var(--bg-card-hover, var(--bg));"
+			>
+				<!-- Initial Cash -->
+				<div class="flex flex-col">
+					<span
+						class="font-600 text-[11px] tracking-wider uppercase"
+						style="color: var(--fg-muted)"
+					>
+						Initial Cash
+					</span>
+					<span class="font-700 text-sm" style="color: var(--fg)">
+						{formatRupiah(job.initial_cash)}
+					</span>
+				</div>
+
+				<!-- Duration -->
+				<div class="flex flex-col">
+					<span
+						class="font-600 text-[11px] tracking-wider uppercase"
+						style="color: var(--fg-muted)"
+					>
+						Duration
+					</span>
+					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+						<Icon
+							icon="lucide:calendar-range"
+							width="13"
+							height="13"
+							style="color: var(--fg-muted);"
+						/>
+						{formatDuration(job.backtest_duration_months)}
+					</span>
+				</div>
+
+				<!-- Max Holding Stocks -->
+				<div class="flex flex-col">
+					<span
+						class="font-600 text-[11px] tracking-wider uppercase"
+						style="color: var(--fg-muted)"
+					>
+						Max Holding
+					</span>
+					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+						<Icon icon="lucide:layers" width="13" height="13" style="color: var(--fg-muted);" />
+						{job.max_holding_stocks} Stocks
+					</span>
+				</div>
+
+				<!-- Trading Fees -->
+				<div class="flex flex-col">
+					<span
+						class="font-600 text-[11px] tracking-wider uppercase"
+						style="color: var(--fg-muted)"
+					>
+						Fees (Buy / Sell)
+					</span>
+					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+						<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
+						{job.buy_fee_percentage}% / {job.sell_fee_percentage}%
+					</span>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -194,50 +312,205 @@
 		</div>
 	{:else if job.status === 'DONE' && job.result}
 		<div class="flex flex-col gap-6">
-			<!-- Strategy Summary Card -->
-			<div
-				class="flex items-center gap-6 overflow-x-auto rounded-xl border p-4"
-				style="background-color: var(--bg-card); border-color: var(--border);"
-			>
-				<div class="flex min-w-max flex-col">
-					<span class="font-600 text-[10px] tracking-wider uppercase" style="color: var(--fg-muted)"
-						>TP Target</span
+			<!-- Trading Strategy Card (like in trading strategy list) -->
+			{#if strategy}
+				<div
+					class="group flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<!-- Top Row: Title + Visibility Badge + Action Buttons -->
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+						<!-- Title & Visibility -->
+						<div class="flex flex-col gap-1">
+							<div class="flex flex-wrap items-center gap-2">
+								<h2 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
+									{strategy.name}
+								</h2>
+							</div>
+
+							{#if strategy.description}
+								<p class="font-400 line-clamp-2 text-xs sm:text-sm" style="color: var(--fg-muted)">
+									{strategy.description}
+								</p>
+							{/if}
+						</div>
+
+						<!-- Actions: Trading Strategy Detail Button -->
+						<div class="flex flex-wrap items-center gap-1.5 self-start">
+							<a
+								href="/dashboard/strategies/{strategy.id}"
+								class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
+								style="border-color: var(--border); color: var(--fg);"
+								title="Trading Strategy Detail"
+								aria-label="View trading strategy detail for {strategy.name}"
+							>
+								<Icon icon="lucide:external-link" width="13" height="13" />
+								<span>Trading Strategy Detail</span>
+							</a>
+						</div>
+					</div>
+
+					<!-- Middle Row: Strategy Key Performance Parameters Grid -->
+					<div
+						class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-4 sm:gap-3"
+						style="background-color: var(--bg-card-hover, var(--bg));"
 					>
-					<span class="font-700 text-sm" style="color: var(--success)"
-						>+{strategy?.tp_percentage || '?'}%</span
+						<!-- TP -->
+						<div class="flex flex-col">
+							<span
+								class="font-600 text-[11px] tracking-wider uppercase"
+								style="color: var(--fg-muted)"
+							>
+								Take Profit
+							</span>
+							<span class="font-700 text-sm" style="color: var(--success)">
+								+{strategy.tp_percentage}%
+							</span>
+						</div>
+
+						<!-- SL -->
+						<div class="flex flex-col">
+							<span
+								class="font-600 text-[11px] tracking-wider uppercase"
+								style="color: var(--fg-muted)"
+							>
+								Stop Loss
+							</span>
+							<span class="font-700 text-sm" style="color: var(--danger)">
+								-{strategy.sl_percentage}%
+							</span>
+						</div>
+
+						<!-- Risk Reward Ratio -->
+						<div class="flex flex-col">
+							<span
+								class="font-600 text-[11px] tracking-wider uppercase"
+								style="color: var(--fg-muted)"
+							>
+								Risk : Reward
+							</span>
+							<span class="font-700 text-sm" style="color: var(--accent)">
+								{formatRiskReward(strategy.tp_percentage, strategy.sl_percentage)}
+							</span>
+						</div>
+
+						<!-- Max Holding Period -->
+						<div class="flex flex-col">
+							<span
+								class="font-600 text-[11px] tracking-wider uppercase"
+								style="color: var(--fg-muted)"
+							>
+								Max Holding
+							</span>
+							<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+								<Icon icon="lucide:clock" width="13" height="13" style="color: var(--fg-muted);" />
+								{strategy.max_holding_period_days} Days
+							</span>
+						</div>
+					</div>
+
+					<!-- Bottom Row: Rules Tags Preview (Left) + Timestamps (Right) -->
+					<div
+						class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
+						style="border-color: var(--border);"
 					>
+						<!-- Left: Rules & Conditions Tags -->
+						{#if strategy.rules && strategy.rules.length > 0}
+							<div class="flex min-w-0 flex-1 flex-col gap-1.5">
+								<div
+									class="font-600 flex items-center gap-1.5 text-xs"
+									style="color: var(--fg-muted)"
+								>
+									<Icon icon="lucide:code-2" width="13" height="13" />
+									<span>Rules & Conditions:</span>
+								</div>
+
+								<div class="flex flex-wrap items-center gap-1.5">
+									{#each strategy.rules as group, gIdx (gIdx)}
+										{#if gIdx > 0}
+											<span
+												class="font-800 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
+												style="background-color: var(--accent-soft); color: var(--accent);"
+											>
+												{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
+											</span>
+										{/if}
+
+										<div
+											class="inline-flex flex-wrap items-center gap-1 rounded-xl border px-2 py-1"
+											style="border-color: var(--border); background-color: var(--bg-card);"
+										>
+											{#each group.conditions as condition, cIdx (cIdx)}
+												{#if cIdx > 0}
+													<span
+														class="font-700 font-mono text-[10px]"
+														style="color: var(--accent);"
+													>
+														{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
+													</span>
+												{/if}
+
+												<span
+													class="font-500 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs"
+													style="
+														background-color: var(--bg-card-hover, var(--bg));
+														color: var(--fg);
+													"
+												>
+													<span
+														class="font-600 font-mono text-[11px]"
+														style="color: var(--accent);"
+													>
+														{condition.variable}
+													</span>
+													<span class="font-mono text-[11px]" style="color: var(--fg-muted);">
+														{condition.operator}
+													</span>
+													<span class="font-600 text-[11px]">
+														{condition.value}
+													</span>
+												</span>
+											{/each}
+										</div>
+									{/each}
+								</div>
+							</div>
+						{:else}
+							<div class="flex-1"></div>
+						{/if}
+
+						<!-- Right: Timestamps (Edited at & Created at) -->
+						<div
+							class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
+							style="color: var(--fg-muted);"
+						>
+							<div class="inline-flex items-center gap-1">
+								<Icon icon="lucide:clock" width="11" height="11" />
+								<span>Edited {formatTimeAgo(strategy.updated_at)}</span>
+							</div>
+							<div class="inline-flex items-center gap-1">
+								<Icon icon="lucide:calendar" width="11" height="11" />
+								<span>Created {formatTimeAgo(strategy.created_at)}</span>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div class="flex min-w-max flex-col">
-					<span class="font-600 text-[10px] tracking-wider uppercase" style="color: var(--fg-muted)"
-						>SL Limit</span
-					>
-					<span class="font-700 text-sm" style="color: var(--danger)"
-						>-{strategy?.sl_percentage || '?'}%</span
-					>
+			{:else if job.strategy_name}
+				<div
+					class="flex items-center justify-between rounded-xl border p-4"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div class="flex items-center gap-2">
+						<Icon
+							icon="lucide:candlestick-chart"
+							width="16"
+							height="16"
+							style="color: var(--accent);"
+						/>
+						<span class="font-700 text-sm" style="color: var(--fg)">{job.strategy_name}</span>
+					</div>
 				</div>
-				<div class="flex min-w-max flex-col">
-					<span class="font-600 text-[10px] tracking-wider uppercase" style="color: var(--fg-muted)"
-						>Max Hold</span
-					>
-					<span class="font-700 text-sm" style="color: var(--fg)"
-						>{strategy?.max_holding_period_days || '?'} Days</span
-					>
-				</div>
-				<div class="flex min-w-max flex-col border-l pl-6" style="border-color: var(--border);">
-					<span class="font-600 text-[10px] tracking-wider uppercase" style="color: var(--fg-muted)"
-						>Duration</span
-					>
-					<span class="font-700 text-sm" style="color: var(--fg)"
-						>{job.backtest_duration_months} Months</span
-					>
-				</div>
-				<div class="flex min-w-max flex-col">
-					<span class="font-600 text-[10px] tracking-wider uppercase" style="color: var(--fg-muted)"
-						>Max Stocks</span
-					>
-					<span class="font-700 text-sm" style="color: var(--fg)">{job.max_holding_stocks}</span>
-				</div>
-			</div>
+			{/if}
 
 			<!-- Main Content Grid -->
 			<div class="flex flex-col gap-6 lg:flex-row">
@@ -451,8 +724,7 @@
 							<div class="flex flex-col">
 								<span
 									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)"
-									>Sharpe Ratio <span class="font-400 normal-case opacity-70">(Rf=2%)</span></span
+									style="color: var(--fg-muted)">Sharpe Ratio</span
 								>
 								<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
 									>{job.result.sharpe_ratio.toFixed(2)}</span
@@ -483,7 +755,7 @@
 						<h3 class="font-700 text-sm" style="color: var(--fg)">Most Traded</h3>
 					</div>
 					<div class="flex flex-col gap-3 p-4">
-						{#each job.most_traded || [] as item}
+						{#each job.most_traded || [] as item (item.code)}
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span
@@ -514,7 +786,7 @@
 						<h3 class="font-700 text-sm" style="color: var(--fg)">Top Gainers</h3>
 					</div>
 					<div class="flex flex-col gap-3 p-4">
-						{#each job.top_gainers || [] as item}
+						{#each job.top_gainers || [] as item (item.code)}
 							<div class="flex items-center justify-between">
 								<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span>
 								<span class="font-600 text-xs" style="color: var(--success)">
@@ -534,7 +806,7 @@
 						<h3 class="font-700 text-sm" style="color: var(--fg)">Top Losers</h3>
 					</div>
 					<div class="flex flex-col gap-3 p-4">
-						{#each job.top_losers || [] as item}
+						{#each job.top_losers || [] as item (item.code)}
 							<div class="flex items-center justify-between">
 								<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span>
 								<span class="font-600 text-xs" style="color: var(--danger)">
@@ -578,7 +850,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each job.trade_history || [] as t}
+							{#each job.trade_history || [] as t, idx (t.code + t.buy_date + idx)}
 								{@const badge = getExitReasonBadge(t.exit_reason)}
 								<tr
 									class="border-b transition-colors hover:bg-(--bg-card-hover)"

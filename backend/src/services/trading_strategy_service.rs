@@ -56,7 +56,6 @@ impl TradingStrategyService {
             .as_deref()
             .map(str::trim)
             .filter(|s| !s.is_empty());
-        let is_public = request.is_public.unwrap_or(false);
         let rules = request.rules.unwrap_or_default();
 
         let record = self
@@ -65,7 +64,6 @@ impl TradingStrategyService {
                 user_id,
                 name,
                 description,
-                is_public,
                 tp_percentage: request.tp_percentage,
                 sl_percentage: request.sl_percentage,
                 max_holding_period_days: request.max_holding_period_days,
@@ -113,7 +111,6 @@ impl TradingStrategyService {
                 user_id,
                 name,
                 description,
-                is_public: request.is_public,
                 tp_percentage: request.tp_percentage,
                 sl_percentage: request.sl_percentage,
                 max_holding_period_days: request.max_holding_period_days,

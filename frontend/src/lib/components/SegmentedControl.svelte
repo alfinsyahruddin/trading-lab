@@ -5,10 +5,14 @@
 	let {
 		options,
 		value = $bindable(),
+		size = 'md',
+		class: className = '',
 		onchange
 	}: {
 		options: SegmentOption<T>[];
 		value: T;
+		size?: 'sm' | 'md';
+		class?: string;
 		onchange?: (newValue: T) => void;
 	} = $props();
 
@@ -26,12 +30,16 @@
 </script>
 
 <div
-	class="ios-segmented-track relative inline-flex h-8.5 items-center rounded-[9px] p-0.5 select-none"
+	class="ios-segmented-track relative flex items-center p-0.5 select-none {size === 'sm'
+		? 'h-7 rounded-[7px]'
+		: 'h-8.5 rounded-[9px]'} {className || 'w-full'}"
 	role="group"
 >
 	<!-- Sliding iOS Neutral Pill Indicator -->
 	<div
-		class="ios-segmented-thumb pointer-events-none absolute rounded-[7px]"
+		class="ios-segmented-thumb pointer-events-none absolute {size === 'sm'
+			? 'rounded-[5px]'
+			: 'rounded-[7px]'}"
 		style="
 			top: 2px;
 			bottom: 2px;
@@ -44,13 +52,15 @@
 	></div>
 
 	<!-- Segment Buttons -->
-	{#each options as opt, idx}
+	{#each options as opt, idx (opt.value)}
 		{@const isSelected = opt.value === value}
 
 		<!-- Optional Separator divider line between unselected segments -->
 		{#if idx > 0}
 			<div
-				class="pointer-events-none absolute h-3.5 w-px transition-opacity duration-200"
+				class="pointer-events-none absolute w-px transition-opacity duration-200 {size === 'sm'
+					? 'h-3'
+					: 'h-3.5'}"
 				style="
 					left: calc({idx} * (100% / {options.length}));
 					background-color: var(--border-strong);
@@ -62,48 +72,52 @@
 		<button
 			type="button"
 			onclick={() => handleSelect(opt.value)}
-			class="relative z-10 flex h-full flex-1 items-center justify-center gap-1.5 rounded-[7px] px-3 text-[13px] transition-colors duration-150 focus:outline-none"
+			class="relative z-10 flex h-full flex-1 items-center justify-center gap-1.5 whitespace-nowrap transition-colors duration-150 focus:outline-none {size ===
+			'sm'
+				? 'rounded-[5px] px-2 text-xs'
+				: 'rounded-[7px] px-3 text-[13px]'}"
 			style="
 				color: {isSelected ? 'var(--fg)' : 'var(--fg-muted)'};
-				font-weight: 500;
+				font-weight: {isSelected ? '600' : '500'};
 			"
 			aria-pressed={isSelected}
 		>
 			{#if opt.icon}
-				<Icon icon={opt.icon} width="14" height="14" />
+				<Icon icon={opt.icon} width={size === 'sm' ? 12 : 14} height={size === 'sm' ? 12 : 14} />
 			{/if}
-			<span>{opt.label}</span>
+			<span class="whitespace-nowrap">{opt.label}</span>
 		</button>
 	{/each}
 </div>
 
 <style>
 	.ios-segmented-track {
-		background-color: rgba(118, 118, 128, 0.12);
-		border: 1px solid rgba(0, 0, 0, 0.04);
+		background-color: var(--bg, #eef0f6);
+		border: 1px solid var(--border, #e2e8f0);
 	}
 
 	:global(.dark) .ios-segmented-track,
+	:global(html.dark) .ios-segmented-track,
 	:root.dark .ios-segmented-track {
-		background-color: rgba(118, 118, 128, 0.24);
-		border: 1px solid rgba(255, 255, 255, 0.06);
+		background-color: #313f5b;
+		border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
 	}
 
 	.ios-segmented-thumb {
 		background-color: #ffffff;
 		box-shadow:
-			0px 3px 8px 0px rgba(0, 0, 0, 0.12),
-			0px 3px 1px 0px rgba(0, 0, 0, 0.04);
-		border: 0.5px solid rgba(0, 0, 0, 0.04);
+			0px 2px 5px 0px rgba(0, 0, 0, 0.08),
+			0px 1px 2px 0px rgba(0, 0, 0, 0.04);
+		border: 0.5px solid rgba(0, 0, 0, 0.06);
 	}
 
 	:global(.dark) .ios-segmented-thumb,
 	:global(html.dark) .ios-segmented-thumb,
 	:root.dark .ios-segmented-thumb {
-		background-color: rgba(255, 255, 255, 0.2);
+		background-color: var(--bg-card, #3c486a);
 		box-shadow:
-			0px 3px 8px 0px rgba(0, 0, 0, 0.3),
-			0px 1px 2px 0px rgba(0, 0, 0, 0.15);
-		border: 0.5px solid rgba(255, 255, 255, 0.12);
+			0px 3px 8px 0px rgba(0, 0, 0, 0.35),
+			0px 1px 3px 0px rgba(0, 0, 0, 0.2);
+		border: 0.5px solid rgba(255, 255, 255, 0.15);
 	}
 </style>

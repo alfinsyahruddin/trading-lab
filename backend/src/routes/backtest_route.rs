@@ -1,5 +1,5 @@
 use actix_web::{
-    delete, get, post,
+    delete, get, patch, post,
     web::{Data, Json, Path},
 };
 use uuid::Uuid;
@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     entities::{
         app_response::{AppResponse, IntoResponseTrait},
-        backtest::{BacktestJobResponse, CreateBacktestJobRequest},
+        backtest::{BacktestJobResponse, CreateBacktestJobRequest, UpdateBacktestJobRequest},
         base_response::JsonFromStringTrait,
     },
     guards::authenticated_user::AuthenticatedUser,
@@ -39,6 +39,19 @@ pub async fn create_backtest(
 ) -> AppResponse<BacktestJobResponse> {
     service
         .create(user.claims.sub, body.into_inner())
+        .await
+        .json()
+}
+
+#[patch("/api/backtests/{id}")]
+pub async fn update_backtest(
+    service: Data<BacktestService>,
+    user: AuthenticatedUser,
+    id: Path<Uuid>,
+    body: Json<UpdateBacktestJobRequest>,
+) -> AppResponse<BacktestJobResponse> {
+    service
+        .update(id.into_inner(), user.claims.sub, body.into_inner())
         .await
         .json()
 }

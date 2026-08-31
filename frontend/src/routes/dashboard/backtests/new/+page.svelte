@@ -23,6 +23,7 @@
 	let formDuration = $state('12');
 	let formBuyFee = $state('0.15');
 	let formSellFee = $state('0.25');
+	let isPublic = $state(false);
 
 	const yearOptions = [
 		{ value: 2021, label: '2021' },
@@ -50,7 +51,7 @@
 			if (strategies.length > 0) {
 				formStrategyId = strategies[0].id;
 			}
-		} catch (err) {
+		} catch {
 			toast.error('Failed to load strategies.');
 		} finally {
 			loadingStrats = false;
@@ -118,7 +119,8 @@
 				max_holding_stocks: maxHoldingNum,
 				backtest_duration_months: Number(formDuration),
 				buy_fee_percentage: buyFeeNum,
-				sell_fee_percentage: sellFeeNum
+				sell_fee_percentage: sellFeeNum,
+				is_public: isPublic
 			};
 
 			await createBacktest(token, payload);
@@ -167,9 +169,23 @@
 				required
 			/>
 
-			<div class="flex flex-col gap-1.5">
-				<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Data Year</span>
-				<SegmentedControl options={yearOptions} bind:value={formYear} />
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+				<div class="flex flex-1 flex-col gap-1.5">
+					<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Data Year</span>
+					<SegmentedControl options={yearOptions} bind:value={formYear} />
+				</div>
+
+				<div class="flex shrink-0 flex-col gap-1.5">
+					<span class="font-500 text-sm" style="color: var(--fg-muted)">Visibility</span>
+					<SegmentedControl
+						class="w-fit"
+						options={[
+							{ value: false, label: 'Private', icon: 'lucide:lock' },
+							{ value: true, label: 'Public', icon: 'lucide:globe' }
+						]}
+						bind:value={isPublic}
+					/>
+				</div>
 			</div>
 
 			<div oninput={handleNameInput}>

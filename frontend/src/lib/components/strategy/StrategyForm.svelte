@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import WhereConditionsBuilder from './WhereConditionsBuilder.svelte';
 	import { formatRiskReward } from '$lib/constants';
 	import type { CreateStrategyPayload, StrategyRuleGroup, TradingStrategy } from '$lib/types';
@@ -24,7 +23,6 @@
 
 	let name = $state('');
 	let description = $state('');
-	let isPublic = $state(false);
 	let tpPercentage = $state('10');
 	let slPercentage = $state('5');
 	let maxHoldingPeriodDays = $state('30');
@@ -51,7 +49,6 @@
 			initialDataLoaded = true;
 			name = initialData.name || '';
 			description = initialData.description || '';
-			isPublic = initialData.is_public ?? false;
 			tpPercentage =
 				initialData.tp_percentage !== undefined ? String(initialData.tp_percentage) : '10';
 			slPercentage =
@@ -82,7 +79,6 @@
 		onsubmit({
 			name: name.trim(),
 			description: description.trim() || null,
-			is_public: isPublic,
 			tp_percentage: isNaN(tp) ? 0 : tp,
 			sl_percentage: isNaN(sl) ? 0 : sl,
 			max_holding_period_days: isNaN(days) ? 1 : days,
@@ -97,31 +93,18 @@
 		class="flex flex-col rounded-2xl border p-3.5 sm:p-6"
 		style="background-color: var(--bg-card); border-color: var(--border);"
 	>
-		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-			<div class="flex items-center gap-2.5">
-				<div
-					class="flex size-9 shrink-0 items-center justify-center rounded-xl"
-					style="background-color: var(--accent-soft); color: var(--accent);"
-				>
-					<Icon icon="lucide:settings-2" width="18" height="18" />
-				</div>
-				<div>
-					<h2 class="font-700 text-sm sm:text-base" style="color: var(--fg)">General Parameters</h2>
-					<p class="text-xs" style="color: var(--fg-muted)">
-						Define the identity, targets, and risk parameters of your strategy
-					</p>
-				</div>
+		<div class="mb-5 flex items-center gap-2.5">
+			<div
+				class="flex size-9 shrink-0 items-center justify-center rounded-xl"
+				style="background-color: var(--accent-soft); color: var(--accent);"
+			>
+				<Icon icon="lucide:settings-2" width="18" height="18" />
 			</div>
-
-			<!-- Public / Private Segmented Toggle -->
-			<div class="self-start sm:self-auto">
-				<SegmentedControl
-					options={[
-						{ value: false, label: 'Private', icon: 'lucide:lock' },
-						{ value: true, label: 'Public', icon: 'lucide:globe' }
-					]}
-					bind:value={isPublic}
-				/>
+			<div>
+				<h2 class="font-700 text-sm sm:text-base" style="color: var(--fg)">General Parameters</h2>
+				<p class="text-xs" style="color: var(--fg-muted)">
+					Define the identity, targets, and risk parameters of your strategy
+				</p>
 			</div>
 		</div>
 

@@ -34,6 +34,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(backtest_route::list_backtests)
         .service(backtest_route::get_backtest)
         .service(backtest_route::create_backtest)
+        .service(backtest_route::update_backtest)
         .service(backtest_route::delete_backtest);
 }
 

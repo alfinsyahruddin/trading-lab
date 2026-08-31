@@ -44,6 +44,24 @@
 		return `${sign}Rp${formatted}`;
 	}
 
+	function formatCompactRupiah(price: number): string {
+		const abs = Math.abs(price);
+		const sign = price < 0 ? '-' : '';
+		if (abs >= 1_000_000_000) {
+			const formatted = parseFloat((abs / 1_000_000_000).toFixed(2));
+			return `${sign}${formatted}M`;
+		}
+		if (abs >= 1_000_000) {
+			const formatted = parseFloat((abs / 1_000_000).toFixed(2));
+			return `${sign}${formatted}jt`;
+		}
+		if (abs >= 1_000) {
+			const formatted = parseFloat((abs / 1_000).toFixed(1));
+			return `${sign}${formatted}rb`;
+		}
+		return `${sign}${abs.toFixed(0)}`;
+	}
+
 	function formatPnlDisplay(value: number, percentage: number): string {
 		const sign = value >= 0 ? '+' : '';
 		return `${formatRupiah(value)} (${sign}${percentage.toFixed(2)}%)`;
@@ -69,6 +87,9 @@
 		const currentGridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
 		chart = createChart(container, {
+			localization: {
+				priceFormatter: formatCompactRupiah
+			},
 			layout: {
 				background: { type: ColorType.Solid, color: colors.bg },
 				textColor: currentTextColor
@@ -93,6 +114,10 @@
 
 		baselineSeries = chart.addSeries(BaselineSeries, {
 			baseValue: { type: 'price', price: initialCash },
+			priceFormat: {
+				type: 'custom',
+				formatter: formatCompactRupiah
+			},
 			topLineColor: colors.upColor,
 			topFillColor1: 'rgba(16, 185, 129, 0.28)',
 			topFillColor2: 'rgba(16, 185, 129, 0.05)',

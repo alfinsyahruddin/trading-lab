@@ -10,7 +10,6 @@ pub struct CreateStrategyRecordParams<'a> {
     pub user_id: Uuid,
     pub name: &'a str,
     pub description: Option<&'a str>,
-    pub is_public: bool,
     pub tp_percentage: f64,
     pub sl_percentage: f64,
     pub max_holding_period_days: i32,
@@ -22,7 +21,6 @@ pub struct UpdateStrategyRecordParams<'a> {
     pub user_id: Uuid,
     pub name: Option<&'a str>,
     pub description: Option<Option<&'a str>>,
-    pub is_public: Option<bool>,
     pub tp_percentage: Option<f64>,
     pub sl_percentage: Option<f64>,
     pub max_holding_period_days: Option<i32>,
@@ -45,14 +43,13 @@ impl TradingStrategyRepository {
     ) -> Result<TradingStrategyRecord, AppError> {
         let rules_json = Json(params.rules.to_vec());
         sqlx::query_as::<_, TradingStrategyRecord>(
-            "INSERT INTO trading_strategies (user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id, user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
+            "INSERT INTO trading_strategies (user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING id, user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
         )
         .bind(params.user_id)
         .bind(params.name)
         .bind(params.description)
-        .bind(params.is_public)
         .bind(params.tp_percentage)
         .bind(params.sl_percentage)
         .bind(params.max_holding_period_days)
@@ -67,7 +64,7 @@ impl TradingStrategyRepository {
         user_id: Uuid,
     ) -> Result<Vec<TradingStrategyRecord>, AppError> {
         sqlx::query_as::<_, TradingStrategyRecord>(
-            "SELECT id, user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at
+            "SELECT id, user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at
              FROM trading_strategies
              WHERE user_id = $1
              ORDER BY updated_at DESC"
@@ -84,7 +81,7 @@ impl TradingStrategyRepository {
         user_id: Uuid,
     ) -> Result<TradingStrategyRecord, AppError> {
         sqlx::query_as::<_, TradingStrategyRecord>(
-            "SELECT id, user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at
+            "SELECT id, user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at
              FROM trading_strategies
              WHERE id = $1 AND user_id = $2"
         )
@@ -104,21 +101,19 @@ impl TradingStrategyRepository {
             "UPDATE trading_strategies
              SET name = COALESCE($3, name),
                  description = CASE WHEN $4 THEN $5 ELSE description END,
-                 is_public = COALESCE($6, is_public),
-                 tp_percentage = COALESCE($7, tp_percentage),
-                 sl_percentage = COALESCE($8, sl_percentage),
-                 max_holding_period_days = COALESCE($9, max_holding_period_days),
-                 rules = COALESCE($10, rules),
+                 tp_percentage = COALESCE($6, tp_percentage),
+                 sl_percentage = COALESCE($7, sl_percentage),
+                 max_holding_period_days = COALESCE($8, max_holding_period_days),
+                 rules = COALESCE($9, rules),
                  updated_at = CURRENT_TIMESTAMP
              WHERE id = $1 AND user_id = $2
-             RETURNING id, user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
+             RETURNING id, user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
         )
         .bind(params.id)
         .bind(params.user_id)
         .bind(params.name)
         .bind(params.description.is_some())
         .bind(params.description.flatten())
-        .bind(params.is_public)
         .bind(params.tp_percentage)
         .bind(params.sl_percentage)
         .bind(params.max_holding_period_days)
@@ -153,14 +148,13 @@ impl TradingStrategyRepository {
         let source = self.find_by_id_and_user(id, user_id).await?;
 
         sqlx::query_as::<_, TradingStrategyRecord>(
-            "INSERT INTO trading_strategies (user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id, user_id, name, description, is_public, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
+            "INSERT INTO trading_strategies (user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING id, user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules, created_at, updated_at"
         )
         .bind(user_id)
         .bind(new_name)
         .bind(source.description)
-        .bind(source.is_public)
         .bind(source.tp_percentage)
         .bind(source.sl_percentage)
         .bind(source.max_holding_period_days)

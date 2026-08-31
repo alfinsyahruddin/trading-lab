@@ -28,6 +28,7 @@ pub struct CreateBacktestParams {
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
+    pub is_public: bool,
 }
 
 #[derive(FromRow)]
@@ -58,8 +59,8 @@ impl BacktestRepository {
             r#"
             INSERT INTO backtest_jobs (
                 user_id, strategy_id, strategy_name, name, year, initial_cash, max_holding_stocks,
-                backtest_duration_months, buy_fee_percentage, sell_fee_percentage, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                backtest_duration_months, buy_fee_percentage, sell_fee_percentage, is_public, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
             "#,
         )
@@ -73,6 +74,7 @@ impl BacktestRepository {
         .bind(params.backtest_duration_months)
         .bind(params.buy_fee_percentage)
         .bind(params.sell_fee_percentage)
+        .bind(params.is_public)
         .bind(BacktestStatus::Pending)
         .fetch_one(&self.pool)
         .await
@@ -341,5 +343,27 @@ impl BacktestRepository {
         }
 
         Ok(())
+    }
+
+    pub async fn update_visibility(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+        is_public: bool,
+    ) -> Result<BacktestJobRecord, AppError> {
+        let record = sqlx::query_as::<_, BacktestJobRecord>(
+            "UPDATE backtest_jobs
+             SET is_public = $3, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND user_id = $2
+             RETURNING *",
+        )
+        .bind(id)
+        .bind(user_id)
+        .bind(is_public)
+        .fetch_optional(&self.pool)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Backtest not found".into()))?;
+
+        Ok(record)
     }
 }

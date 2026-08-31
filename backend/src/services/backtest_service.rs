@@ -13,6 +13,7 @@ use crate::{
         backtest::{
             BacktestJobResponse, BacktestPortfolioHistoryRecord, BacktestResultRecord,
             BacktestTradeRecord, CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
+            UpdateBacktestJobRequest,
         },
         trading_strategy::{StrategyRuleCondition, StrategyRuleGroup},
     },
@@ -62,6 +63,7 @@ impl BacktestService {
                 backtest_duration_months: job.backtest_duration_months,
                 buy_fee_percentage: job.buy_fee_percentage,
                 sell_fee_percentage: job.sell_fee_percentage,
+                is_public: job.is_public,
                 status: job.status,
                 error_message: job.error_message,
                 result: result.map(Into::into),
@@ -100,6 +102,7 @@ impl BacktestService {
             backtest_duration_months: job.backtest_duration_months,
             buy_fee_percentage: job.buy_fee_percentage,
             sell_fee_percentage: job.sell_fee_percentage,
+            is_public: job.is_public,
             status: job.status,
             error_message: job.error_message,
             result: result.map(Into::into),
@@ -145,6 +148,26 @@ impl BacktestService {
         self.repo.delete(id, user_id).await
     }
 
+    pub async fn update(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+        req: UpdateBacktestJobRequest,
+    ) -> Result<BacktestJobResponse, AppError> {
+        req.validate()
+            .map_err(|e| AppError::bad_request(e.to_string()))?;
+
+        if req.is_empty() {
+            return Err(AppError::bad_request("No fields provided for update"));
+        }
+
+        if let Some(is_public) = req.is_public {
+            self.repo.update_visibility(id, user_id, is_public).await?;
+        }
+
+        self.get(id, user_id).await
+    }
+
     pub async fn create(
         &self,
         user_id: Uuid,
@@ -165,6 +188,7 @@ impl BacktestService {
             .find_by_id_and_user(req.strategy_id, user_id)
             .await?;
 
+        let is_public = req.is_public.unwrap_or(false);
         let params = CreateBacktestParams {
             user_id,
             strategy_id: strategy.id,
@@ -176,6 +200,7 @@ impl BacktestService {
             backtest_duration_months: req.backtest_duration_months,
             buy_fee_percentage: req.buy_fee_percentage,
             sell_fee_percentage: req.sell_fee_percentage,
+            is_public,
         };
 
         let job = self.repo.create(params).await?;
@@ -217,6 +242,7 @@ impl BacktestService {
             backtest_duration_months: job.backtest_duration_months,
             buy_fee_percentage: job.buy_fee_percentage,
             sell_fee_percentage: job.sell_fee_percentage,
+            is_public: job.is_public,
             status: job.status,
             error_message: job.error_message,
             result: None,

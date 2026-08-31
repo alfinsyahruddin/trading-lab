@@ -1,73 +1,84 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
+
 	let { wins, losses }: { wins: number; losses: number } = $props();
 
-	const total = $derived(wins + losses);
+	const ARC_LEN = Math.PI * 80; // semicircle arc length for r=80
 
-	// Math for SVG arcs
-	// We use a stroke-dasharray technique. Circumference of half circle = pi * r.
-	// Radius = 40, so pi * 40 = 125.66
-	const radius = 40;
-	const circumference = Math.PI * radius;
-
-	const winPercentage = $derived(total === 0 ? 0 : wins / total);
-	const winDash = $derived(winPercentage * circumference);
-	const lossDash = $derived(circumference - winDash);
+	const totalTrades = $derived(wins + losses);
+	const winsArcLen = $derived(totalTrades > 0 ? (wins / totalTrades) * ARC_LEN : 0);
+	const lossesArcLen = $derived(totalTrades > 0 ? ARC_LEN - winsArcLen : 0);
 </script>
 
 <div class="flex flex-col items-center justify-center pt-2">
-	<div class="relative w-full max-w-40">
-		<svg viewBox="0 0 100 50" class="h-auto w-full overflow-visible">
-			<!-- Background track -->
-			<path
-				d="M 10 50 A 40 40 0 0 1 90 50"
-				fill="none"
-				stroke="var(--bg-card-hover, #333)"
-				stroke-width="12"
-				stroke-linecap="butt"
-			/>
+	<svg viewBox="0 18 200 96" class="h-auto w-full max-w-36 overflow-visible">
+		<!-- Background track -->
+		<path
+			d="M 20,105 A 80,80 0 0,1 180,105"
+			fill="none"
+			stroke="var(--bg-card-hover, var(--border))"
+			stroke-width="13"
+			stroke-linecap="round"
+		/>
 
-			<!-- Losses (Red, right side) - drawn first as the background for the active part -->
+		<!-- Losses (Red) — drawn first so green sits on top -->
+		{#if lossesArcLen > 0}
 			<path
-				d="M 10 50 A 40 40 0 0 1 90 50"
+				d="M 20,105 A 80,80 0 0,1 180,105"
 				fill="none"
 				stroke="var(--danger)"
-				stroke-width="12"
-				stroke-linecap="butt"
-				stroke-dasharray="{circumference} {circumference}"
-				stroke-dashoffset="0"
+				stroke-width="13"
+				stroke-linecap="round"
+				stroke-dasharray="{lossesArcLen} {ARC_LEN + 10}"
+				stroke-dashoffset={-winsArcLen}
 			/>
+		{/if}
 
-			<!-- Wins (Green, left side) -->
+		<!-- Wins (Green) — drawn last so it renders on top -->
+		{#if winsArcLen > 0}
 			<path
-				d="M 10 50 A 40 40 0 0 1 90 50"
+				d="M 20,105 A 80,80 0 0,1 180,105"
 				fill="none"
 				stroke="var(--success)"
-				stroke-width="12"
-				stroke-linecap="butt"
-				stroke-dasharray="{winDash} {circumference}"
+				stroke-width="13"
+				stroke-linecap="round"
+				stroke-dasharray="{winsArcLen} {ARC_LEN + 10}"
 				stroke-dashoffset="0"
 			/>
-		</svg>
+		{/if}
 
-		<div
-			class="absolute inset-x-0 bottom-0 -mb-2 flex flex-col items-center justify-end text-center"
+		<text
+			x="100"
+			y="88"
+			text-anchor="middle"
+			font-size="28"
+			font-weight="700"
+			style="fill: var(--fg);"
+			font-family="inherit"
 		>
-			<span class="font-700 text-xl leading-none" style="color: var(--fg)">{total}</span>
-			<span
-				class="font-500 mt-0.5 text-[10px] tracking-wider uppercase"
-				style="color: var(--fg-muted)">Trades</span
-			>
-		</div>
-	</div>
+			{totalTrades}
+		</text>
+		<text
+			x="100"
+			y="108"
+			text-anchor="middle"
+			font-size="13"
+			font-weight="500"
+			style="fill: var(--fg-muted);"
+			font-family="inherit"
+		>
+			Trades
+		</text>
+	</svg>
 
-	<div class="font-500 mt-4 flex items-center justify-center gap-4 text-xs">
-		<div class="flex items-center gap-1.5" style="color: var(--success)">
-			<span class="size-2 rounded-full bg-current"></span>
-			<span>Wins {wins}x</span>
-		</div>
-		<div class="flex items-center gap-1.5" style="color: var(--danger)">
-			<span class="size-2 rounded-full bg-current"></span>
-			<span>Losses {losses}x</span>
-		</div>
+	<div class="mt-2 flex items-center justify-center gap-4 text-xs font-medium">
+		<span class="inline-flex items-center gap-1" style="color: var(--success)">
+			<Icon icon="lucide:check-circle-2" width="13" height="13" />
+			<span>Wins <strong>{wins}x</strong></span>
+		</span>
+		<span class="inline-flex items-center gap-1" style="color: var(--danger)">
+			<Icon icon="lucide:x-circle" width="13" height="13" />
+			<span>Losses <strong>{losses}x</strong></span>
+		</span>
 	</div>
 </div>

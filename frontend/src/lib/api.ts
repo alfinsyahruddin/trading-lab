@@ -7,7 +7,8 @@ import type {
 	UserResponse,
 	UserRole,
 	BacktestJob,
-	CreateBacktestPayload
+	CreateBacktestPayload,
+	UpdateBacktestPayload
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -312,6 +313,18 @@ export function createBacktest(
 	return request<BacktestJob>(
 		'/api/backtests',
 		{ method: 'POST', body: JSON.stringify(data) },
+		token
+	);
+}
+
+export function updateBacktest(
+	token: string | undefined,
+	id: string,
+	data: UpdateBacktestPayload
+): Promise<BacktestJob> {
+	return request<BacktestJob>(
+		`/api/backtests/${id}`,
+		{ method: 'PATCH', body: JSON.stringify(data) },
 		token
 	);
 }

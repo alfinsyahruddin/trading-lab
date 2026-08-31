@@ -204,38 +204,29 @@
 	<div class="flex flex-col gap-4">
 		{#each strategies as strategy (strategy.id)}
 			<div
-				class="group flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
+				class="group flex cursor-pointer flex-col rounded-2xl border p-4 transition-all duration-200 hover:border-(--border-strong) hover:bg-(--bg-card-hover) sm:p-5"
 				style="background-color: var(--bg-card); border-color: var(--border);"
+				onclick={() => goto(`/dashboard/strategies/${strategy.id}`)}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						goto(`/dashboard/strategies/${strategy.id}`);
+					}
+				}}
+				role="button"
+				tabindex="0"
 			>
 				<!-- Top Row: Title + Visibility Badge + Action Buttons -->
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 					<!-- Title & Visibility -->
 					<div class="flex flex-col gap-1">
 						<div class="flex flex-wrap items-center gap-2">
-							<h3 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
+							<h3
+								class="font-700 text-base leading-snug transition-colors group-hover:text-(--accent) sm:text-lg"
+								style="color: var(--fg)"
+							>
 								{strategy.name}
 							</h3>
-
-							<!-- Public / Private Status Icon Badge -->
-							{#if strategy.is_public}
-								<span
-									class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
-									style="background-color: var(--accent-soft); color: var(--accent);"
-									title="Public strategy"
-								>
-									<Icon icon="lucide:globe" width="12" height="12" />
-									<span>Public</span>
-								</span>
-							{:else}
-								<span
-									class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
-									style="background-color: rgba(148, 163, 184, 0.15); color: var(--fg-muted);"
-									title="Private strategy"
-								>
-									<Icon icon="lucide:lock" width="12" height="12" />
-									<span>Private</span>
-								</span>
-							{/if}
 						</div>
 
 						{#if strategy.description}
@@ -245,44 +236,61 @@
 						{/if}
 					</div>
 
-					<!-- Actions: Duplicate, Edit, Delete Buttons -->
-					<div class="flex flex-wrap items-center gap-1.5 self-start">
-						<!-- Duplicate Button -->
-						<button
-							type="button"
-							onclick={() => openDuplicate(strategy)}
-							class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
-							style="border-color: var(--border); color: var(--fg);"
-							title="Duplicate strategy"
-							aria-label="Duplicate {strategy.name}"
-						>
-							<Icon icon="lucide:copy" width="13" height="13" />
-							<span class="hidden sm:inline">Duplicate</span>
-						</button>
+					<!-- Actions: Duplicate, Edit, Delete Buttons + Chevron -->
+					<div class="flex items-center gap-2 self-start sm:self-center">
+						<div class="flex flex-wrap items-center gap-1.5">
+							<!-- Duplicate Button -->
+							<button
+								type="button"
+								onclick={(e) => {
+									e.stopPropagation();
+									openDuplicate(strategy);
+								}}
+								class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
+								style="border-color: var(--border); color: var(--fg);"
+								title="Duplicate strategy"
+								aria-label="Duplicate {strategy.name}"
+							>
+								<Icon icon="lucide:copy" width="13" height="13" />
+								<span class="hidden sm:inline">Duplicate</span>
+							</button>
 
-						<!-- Edit Button -->
-						<a
-							href="/dashboard/strategies/{strategy.id}/edit"
-							class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
-							style="border-color: var(--border); color: var(--fg);"
-							title="Edit strategy"
-							aria-label="Edit {strategy.name}"
-						>
-							<Icon icon="lucide:pencil" width="13" height="13" />
-							<span class="hidden sm:inline">Edit</span>
-						</a>
+							<!-- Edit Button -->
+							<a
+								href="/dashboard/strategies/{strategy.id}/edit"
+								onclick={(e) => e.stopPropagation()}
+								class="btn-interactive font-600 flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
+								style="border-color: var(--border); color: var(--fg);"
+								title="Edit strategy"
+								aria-label="Edit {strategy.name}"
+							>
+								<Icon icon="lucide:pencil" width="13" height="13" />
+								<span class="hidden sm:inline">Edit</span>
+							</a>
 
-						<!-- Delete Button -->
-						<button
-							type="button"
-							onclick={() => openDelete(strategy)}
-							class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
-							style="border-color: var(--border); color: var(--fg-muted);"
-							title="Delete strategy"
-							aria-label="Delete {strategy.name}"
-						>
-							<Icon icon="lucide:trash-2" width="14" height="14" />
-						</button>
+							<!-- Delete Button -->
+							<button
+								type="button"
+								onclick={(e) => {
+									e.stopPropagation();
+									openDelete(strategy);
+								}}
+								class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+								style="border-color: var(--border); color: var(--fg-muted);"
+								title="Delete strategy"
+								aria-label="Delete {strategy.name}"
+							>
+								<Icon icon="lucide:trash-2" width="14" height="14" />
+							</button>
+						</div>
+
+						<Icon
+							icon="lucide:chevron-right"
+							width="18"
+							height="18"
+							class="transition-transform duration-150 group-hover:translate-x-0.5"
+							style="color: var(--fg-muted);"
+						/>
 					</div>
 				</div>
 
