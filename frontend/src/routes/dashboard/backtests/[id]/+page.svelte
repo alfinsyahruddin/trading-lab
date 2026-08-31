@@ -128,12 +128,40 @@
 		});
 	}
 
+	function formatHoldingDays(buyDate: string, sellDate: string): string {
+		const millisecondsPerDay = 1000 * 60 * 60 * 24;
+		const days = Math.max(
+			0,
+			Math.round((new Date(sellDate).getTime() - new Date(buyDate).getTime()) / millisecondsPerDay)
+		);
+		return `${days} ${days === 1 ? 'Day' : 'Days'}`;
+	}
+
 	function getExitReasonBadge(reason: string) {
 		if (reason === 'STOP_LOSS')
-			return { bg: 'rgba(239, 68, 68, 0.15)', color: 'var(--danger)', label: 'STOP LOSS' };
+			return {
+				bg: 'rgba(239, 68, 68, 0.14)',
+				color: 'var(--danger)',
+				label: 'Stop loss',
+				icon: 'lucide:shield-alert'
+			};
 		if (reason === 'TAKE_PROFIT')
-			return { bg: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', label: 'TAKE PROFIT' };
-		return { bg: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)', label: 'MAX HOLD' };
+			return {
+				bg: 'rgba(34, 197, 94, 0.14)',
+				color: 'var(--success)',
+				label: 'Take profit',
+				icon: 'lucide:circle-check'
+			};
+		return {
+			bg: 'rgba(245, 158, 11, 0.14)',
+			color: 'var(--warning)',
+			label: 'Max hold',
+			icon: 'lucide:clock-3'
+		};
+	}
+
+	function getExitReasonCount(reason: string): number {
+		return job?.trade_history?.filter((trade) => trade.exit_reason === reason).length ?? 0;
 	}
 
 	function formatDuration(months: number): string {
@@ -322,17 +350,19 @@
 					<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 						<!-- Title & Visibility -->
 						<div class="flex flex-col gap-1">
-							<div class="flex flex-wrap items-center gap-2">
-								<h2 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
-									{strategy.name}
-								</h2>
+							<div class="flex flex-wrap items-center gap-4">
+								<span
+									class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
+									style="background-color: var(--accent-soft); color: var(--accent);"
+								>
+									<Icon icon="lucide:candlestick-chart" width="12" height="12" />
+									<span>Trading Strategy</span>
+								</span>
 							</div>
 
-							{#if strategy.description}
-								<p class="font-400 line-clamp-2 text-xs sm:text-sm" style="color: var(--fg-muted)">
-									{strategy.description}
-								</p>
-							{/if}
+							<h2 class="font-700 sm:text-md text-base leading-snug" style="color: var(--fg)">
+								{strategy.name}
+							</h2>
 						</div>
 
 						<!-- Actions: Trading Strategy Detail Button -->
@@ -512,394 +542,426 @@
 				</div>
 			{/if}
 
-			<!-- Main Content Grid -->
-			<div class="flex flex-col gap-6 lg:flex-row">
-				<!-- Left: Chart & Basics (~60%) -->
-				<div class="flex flex-col gap-6 lg:w-3/5">
+			<!-- Performance-first dashboard: chart is the anchor, metrics are grouped by meaning. -->
+			<div class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.95fr)]">
+				<div class="flex min-w-0 flex-col gap-5">
 					<PortfolioChart data={job.portfolio_history || []} initialCash={job.initial_cash} />
 
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-						<div
-							class="flex flex-col rounded-xl border p-4"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[11px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Initial Cash</span
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+						{#each [{ label: 'Initial cash', value: formatRupiah(job.initial_cash), icon: 'lucide:wallet-cards' }, { label: 'Available cash', value: formatRupiah(job.result.available_cash), icon: 'lucide:landmark' }, { label: 'Trades processed', value: String(job.result.trades_processed), icon: 'lucide:arrow-left-right' }] as item (item.label)}
+							<div
+								class="rounded-xl border p-3.5"
+								style="background-color: var(--bg-card); border-color: var(--border);"
 							>
-							<span class="font-700 mt-1 text-lg" style="color: var(--fg)"
-								>{formatRupiah(job.initial_cash)}</span
-							>
-						</div>
-						<div
-							class="flex flex-col rounded-xl border p-4"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[11px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Available Cash</span
-							>
-							<span class="font-700 mt-1 text-lg" style="color: var(--fg)"
-								>{formatRupiah(job.result.available_cash)}</span
-							>
-						</div>
-						<div
-							class="flex flex-col rounded-xl border p-4"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[11px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Trades Processed</span
-							>
-							<span class="font-700 mt-1 text-lg" style="color: var(--fg)"
-								>{job.result.trades_processed}</span
-							>
-						</div>
+								<div
+									class="mb-3 flex size-7 items-center justify-center rounded-lg"
+									style="background-color: var(--accent-soft); color: var(--accent);"
+								>
+									<Icon icon={item.icon} width="14" height="14" />
+								</div>
+								<p
+									class="font-600 text-[10px] tracking-wider uppercase"
+									style="color: var(--fg-muted)"
+								>
+									{item.label}
+								</p>
+								<p class="font-700 mt-0.5 text-sm" style="color: var(--fg)">{item.value}</p>
+							</div>
+						{/each}
 					</div>
 				</div>
 
-				<!-- Right: Stats Grid (~40%) -->
-				<div class="flex flex-col gap-4 lg:w-2/5">
-					<div class="grid grid-cols-2 gap-4">
-						<!-- PNLs -->
-						<div class="col-span-2 grid grid-cols-2 gap-4">
+				<div class="flex flex-col gap-4">
+					<div class="grid grid-cols-2 gap-3">
+						{#each [{ label: 'Net P/L', value: formatPnl(job.result.net_pnl, job.result.net_pnl_percentage), icon: 'lucide:badge-indian-rupee', tone: job.result.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)' }, { label: 'Gross P/L', value: formatPnl(job.result.gross_pnl, job.result.gross_pnl_percentage), icon: 'lucide:coins', tone: job.result.gross_pnl >= 0 ? 'var(--success)' : 'var(--danger)' }] as item (item.label)}
 							<div
-								class="flex flex-col rounded-xl border p-4"
+								class="rounded-xl border p-3.5"
 								style="background-color: var(--bg-card); border-color: var(--border);"
 							>
-								<span
-									class="font-600 text-[11px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Net P/L</span
-								>
-								<span
-									class="font-700 mt-1 text-base"
-									style="color: {job.result.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-								>
-									{formatPnl(job.result.net_pnl, job.result.net_pnl_percentage)}
-								</span>
+								<div class="flex items-center gap-2" style="color: {item.tone}">
+									<Icon icon={item.icon} width="15" height="15" />
+									<span
+										class="font-600 text-[10px] tracking-wider uppercase"
+										style="color: var(--fg-muted)">{item.label}</span
+									>
+								</div>
+								<p class="font-700 mt-2 text-sm leading-snug" style="color: {item.tone}">
+									{item.value}
+								</p>
 							</div>
-							<div
-								class="flex flex-col rounded-xl border p-4"
-								style="background-color: var(--bg-card); border-color: var(--border);"
-							>
-								<span
-									class="font-600 text-[11px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Gross P/L</span
-								>
-								<span
-									class="font-700 mt-1 text-base"
-									style="color: {job.result.gross_pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-								>
-									{formatPnl(job.result.gross_pnl, job.result.gross_pnl_percentage)}
-								</span>
-							</div>
-						</div>
+						{/each}
+					</div>
 
-						<!-- Win/Loss Ratio Doughnut -->
-						<div
-							class="col-span-2 flex flex-col items-center rounded-xl border p-5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<div class="mb-2 flex w-full items-start justify-between">
-								<div class="flex flex-col">
-									<span
-										class="font-600 text-[11px] tracking-wider uppercase"
-										style="color: var(--fg-muted)">Win Rate</span
-									>
-									<span class="font-700 mt-0.5 text-xl" style="color: var(--fg)"
-										>{job.result.win_rate.toFixed(1)}%</span
-									>
-								</div>
-								<div class="flex flex-col items-end">
-									<span
-										class="font-600 text-[11px] tracking-wider uppercase"
-										style="color: var(--fg-muted)">Profit Factor</span
-									>
-									<span class="font-700 mt-0.5 text-xl" style="color: var(--fg)"
-										>{job.result.profit_factor.toFixed(2)}</span
-									>
-								</div>
+					<div
+						class="rounded-xl border p-4"
+						style="background-color: var(--bg-card); border-color: var(--border);"
+					>
+						<div class="mb-2 flex items-center gap-2">
+							<div
+								class="flex size-7 items-center justify-center rounded-lg"
+								style="background-color: var(--accent-soft); color: var(--accent);"
+							>
+								<Icon icon="lucide:target" width="14" height="14" />
+							</div>
+							<p class="font-700 text-sm" style="color: var(--fg)">Trade quality</p>
+						</div>
+						<div class="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
+							<div>
+								<p
+									class="font-600 text-[10px] tracking-wider uppercase"
+									style="color: var(--fg-muted)"
+								>
+									Win rate
+								</p>
+								<p class="font-700 mt-1 text-xl" style="color: var(--fg)">
+									{job.result.win_rate.toFixed(1)}%
+								</p>
 							</div>
 							<HalfDoughnutChart wins={job.result.wins} losses={job.result.losses} />
-						</div>
-
-						<!-- More Stats -->
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Max Profit</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--success)"
-								>+{job.result.max_profit_percentage.toFixed(2)}%</span
-							>
-						</div>
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Max Loss</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--danger)"
-								>{job.result.max_loss_percentage.toFixed(2)}%</span
-							>
-						</div>
-
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Avg Profit</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--success)"
-								>+{job.result.avg_profit_percentage.toFixed(2)}%</span
-							>
-						</div>
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Avg Loss</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--danger)"
-								>{job.result.avg_loss_percentage.toFixed(2)}%</span
-							>
-						</div>
-
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Avg Hold Time</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
-								>{job.result.avg_hold_time_days.toFixed(1)} Days</span
-							>
-						</div>
-						<div
-							class="flex flex-col rounded-xl border p-3.5"
-							style="background-color: var(--bg-card); border-color: var(--border);"
-						>
-							<span
-								class="font-600 text-[10px] tracking-wider uppercase"
-								style="color: var(--fg-muted)">Total Fees</span
-							>
-							<span class="font-700 mt-0.5 text-sm" style="color: var(--danger)"
-								>{formatRupiah(job.result.total_fees)}</span
-							>
-						</div>
-
-						<div
-							class="col-span-2 grid grid-cols-2 gap-4 border-t pt-4"
-							style="border-color: var(--border);"
-						>
-							<div class="flex flex-col">
-								<span
+							<div class="text-right">
+								<p
 									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Avg Win Hold</span
+									style="color: var(--fg-muted)"
 								>
-								<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
-									>{job.result.avg_win_hold_days.toFixed(1)} Days</span
-								>
-							</div>
-							<div class="flex flex-col">
-								<span
-									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Avg Loss Hold</span
-								>
-								<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
-									>{job.result.avg_loss_hold_days.toFixed(1)} Days</span
-								>
-							</div>
-							<div class="flex flex-col">
-								<span
-									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Sharpe Ratio</span
-								>
-								<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
-									>{job.result.sharpe_ratio.toFixed(2)}</span
-								>
-							</div>
-							<div class="flex flex-col">
-								<span
-									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)">Portfolio Volatility</span
-								>
-								<span class="font-700 mt-0.5 text-sm" style="color: var(--fg)"
-									>{job.result.portfolio_volatility.toFixed(2)}%</span
-								>
+									Profit factor
+								</p>
+								<p class="font-700 mt-1 text-xl" style="color: var(--fg)">
+									{job.result.profit_factor.toFixed(2)}
+								</p>
 							</div>
 						</div>
 					</div>
-				</div>
-			</div>
 
-			<!-- Tables Grid -->
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-				<!-- Most Traded -->
-				<div
-					class="flex flex-col overflow-hidden rounded-xl border"
-					style="background-color: var(--bg-card); border-color: var(--border);"
-				>
-					<div class="border-b px-4 py-3" style="border-color: var(--border);">
-						<h3 class="font-700 text-sm" style="color: var(--fg)">Most Traded</h3>
+					<div class="grid grid-cols-2 gap-3">
+						<div
+							class="rounded-xl border p-3.5"
+							style="background-color: var(--bg-card); border-color: var(--border);"
+						>
+							<div class="mb-2 flex items-center gap-2" style="color: var(--success)">
+								<Icon icon="lucide:trending-up" width="14" height="14" /><span
+									class="font-600 text-[10px] tracking-wider uppercase"
+									style="color: var(--fg-muted)">Winning trades</span
+								>
+							</div>
+							<div class="grid grid-cols-2 gap-2">
+								<div>
+									<p class="text-[10px]" style="color: var(--fg-muted)">Best</p>
+									<p class="font-700 text-sm" style="color: var(--success)">
+										+{job.result.max_profit_percentage.toFixed(2)}%
+									</p>
+								</div>
+								<div>
+									<p class="text-[10px]" style="color: var(--fg-muted)">Average</p>
+									<p class="font-700 text-sm" style="color: var(--success)">
+										+{job.result.avg_profit_percentage.toFixed(2)}%
+									</p>
+								</div>
+							</div>
+						</div>
+						<div
+							class="rounded-xl border p-3.5"
+							style="background-color: var(--bg-card); border-color: var(--border);"
+						>
+							<div class="mb-2 flex items-center gap-2" style="color: var(--danger)">
+								<Icon icon="lucide:trending-down" width="14" height="14" /><span
+									class="font-600 text-[10px] tracking-wider uppercase"
+									style="color: var(--fg-muted)">Losing trades</span
+								>
+							</div>
+							<div class="grid grid-cols-2 gap-2">
+								<div>
+									<p class="text-[10px]" style="color: var(--fg-muted)">Worst</p>
+									<p class="font-700 text-sm" style="color: var(--danger)">
+										{job.result.max_loss_percentage.toFixed(2)}%
+									</p>
+								</div>
+								<div>
+									<p class="text-[10px]" style="color: var(--fg-muted)">Average</p>
+									<p class="font-700 text-sm" style="color: var(--danger)">
+										{job.result.avg_loss_percentage.toFixed(2)}%
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
-					<div class="flex flex-col gap-3 p-4">
-						{#each job.most_traded || [] as item (item.code)}
-							<div class="flex items-center justify-between">
-								<div class="flex items-center gap-2">
-									<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span
-									>
-									<span
-										class="font-500 rounded px-1.5 py-0.5 text-xs"
-										style="background-color: var(--bg-card-hover, #eee); color: var(--fg-muted)"
-										>{item.total}x</span
+
+					<div
+						class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border"
+						style="background-color: var(--border); border-color: var(--border);"
+					>
+						{#each [{ label: 'Avg hold', value: `${job.result.avg_hold_time_days.toFixed(1)} days`, icon: 'lucide:timer' }, { label: 'Total fees', value: formatRupiah(job.result.total_fees), icon: 'lucide:receipt-text' }, { label: 'Sharpe ratio', value: job.result.sharpe_ratio.toFixed(2), icon: 'lucide:chart-no-axes-combined' }, { label: 'Volatility', value: `${job.result.portfolio_volatility.toFixed(2)}%`, icon: 'lucide:activity' }] as item (item.label)}
+							<div class="p-3" style="background-color: var(--bg-card);">
+								<div class="flex items-center gap-1.5" style="color: var(--fg-muted)">
+									<Icon icon={item.icon} width="12" height="12" /><span
+										class="font-600 text-[10px] tracking-wider uppercase">{item.label}</span
 									>
 								</div>
-								<span
-									class="font-600 text-xs"
-									style="color: {item.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-								>
-									{formatPnl(item.pnl, item.pnl_percentage)}
-								</span>
-							</div>
-						{/each}
-					</div>
-				</div>
-
-				<!-- Top Gainers -->
-				<div
-					class="flex flex-col overflow-hidden rounded-xl border"
-					style="background-color: var(--bg-card); border-color: var(--border);"
-				>
-					<div class="border-b px-4 py-3" style="border-color: var(--border);">
-						<h3 class="font-700 text-sm" style="color: var(--fg)">Top Gainers</h3>
-					</div>
-					<div class="flex flex-col gap-3 p-4">
-						{#each job.top_gainers || [] as item (item.code)}
-							<div class="flex items-center justify-between">
-								<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span>
-								<span class="font-600 text-xs" style="color: var(--success)">
-									{formatPnl(item.pnl, item.pnl_percentage)}
-								</span>
-							</div>
-						{/each}
-					</div>
-				</div>
-
-				<!-- Top Losers -->
-				<div
-					class="flex flex-col overflow-hidden rounded-xl border"
-					style="background-color: var(--bg-card); border-color: var(--border);"
-				>
-					<div class="border-b px-4 py-3" style="border-color: var(--border);">
-						<h3 class="font-700 text-sm" style="color: var(--fg)">Top Losers</h3>
-					</div>
-					<div class="flex flex-col gap-3 p-4">
-						{#each job.top_losers || [] as item (item.code)}
-							<div class="flex items-center justify-between">
-								<span class="font-700 text-sm" style="color: var(--fg)">{stripJK(item.code)}</span>
-								<span class="font-600 text-xs" style="color: var(--danger)">
-									{formatPnl(item.pnl, item.pnl_percentage)}
-								</span>
+								<p class="font-700 mt-1 text-sm" style="color: var(--fg)">{item.value}</p>
 							</div>
 						{/each}
 					</div>
 				</div>
 			</div>
 
-			<!-- Trade History Table -->
+			<!-- Valk-inspired compact tables: one shared anatomy, then the data dictates the columns. -->
+			<div class="grid gap-4 lg:grid-cols-3">
+				<div
+					class="overflow-hidden rounded-xl border"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div
+						class="flex items-center gap-2 border-b px-4 py-3"
+						style="border-color: var(--border);"
+					>
+						<Icon icon="lucide:repeat-2" width="15" height="15" style="color: var(--accent)" />
+						<h3 class="font-700 text-sm" style="color: var(--fg)">Most traded</h3>
+					</div>
+					<div
+						class="grid grid-cols-[1fr_3.5rem_1.4fr] border-b px-4 py-1.5"
+						style="background-color: var(--bg-card-hover); border-color: var(--border); color: var(--fg-muted);"
+					>
+						<span class="font-700 text-[10px] tracking-wider uppercase">Code</span><span
+							class="font-700 text-center text-[10px] tracking-wider uppercase">Total</span
+						><span class="font-700 text-right text-[10px] tracking-wider uppercase">P/L</span>
+					</div>
+					<div class="divide-y divide-(--border-subtle)">
+						{#each job.most_traded || [] as item (item.code)}
+							<div
+								class="grid grid-cols-[1fr_3.5rem_1.4fr] items-center px-4 py-2.5 transition-colors hover:bg-(--bg-card-hover)"
+							>
+								<span class="font-700 text-[11px]" style="color: var(--fg)"
+									>{stripJK(item.code)}</span
+								><span class="font-700 text-center text-[10px]" style="color: var(--fg-muted)"
+									>{item.total}</span
+								><span
+									class="font-700 text-right text-[11px]"
+									style="color: {item.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
+									>{formatPnl(item.pnl, item.pnl_percentage)}</span
+								>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div
+					class="overflow-hidden rounded-xl border"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div
+						class="flex items-center gap-2 border-b px-4 py-3"
+						style="border-color: var(--border);"
+					>
+						<Icon
+							icon="lucide:arrow-up-right"
+							width="15"
+							height="15"
+							style="color: var(--success)"
+						/>
+						<h3 class="font-700 text-sm" style="color: var(--fg)">Top gainers</h3>
+					</div>
+					<div
+						class="grid grid-cols-[1fr_1.4fr] border-b px-4 py-1.5"
+						style="background-color: var(--bg-card-hover); border-color: var(--border); color: var(--fg-muted);"
+					>
+						<span class="font-700 text-[10px] tracking-wider uppercase">Code</span><span
+							class="font-700 text-right text-[10px] tracking-wider uppercase">P/L</span
+						>
+					</div>
+					<div class="divide-y divide-(--border-subtle)">
+						{#each job.top_gainers || [] as item (item.code)}
+							<div
+								class="grid grid-cols-[1fr_1.4fr] items-center px-4 py-2.5 transition-colors hover:bg-(--bg-card-hover)"
+							>
+								<span class="font-700 text-[11px]" style="color: var(--fg)"
+									>{stripJK(item.code)}</span
+								><span class="font-700 text-right text-[11px]" style="color: var(--success)"
+									>{formatPnl(item.pnl, item.pnl_percentage)}</span
+								>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div
+					class="overflow-hidden rounded-xl border"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div
+						class="flex items-center gap-2 border-b px-4 py-3"
+						style="border-color: var(--border);"
+					>
+						<Icon
+							icon="lucide:arrow-down-right"
+							width="15"
+							height="15"
+							style="color: var(--danger)"
+						/>
+						<h3 class="font-700 text-sm" style="color: var(--fg)">Top losers</h3>
+					</div>
+					<div
+						class="grid grid-cols-[1fr_1.4fr] border-b px-4 py-1.5"
+						style="background-color: var(--bg-card-hover); border-color: var(--border); color: var(--fg-muted);"
+					>
+						<span class="font-700 text-[10px] tracking-wider uppercase">Code</span><span
+							class="font-700 text-right text-[10px] tracking-wider uppercase">P/L</span
+						>
+					</div>
+					<div class="divide-y divide-(--border-subtle)">
+						{#each job.top_losers || [] as item (item.code)}
+							<div
+								class="grid grid-cols-[1fr_1.4fr] items-center px-4 py-2.5 transition-colors hover:bg-(--bg-card-hover)"
+							>
+								<span class="font-700 text-[11px]" style="color: var(--fg)"
+									>{stripJK(item.code)}</span
+								><span class="font-700 text-right text-[11px]" style="color: var(--danger)"
+									>{formatPnl(item.pnl, item.pnl_percentage)}</span
+								>
+							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+
+			<!-- All trade records remain available in a fixed-height, card-based stream. -->
 			<div
-				class="flex flex-col overflow-hidden rounded-xl border"
+				class="overflow-hidden rounded-xl border"
 				style="background-color: var(--bg-card); border-color: var(--border);"
 			>
 				<div
-					class="flex items-center justify-between border-b px-4 py-3"
+					class="flex items-center justify-between border-b px-4 py-3.5 sm:px-5"
 					style="border-color: var(--border);"
 				>
-					<h3 class="font-700 text-sm" style="color: var(--fg)">Trade History</h3>
-					<span class="font-500 text-xs" style="color: var(--fg-muted)"
-						>{(job.trade_history || []).length} Trades</span
-					>
+					<div class="flex items-center gap-2">
+						<div
+							class="flex size-7 items-center justify-center rounded-lg"
+							style="background-color: var(--accent-soft); color: var(--accent);"
+						>
+							<Icon icon="lucide:history" width="14" height="14" />
+						</div>
+						<div>
+							<h3 class="font-700 text-sm" style="color: var(--fg)">Trade history</h3>
+							<p class="text-[10px]" style="color: var(--fg-muted)">Completed positions</p>
+						</div>
+					</div>
+					<div class="flex flex-wrap items-center justify-end gap-1.5">
+						{#each ['TAKE_PROFIT', 'MAX_HOLDING_TIME', 'STOP_LOSS'] as reason (reason)}
+							{@const badge = getExitReasonBadge(reason)}
+							<span
+								class="font-700 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px]"
+								style="background-color: {badge.bg}; color: {badge.color};"
+							>
+								<Icon icon={badge.icon} width="11" height="11" />
+								{getExitReasonCount(reason)}
+								{badge.label}
+							</span>
+						{/each}
+						<span
+							class="font-700 rounded-full px-2.5 py-1 text-xs"
+							style="background-color: var(--bg-card-hover); color: var(--fg-muted)"
+							>{(job.trade_history || []).length} trades</span
+						>
+					</div>
 				</div>
 
-				<div class="overflow-x-auto">
-					<table class="w-full border-collapse text-left text-sm">
-						<thead>
-							<tr
-								class="border-b"
-								style="border-color: var(--border); background-color: var(--bg-card-hover, rgba(0,0,0,0.02)); color: var(--fg-muted);"
+				{#if (job.trade_history || []).length > 0}
+					<div class="grid max-h-150 gap-2 overflow-y-auto p-3 sm:grid-cols-2 sm:p-4">
+						{#each job.trade_history || [] as t, idx (t.code + t.buy_date + idx)}
+							{@const badge = getExitReasonBadge(t.exit_reason)}
+							<div
+								class="rounded-xl border p-3 transition-colors hover:bg-(--bg-card-hover)"
+								style="background-color: var(--bg-card); border-color: var(--border);"
 							>
-								<th class="font-600 px-4 py-3">Code</th>
-								<th class="font-600 px-4 py-3">P/L</th>
-								<th class="font-600 px-4 py-3">Exit Reason</th>
-								<th class="font-600 px-4 py-3 text-right">Lot</th>
-								<th class="font-600 px-4 py-3 text-right">Buy / Sell Price</th>
-								<th class="font-600 px-4 py-3 text-right">Buy / Sell Value</th>
-								<th class="font-600 px-4 py-3 text-right">Buy / Sell Date</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each job.trade_history || [] as t, idx (t.code + t.buy_date + idx)}
-								{@const badge = getExitReasonBadge(t.exit_reason)}
-								<tr
-									class="border-b transition-colors hover:bg-(--bg-card-hover)"
+								<div class="flex items-center justify-between gap-2">
+									<div class="flex items-center gap-2">
+										<span class="font-800 text-base" style="color: var(--fg)"
+											>{stripJK(t.code)}</span
+										><span
+											class="font-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]"
+											style="background-color: {badge.bg}; color: {badge.color};"
+											><Icon icon={badge.icon} width="11" height="11" />{badge.label}</span
+										>
+									</div>
+									<div class="text-center">
+										<span class="font-600 text-xs" style="color: var(--fg-muted)">
+											{t.lot.toLocaleString()} Lot
+										</span>
+									</div>
+									<div class="text-right">
+										<p
+											class="font-800 text-sm"
+											style="color: {t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
+										>
+											{formatPnl(t.pnl, t.pnl_percentage)}
+										</p>
+									</div>
+								</div>
+								<div
+									class="mt-3 grid grid-cols-2 gap-x-3 border-t pt-2.5 text-xs"
 									style="border-color: var(--border);"
 								>
-									<td class="font-700 px-4 py-3" style="color: var(--fg)">{stripJK(t.code)}</td>
-									<td
-										class="font-600 px-4 py-3"
-										style="color: {t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-									>
-										{formatPnl(t.pnl, t.pnl_percentage)}
-									</td>
-									<td class="px-4 py-3">
-										<span
-											class="font-700 inline-flex rounded-full px-2 py-0.5 text-[10px] tracking-wider whitespace-nowrap"
-											style="background-color: {badge.bg}; color: {badge.color};"
+									<div>
+										<p
+											class="font-600 text-[10px] tracking-wide uppercase"
+											style="color: var(--fg-muted)"
 										>
-											{badge.label}
-										</span>
-									</td>
-									<td class="font-500 px-4 py-3 text-right" style="color: var(--fg)">{t.lot}</td>
-									<td class="px-4 py-3 text-right">
-										<div class="flex flex-col text-xs">
-											<span style="color: var(--fg-muted)">B: {formatRupiah(t.buy_price)}</span>
-											<span style="color: var(--fg)">S: {formatRupiah(t.sell_price)}</span>
-										</div>
-									</td>
-									<td class="px-4 py-3 text-right">
-										<div class="flex flex-col text-xs">
-											<span style="color: var(--fg-muted)">B: {formatRupiah(t.buy_value)}</span>
-											<span style="color: var(--fg)">S: {formatRupiah(t.sell_value)}</span>
-										</div>
-									</td>
-									<td class="px-4 py-3 text-right">
-										<div class="flex flex-col text-xs">
-											<span style="color: var(--fg-muted)">B: {formatDate(t.buy_date)}</span>
-											<span style="color: var(--fg)">S: {formatDate(t.sell_date)}</span>
-										</div>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-					{#if (job.trade_history || []).length === 0}
-						<div class="font-500 p-8 text-center text-sm" style="color: var(--fg-muted)">
-							No trades were executed in this backtest.
-						</div>
-					{/if}
-				</div>
+											Entry
+										</p>
+										<p class="font-700 mt-0.5" style="color: var(--fg)">
+											{formatRupiah(t.buy_price)}
+										</p>
+										<p class="mt-0.5 text-[10px]" style="color: var(--fg-muted)">
+											{formatDate(t.buy_date)}
+										</p>
+									</div>
+									<div class="border-l pl-3 text-right" style="border-color: var(--border);">
+										<p
+											class="font-600 text-[10px] tracking-wide uppercase"
+											style="color: var(--fg-muted)"
+										>
+											Exit
+										</p>
+										<p class="font-700 mt-0.5" style="color: var(--fg)">
+											{formatRupiah(t.sell_price)}
+										</p>
+										<p class="mt-0.5 text-[10px]" style="color: var(--fg-muted)">
+											{formatDate(t.sell_date)}
+										</p>
+									</div>
+								</div>
+								<div
+									class="mt-2.5 grid grid-cols-3 items-center text-[10px]"
+									style="color: var(--fg-muted)"
+								>
+									<span
+										>Buy <span class="font-700" style="color: var(--success)"
+											>{formatRupiah(t.buy_value)}</span
+										></span
+									>
+									<span
+										class="font-700 inline-flex items-center justify-center gap-1"
+										style="color: var(--fg-muted)"
+									>
+										<Icon icon="lucide:timer" width="11" height="11" />
+										{formatHoldingDays(t.buy_date, t.sell_date)}
+									</span>
+									<span class="text-right"
+										>Sell <span class="font-700" style="color: var(--danger)"
+											>{formatRupiah(t.sell_value)}</span
+										></span
+									>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div
+						class="flex flex-col items-center gap-2 p-10 text-center"
+						style="color: var(--fg-muted)"
+					>
+						<Icon icon="lucide:inbox" width="24" height="24" />
+						<p class="font-600 text-sm">No trades were executed in this backtest.</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

@@ -452,6 +452,7 @@ fn simulate_backtest(
 ) {
     let entry_capital = initial_cash / (max_holding_stocks as f64);
     let mut available_cash = initial_cash;
+    let mut cumulative_fees = 0.0;
     let mut open_positions: Vec<Position> = Vec::new();
     let mut stock_queue: VecDeque<usize> = (0..stocks.len()).collect();
     let mut completed_trades: Vec<BacktestTradeRecord> = Vec::new();
@@ -503,6 +504,7 @@ fn simulate_backtest(
                     let pnl_percentage = pnl / (pos.buy_value + pos.buy_fee) * 100.0;
 
                     available_cash += net_sell;
+                    cumulative_fees += sell_fee_amount;
 
                     completed_trades.push(BacktestTradeRecord {
                         id: Uuid::new_v4(),
@@ -551,6 +553,7 @@ fn simulate_backtest(
 
                         if total_cost <= available_cash {
                             available_cash -= total_cost;
+                            cumulative_fees += buy_fee_amount;
                             open_positions.push(Position {
                                 code: stock.code.clone(),
                                 lots,
@@ -597,7 +600,7 @@ fn simulate_backtest(
             backtest_job_id: job_id,
             date: current_date,
             net_value: available_cash + net_positions,
-            gross_value: available_cash + gross_positions,
+            gross_value: available_cash + cumulative_fees + gross_positions,
         });
     }
 
@@ -922,5 +925,49 @@ mod tests {
         );
         assert_eq!(volume_filters.len(), 1);
         assert_eq!(volume_filters[0].variable, "volume");
+    }
+
+    #[test]
+    fn should_calculate_portfolio_history_with_distinct_net_and_gross_values() {
+        let job_id = Uuid::new_v4();
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 3).unwrap();
+        let date3 = NaiveDate::from_ymd_opt(2024, 1, 4).unwrap();
+
+        let stock = StockData {
+            code: "BBCA".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000),
+                (date2, 1100.0, 10000), // hits TP (10%)
+                (date3, 1100.0, 10000),
+            ],
+        };
+
+        let initial_cash = 10_000_000.0;
+        let (_result, history, trades) = simulate_backtest(
+            job_id,
+            &[stock],
+            initial_cash,
+            1,
+            10.0, // 10% TP
+            5.0,  // 5% SL
+            10,
+            0.15, // 0.15% buy fee
+            0.25, // 0.25% sell fee
+        );
+
+        assert_eq!(trades.len(), 1);
+        assert_eq!(history.len(), 3);
+
+        let last_entry = history.last().unwrap();
+        // Gross value and Net value on the last day should differ by total fees paid
+        assert!(last_entry.gross_value > last_entry.net_value);
+        assert!(
+            (last_entry.gross_value
+                - last_entry.net_value
+                - (trades[0].buy_fee + trades[0].sell_fee))
+                .abs()
+                < 1e-6
+        );
     }
 }

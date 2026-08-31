@@ -78,7 +78,7 @@
 				: 'rounded-[7px] px-3 text-[13px]'}"
 			style="
 				color: {isSelected ? 'var(--fg)' : 'var(--fg-muted)'};
-				font-weight: {isSelected ? '600' : '500'};
+				font-weight: 500;
 			"
 			aria-pressed={isSelected}
 		>
@@ -114,7 +114,7 @@
 	:global(.dark) .ios-segmented-thumb,
 	:global(html.dark) .ios-segmented-thumb,
 	:root.dark .ios-segmented-thumb {
-		background-color: var(--bg-card, #3c486a);
+		background-color: #3c486a;
 		box-shadow:
 			0px 3px 8px 0px rgba(0, 0, 0, 0.35),
 			0px 1px 3px 0px rgba(0, 0, 0, 0.2);

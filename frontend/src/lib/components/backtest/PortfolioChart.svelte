@@ -14,14 +14,14 @@
 	let { data, initialCash }: { data: PortfolioHistoryEntry[]; initialCash: number } = $props();
 
 	let container = $state<HTMLElement | null>(null);
-	let chart = $state<IChartApi | null>(null);
-	let baselineSeries = $state<ISeriesApi<'Baseline'> | null>(null);
-
 	let mode = $state<'NET' | 'GROSS'>('NET');
 
+	let chart: IChartApi | null = null;
+	let baselineSeries: ISeriesApi<'Baseline'> | null = null;
+
 	const modeOptions = [
-		{ value: 'NET', label: 'Net P/L' },
-		{ value: 'GROSS', label: 'Gross P/L' }
+		{ value: 'NET', label: 'Net' },
+		{ value: 'GROSS', label: 'Gross' }
 	];
 
 	// Extract the realized (final) value for the header display
@@ -76,17 +76,18 @@
 		gridColor: 'rgba(148, 163, 184, 0.1)'
 	};
 
-	function initChart() {
+	$effect(() => {
 		if (!container) return;
 
 		const isDark =
-			document.documentElement.classList.contains('dark') ||
-			window.matchMedia('(prefers-color-scheme: dark)').matches;
+			(typeof document !== 'undefined' && document.documentElement.classList.contains('dark')) ||
+			(typeof window !== 'undefined' &&
+				window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
 
 		const currentTextColor = isDark ? '#94a3b8' : '#64748b';
 		const currentGridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
-		chart = createChart(container, {
+		const localChart = createChart(container, {
 			localization: {
 				priceFormatter: formatCompactRupiah
 			},
@@ -112,7 +113,7 @@
 			height: 300
 		});
 
-		baselineSeries = chart.addSeries(BaselineSeries, {
+		const localSeries = localChart.addSeries(BaselineSeries, {
 			baseValue: { type: 'price', price: initialCash },
 			priceFormat: {
 				type: 'custom',
@@ -127,46 +128,45 @@
 			lineWidth: 2
 		});
 
-		updateChartData();
+		chart = localChart;
+		baselineSeries = localSeries;
+
+		// Initial data load if available
+		if (data && data.length > 0) {
+			const chartData: BaselineData[] = data.map((entry) => ({
+				time: entry.date as Time,
+				value: mode === 'NET' ? entry.net_value : entry.gross_value
+			}));
+			localSeries.setData(chartData);
+			localChart.timeScale().fitContent();
+		}
 
 		// Handle resize
 		const handleResize = () => {
-			if (container && chart) {
-				chart.applyOptions({ width: container.clientWidth });
+			if (container && localChart) {
+				localChart.applyOptions({ width: container.clientWidth });
 			}
 		};
 		window.addEventListener('resize', handleResize);
 
 		return () => {
 			window.removeEventListener('resize', handleResize);
-			if (chart) {
-				chart.remove();
-				chart = null;
-			}
+			localChart.remove();
+			chart = null;
+			baselineSeries = null;
 		};
-	}
-
-	function updateChartData() {
-		if (!baselineSeries || !data) return;
-
-		const chartData: BaselineData[] = data.map((entry) => ({
-			time: entry.date as Time,
-			value: mode === 'NET' ? entry.net_value : entry.gross_value
-		}));
-
-		baselineSeries.setData(chartData);
-		chart?.timeScale().fitContent();
-	}
-
-	$effect(() => {
-		if (container && !chart) {
-			initChart();
-		}
 	});
 
 	$effect(() => {
-		if (chart && baselineSeries && data) {
-			updateChartData();
+		const currentMode = mode;
+		const currentData = data;
+		if (baselineSeries && currentData && currentData.length > 0) {
+			const chartData: BaselineData[] = currentData.map((entry) => ({
+				time: entry.date as Time,
+				value: currentMode === 'NET' ? entry.net_value : entry.gross_value
+			}));
+			baselineSeries.setData(chartData);
+			chart?.timeScale().fitContent();
 		}
 	});
 </script>
@@ -180,14 +180,14 @@
 		style="border-color: var(--border);"
 	>
 		<div class="flex flex-col gap-1">
-			<span class="font-600 text-sm" style="color: var(--fg)">Realized P/L</span>
-			<span class="font-700 text-lg" style="color: {isProfit ? 'var(--success)' : 'var(--danger)'}">
+			<span class="font-600 text-xs" style="color: var(--fg)">Realized P/L</span>
+			<span class="font-700 text-md" style="color: {isProfit ? 'var(--success)' : 'var(--danger)'}">
 				{formatPnlDisplay(pnl, pnlPercentage)}
 			</span>
 		</div>
 
-		<div class="w-full sm:w-48">
-			<SegmentedControl options={modeOptions} bind:value={mode} />
+		<div class="w-full sm:w-42">
+			<SegmentedControl size="sm" options={modeOptions} bind:value={mode} />
 		</div>
 	</div>
 
