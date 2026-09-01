@@ -1,4 +1,5 @@
 pub mod backtest_route;
+pub mod dashboard_route;
 pub mod trading_strategy_route;
 pub mod user_route;
 
@@ -35,7 +36,12 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(backtest_route::get_backtest)
         .service(backtest_route::create_backtest)
         .service(backtest_route::update_backtest)
-        .service(backtest_route::delete_backtest);
+        .service(backtest_route::delete_backtest)
+        .service(dashboard_route::get_stats)
+        .service(dashboard_route::get_leaderboard)
+        .service(dashboard_route::get_top_stars)
+        .service(dashboard_route::star_backtest)
+        .service(dashboard_route::unstar_backtest);
 }
 
 #[get("/")]

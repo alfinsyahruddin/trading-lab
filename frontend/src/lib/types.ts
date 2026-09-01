@@ -185,3 +185,37 @@ export interface CreateBacktestPayload {
 export interface UpdateBacktestPayload {
 	is_public?: boolean;
 }
+
+export interface DashboardStats {
+	total_stars_received: number;
+	total_strategies: number;
+	total_backtests: number;
+	date_joined: string;
+}
+
+export interface LeaderboardEntry {
+	id: string;
+	name: string;
+	owner_name: string;
+	strategy_name: string;
+	year: number;
+	initial_cash: number;
+	backtest_duration_months: number;
+	buy_fee_percentage: number;
+	sell_fee_percentage: number;
+	status: BacktestStatus;
+	net_pnl: number;
+	net_pnl_percentage: number;
+	win_rate: number;
+	profit_factor: number;
+	trades_processed: number;
+	star_count: number;
+	is_starred_by_me: boolean;
+	portfolio_history: LeaderboardPortfolioPoint[];
+	created_at: string;
+}
+
+export interface LeaderboardPortfolioPoint {
+	date: string;
+	net_value: number;
+}

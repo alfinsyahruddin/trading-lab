@@ -92,7 +92,7 @@
 
 <style>
 	.ios-segmented-track {
-		background-color: var(--bg, #eef0f6);
+		background-color: #e4e6ec;
 		border: 1px solid var(--border, #e2e8f0);
 	}
 

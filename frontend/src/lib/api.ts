@@ -8,7 +8,9 @@ import type {
 	UserRole,
 	BacktestJob,
 	CreateBacktestPayload,
-	UpdateBacktestPayload
+	UpdateBacktestPayload,
+	DashboardStats,
+	LeaderboardEntry
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -331,4 +333,26 @@ export function updateBacktest(
 
 export function deleteBacktest(token: string | undefined, id: string): Promise<void> {
 	return request<void>(`/api/backtests/${id}`, { method: 'DELETE' }, token);
+}
+
+// --- Dashboard ---
+
+export function getDashboardStats(token?: string): Promise<DashboardStats> {
+	return request<DashboardStats>('/api/dashboard/stats', { method: 'GET' }, token);
+}
+
+export function getLeaderboard(token?: string): Promise<LeaderboardEntry[]> {
+	return request<LeaderboardEntry[]>('/api/dashboard/leaderboard', { method: 'GET' }, token);
+}
+
+export function getTopStars(token?: string): Promise<LeaderboardEntry[]> {
+	return request<LeaderboardEntry[]>('/api/dashboard/top-stars', { method: 'GET' }, token);
+}
+
+export function starBacktest(token: string | undefined, backtestId: string): Promise<string> {
+	return request<string>(`/api/dashboard/stars/${backtestId}`, { method: 'POST' }, token);
+}
+
+export function unstarBacktest(token: string | undefined, backtestId: string): Promise<string> {
+	return request<string>(`/api/dashboard/stars/${backtestId}`, { method: 'DELETE' }, token);
 }
