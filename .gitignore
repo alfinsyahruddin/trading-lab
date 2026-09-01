@@ -6,4 +6,5 @@
 /frontend/build/
 /frontend/coverage/
 /frontend/.env
+/frontend/.env.docker
 .DS_Store

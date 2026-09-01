@@ -30,7 +30,6 @@ trading-lab/
 │   ├── tests/                # Integration and contract tests
 │   ├── Cargo.toml            # Rust dependencies & profiles
 │   ├── Dockerfile            # Container build specification
-│   ├── docker-compose.yml    # Docker Compose for PostgreSQL & Redis
 │   ├── .env.example          # Host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
@@ -49,13 +48,17 @@ trading-lab/
 │   │   │   └── helpers/      # Client session, theme, and reactive toast helpers
 │   │   └── routes/           # SvelteKit client-side routes (+layout, +page)
 │   ├── tests/unit/           # Vitest unit & component tests
+│   ├── Dockerfile            # Multi-stage production container build (Bun -> Nginx)
+│   ├── nginx.conf            # Nginx SPA routing & static asset configuration
 │   ├── eslint.config.js      # ESLint flat config (Svelte 5, TS, Tailwind plugin)
 │   ├── .prettierrc           # Prettier config with Svelte & Tailwind sorting plugins
 │   ├── package.json          # Frontend dependencies & scripts
 │   ├── tsconfig.json         # TypeScript configuration
 │   ├── vite.config.ts        # Vite & Tailwind setup
-│   └── .env.example          # Frontend environment template
+│   ├── .env.example          # Frontend environment template
+│   └── .env.docker.example   # Frontend Docker container environment template
 │
+├── docker-compose.yml        # Multi-service Docker Compose (PostgreSQL, Redis, Backend, Frontend)
 ├── AGENTS.md                 # Developer & AI Agent architectural guidelines
 └── README.md                 # Project overview and setup guide
 ```
@@ -168,13 +171,16 @@ All responses must strictly adhere to the unified JSON envelope:
 - Always use parameterized queries in SQLx. Map unique constraint violations (e.g. duplicate email, duplicate strategy name) to `AppError::conflict`.
 
 ### Backend Development Workflow
-Run all backend commands from the `backend/` directory:
+Run backend development commands from the `backend/` directory (with infrastructure running via root Docker Compose):
 
 ```sh
-# Start PostgreSQL & Redis services
-docker compose --env-file .env.docker up -d
+# Start PostgreSQL & Redis infrastructure from repository root
+docker compose up postgres redis -d
 
-# Run API server on host
+# Or run the entire full stack (Postgres, Redis, Backend, Frontend)
+docker compose up -d --build
+
+# Run API server locally on host
 cargo run
 
 # Check formatting
@@ -303,8 +309,9 @@ bun run format
 ## 4. Environment & Secrets Management
 
 - **Backend Host**: Configured via `backend/.env` (reads `127.0.0.1` / `localhost` for local services).
-- **Backend Docker**: Configured via `backend/.env.docker` (used by Docker Compose for container port/credential setup).
-- **Frontend**: Configured via `frontend/.env` (`PUBLIC_API_BASE_URL=http://127.0.0.1:8000`).
+- **Backend Docker**: Configured via `backend/.env.docker` (used by Docker Compose for container database, cache, and port/credential setup).
+- **Frontend Host**: Configured via `frontend/.env` (`PUBLIC_API_BASE_URL=http://127.0.0.1:8000`).
+- **Frontend Docker**: Configured via `frontend/.env.docker` (used by Docker Compose and Docker build for frontend service).
 - **Key Environment Variables**:
   - `DATABASE_URL`: PostgreSQL connection string (`postgresql://postgres:postgres@127.0.0.1:5432/trading_lab`).
   - `REDIS_URL`: Redis connection string (`redis://127.0.0.1:6379`).

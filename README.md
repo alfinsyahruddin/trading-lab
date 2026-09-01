@@ -54,7 +54,10 @@ trading-lab/
 │   │   ├── services/         # Business logic & simulation engine
 │   │   └── setup/            # Infrastructure setup (DB, Redis, HTTP)
 │   ├── tests/                # Contract & integration tests
-│   └── docker-compose.yml    # PostgreSQL & Redis infrastructure
+│   ├── Cargo.toml            # Rust dependencies & profiles
+│   ├── Dockerfile            # Multi-stage Rust build container
+│   ├── .env.example          # Host environment template
+│   └── .env.docker.example   # Docker container environment template
 │
 ├── frontend/                 # SvelteKit 5 SPA
 │   ├── src/
@@ -64,8 +67,14 @@ trading-lab/
 │   │   │   ├── components/   # UI components (dashboard, strategy, backtest, common)
 │   │   │   └── helpers/      # Client session, theme, and reactive toast helpers
 │   │   └── routes/           # CSR page routes (Dashboard, Strategies, Backtests, Admin)
-│   └── tests/unit/           # Vitest component and unit test suites
+│   ├── tests/unit/           # Vitest component and unit test suites
+│   ├── Dockerfile            # Multi-stage Bun build -> Nginx Alpine container
+│   ├── nginx.conf            # Nginx SPA fallback configuration
+│   ├── package.json          # Frontend dependencies & scripts
+│   ├── .env.example          # Frontend environment template
+│   └── .env.docker.example   # Frontend Docker environment template
 │
+├── docker-compose.yml        # Root Docker Compose (PostgreSQL, Redis, Backend, Frontend)
 ├── AGENTS.md                 # Developer & AI Agent architectural guidelines
 └── README.md                 # Project overview and setup guide
 ```
@@ -83,25 +92,45 @@ Ensure you have the following installed:
 
 ---
 
-### 1. Backend Setup
+### Quick Start with Docker (Full Stack)
 
-1. **Navigate to the backend directory**:
+To run the complete platform (PostgreSQL, Redis, Rust Backend, and SvelteKit Frontend) with Docker Compose:
+
+1. **Configure Docker environment files**:
+   ```sh
+   cp backend/.env.docker.example backend/.env.docker
+   cp frontend/.env.docker.example frontend/.env.docker
+   ```
+   *Edit `backend/.env.docker` to provide your `SECTORS_API_KEY` and secret keys.*
+
+2. **Start all services**:
+   ```sh
+   docker compose up -d --build
+   ```
+
+3. **Access the application**:
+   - Frontend UI: `http://localhost:3000`
+   - Backend API: `http://localhost:8000`
+
+---
+
+### Local Development Setup
+
+#### 1. Backend Setup
+
+1. **Start PostgreSQL & Redis infrastructure**:
+   ```sh
+   docker compose up postgres redis -d
+   ```
+
+2. **Configure backend environment variables**:
    ```sh
    cd backend
-   ```
-
-2. **Configure environment variables**:
-   ```sh
    cp .env.example .env
    ```
-   *Update `SECTORS_API_KEY` and `JWT_SECRET` as appropriate.*
+   *Update `SECTORS_API_KEY` and `JWT_SECRET` in `backend/.env`.*
 
-3. **Start PostgreSQL & Redis services**:
-   ```sh
-   docker compose --env-file .env.docker up -d
-   ```
-
-4. **Run the API server**:
+3. **Run the API server**:
    ```sh
    cargo run
    ```
@@ -109,7 +138,7 @@ Ensure you have the following installed:
 
 ---
 
-### 2. Frontend Setup
+#### 2. Frontend Setup
 
 1. **Navigate to the frontend directory**:
    ```sh

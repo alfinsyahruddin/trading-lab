@@ -1,10 +1,10 @@
 # Trading Lab Backend
 
-Start PostgreSQL and Redis with `docker compose --env-file .env.docker up -d`, then run the API
-from this directory with `cargo run`. The application applies SQLx migrations at startup.
+Start PostgreSQL and Redis with `docker compose up postgres redis -d` from the project root,
+then run the API from this directory with `cargo run`. The application applies SQLx migrations at startup.
 
-The Compose file intentionally starts only PostgreSQL 16 Alpine and Redis 7 Alpine. The API runs
-on the host and reads `.env`; use `.env.docker` only for the Docker services.
+Alternatively, run the entire stack (Postgres, Redis, Backend, Frontend) via `docker compose up -d --build` from the repository root.
+The local backend on the host reads `.env`, while Docker Compose uses `backend/.env.docker`.
 
 The seeded administrator is `admin@mail.com` with password `admin123`. Change the development
 credentials and JWT secret before using this project outside local development.
