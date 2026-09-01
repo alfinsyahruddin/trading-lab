@@ -82,7 +82,7 @@
 			</div>
 		</div>
 
-		<div class="flex shrink-0 flex-wrap items-center gap-1.5 self-start sm:gap-2 sm:self-center">
+		<div class="flex flex-wrap items-center gap-1.5 self-start sm:gap-2 sm:self-center">
 			<span
 				class="rounded-md px-2 py-0.5 text-xs font-semibold"
 				style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
@@ -94,7 +94,7 @@
 				style="background-color: var(--bg-card-hover, #eee); color: var(--fg-muted)"
 			>
 				<Icon icon="lucide:candlestick-chart" width="13" height="13" />
-				<span class="max-w-32 truncate">{entry.strategy_name}</span>
+				<span>{entry.strategy_name}</span>
 			</span>
 		</div>
 	</div>
@@ -245,11 +245,20 @@
 					icon="lucide:star"
 					width="15"
 					height="15"
-					class="transition-colors {entry.is_starred_by_me ? 'text-amber-400' : 'text-gray-400'}"
-					style={entry.is_starred_by_me ? 'fill: currentColor;' : ''}
+					class="transition-colors {entry.is_starred_by_me
+						? 'star-filled fill-amber-400 text-amber-400 [&_path]:fill-amber-400 [&_polygon]:fill-amber-400'
+						: 'text-gray-400'}"
 				/>
 				<span>{entry.star_count}</span>
 			</button>
 		</div>
 	</div>
 </div>
+
+<style>
+	:global(.star-filled svg),
+	:global(.star-filled svg path),
+	:global(.star-filled svg polygon) {
+		fill: currentColor !important;
+	}
+</style>

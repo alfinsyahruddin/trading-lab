@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { tick } from 'svelte';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
@@ -8,17 +9,28 @@ const mockSetData = vi.fn();
 const mockFitContent = vi.fn();
 const mockApplyOptions = vi.fn();
 const mockRemove = vi.fn();
+let crosshairCallback: ((param: unknown) => void) | null = null;
+const mockSubscribeCrosshairMove = vi.fn((cb) => {
+	crosshairCallback = cb;
+});
+const mockUnsubscribeCrosshairMove = vi.fn(() => {
+	crosshairCallback = null;
+});
+
+const mockSeriesInstance = {
+	setData: mockSetData
+};
 
 vi.mock('lightweight-charts', () => {
 	return {
 		createChart: vi.fn(() => ({
-			addSeries: vi.fn(() => ({
-				setData: mockSetData
-			})),
+			addSeries: vi.fn(() => mockSeriesInstance),
 			timeScale: vi.fn(() => ({
 				fitContent: mockFitContent
 			})),
 			applyOptions: mockApplyOptions,
+			subscribeCrosshairMove: mockSubscribeCrosshairMove,
+			unsubscribeCrosshairMove: mockUnsubscribeCrosshairMove,
 			remove: mockRemove
 		})),
 		ColorType: { Solid: 'solid' },
@@ -60,5 +72,42 @@ describe('PortfolioChart', () => {
 			{ time: '2024-01-02', value: 11_000_000 },
 			{ time: '2024-01-03', value: 12_000_000 }
 		]);
+	});
+
+	it('updates Realized P/L when cursor/crosshair is dragged and restores on leave', async () => {
+		render(PortfolioChart, {
+			props: {
+				data: mockData,
+				initialCash: 10_000_000
+			}
+		});
+
+		expect(crosshairCallback).not.toBeNull();
+
+		// Simulate moving cursor over day 1 (net value 10_500_000 -> +Rp500.000 (+5.00%))
+		const seriesDataMap = new Map();
+		seriesDataMap.set(mockSeriesInstance, { time: '2024-01-02', value: 10_500_000 });
+
+		crosshairCallback!({
+			point: { x: 50, y: 100 },
+			time: '2024-01-02',
+			seriesData: seriesDataMap
+		});
+		await tick();
+
+		expect(screen.getByText(/Rp500\.000/)).toBeInTheDocument();
+		expect(screen.getByText(/\(\+5\.00%\)/)).toBeInTheDocument();
+
+		// Simulate cursor leaving chart
+		crosshairCallback!({
+			point: undefined,
+			time: undefined,
+			seriesData: new Map()
+		});
+		await tick();
+
+		// Restores to final value: +Rp1.200.000 (+12.00%)
+		expect(screen.getByText(/Rp1\.200\.000/)).toBeInTheDocument();
+		expect(screen.getByText(/\(\+12\.00%\)/)).toBeInTheDocument();
 	});
 });

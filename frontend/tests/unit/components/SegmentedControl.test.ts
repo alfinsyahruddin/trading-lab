@@ -42,4 +42,13 @@ describe('SegmentedControl', () => {
 
 		expect(onchange).toHaveBeenCalledWith(true);
 	});
+
+	it('applies custom background color when isInsideCard is false', () => {
+		render(SegmentedControl, {
+			props: { options, value: false, isInsideCard: false }
+		});
+
+		const track = screen.getByRole('group');
+		expect(track).toHaveStyle('--segmented-light-bg: #e4e6ec');
+	});
 });

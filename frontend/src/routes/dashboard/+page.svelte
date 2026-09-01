@@ -184,7 +184,7 @@
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<h2 class="text-xl font-bold" style="color: var(--fg)">Community</h2>
 				<div class="w-full sm:w-64">
-					<SegmentedControl options={tabOptions} bind:value={activeTab} />
+					<SegmentedControl options={tabOptions} bind:value={activeTab} isInsideCard={false} />
 				</div>
 			</div>
 

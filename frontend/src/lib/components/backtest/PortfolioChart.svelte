@@ -6,6 +6,7 @@
 		type IChartApi,
 		type ISeriesApi,
 		type BaselineData,
+		type MouseEventParams,
 		type Time
 	} from 'lightweight-charts';
 	import type { PortfolioHistoryEntry } from '$lib/types';
@@ -15,6 +16,7 @@
 
 	let container = $state<HTMLElement | null>(null);
 	let mode = $state<'NET' | 'GROSS'>('NET');
+	let hoveredValue = $state<number | null>(null);
 
 	let chart: IChartApi | null = null;
 	let baselineSeries: ISeriesApi<'Baseline'> | null = null;
@@ -33,8 +35,9 @@
 			: initialCash
 	);
 
-	const pnl = $derived(finalValue - initialCash);
-	const pnlPercentage = $derived((pnl / initialCash) * 100);
+	const activeValue = $derived(hoveredValue !== null ? hoveredValue : finalValue);
+	const pnl = $derived(activeValue - initialCash);
+	const pnlPercentage = $derived(initialCash > 0 ? (pnl / initialCash) * 100 : 0);
 	const isProfit = $derived(pnl >= 0);
 
 	function formatRupiah(value: number): string {
@@ -108,7 +111,15 @@
 				fixRightEdge: true
 			},
 			crosshair: {
-				mode: 1 // normal
+				mode: 1,
+				vertLine: {
+					visible: true,
+					labelVisible: true
+				},
+				horzLine: {
+					visible: false,
+					labelVisible: false
+				}
 			},
 			height: 300
 		});
@@ -125,11 +136,28 @@
 			bottomLineColor: colors.downColor,
 			bottomFillColor1: 'rgba(239, 68, 68, 0.05)',
 			bottomFillColor2: 'rgba(239, 68, 68, 0.28)',
-			lineWidth: 2
+			lineWidth: 2,
+			lastValueVisible: false,
+			priceLineVisible: false
 		});
 
 		chart = localChart;
 		baselineSeries = localSeries;
+
+		const handleCrosshairMove = (param: MouseEventParams) => {
+			if (!param.point || !param.time) {
+				hoveredValue = null;
+				return;
+			}
+			const seriesPoint = param.seriesData.get(localSeries);
+			if (seriesPoint && 'value' in seriesPoint && typeof seriesPoint.value === 'number') {
+				hoveredValue = seriesPoint.value;
+			} else {
+				hoveredValue = null;
+			}
+		};
+
+		localChart.subscribeCrosshairMove(handleCrosshairMove);
 
 		// Initial data load if available
 		if (data && data.length > 0) {
@@ -151,6 +179,7 @@
 
 		return () => {
 			window.removeEventListener('resize', handleResize);
+			localChart.unsubscribeCrosshairMove(handleCrosshairMove);
 			localChart.remove();
 			chart = null;
 			baselineSeries = null;
@@ -160,6 +189,7 @@
 	$effect(() => {
 		const currentMode = mode;
 		const currentData = data;
+		hoveredValue = null;
 		if (baselineSeries && currentData && currentData.length > 0) {
 			const chartData: BaselineData[] = currentData.map((entry) => ({
 				time: entry.date as Time,

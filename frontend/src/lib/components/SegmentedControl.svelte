@@ -7,12 +7,14 @@
 		value = $bindable(),
 		size = 'md',
 		class: className = '',
+		isInsideCard = true,
 		onchange
 	}: {
 		options: SegmentOption<T>[];
 		value: T;
 		size?: 'sm' | 'md';
 		class?: string;
+		isInsideCard?: boolean;
 		onchange?: (newValue: T) => void;
 	} = $props();
 
@@ -33,6 +35,7 @@
 	class="ios-segmented-track relative flex items-center p-0.5 select-none {size === 'sm'
 		? 'h-7 rounded-[7px]'
 		: 'h-8.5 rounded-[9px]'} {className || 'w-full'}"
+	style={!isInsideCard ? '--segmented-light-bg: #e4e6ec;' : undefined}
 	role="group"
 >
 	<!-- Sliding iOS Neutral Pill Indicator -->
@@ -92,7 +95,7 @@
 
 <style>
 	.ios-segmented-track {
-		background-color: #e4e6ec;
+		background-color: var(--segmented-light-bg, var(--bg));
 		border: 1px solid var(--border, #e2e8f0);
 	}
 

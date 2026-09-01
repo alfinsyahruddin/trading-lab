@@ -596,15 +596,6 @@
 						class="rounded-xl border p-4"
 						style="background-color: var(--bg-card); border-color: var(--border);"
 					>
-						<div class="mb-2 flex items-center gap-2">
-							<div
-								class="flex size-7 items-center justify-center rounded-lg"
-								style="background-color: var(--accent-soft); color: var(--accent);"
-							>
-								<Icon icon="lucide:target" width="14" height="14" />
-							</div>
-							<p class="font-700 text-sm" style="color: var(--fg)">Trade quality</p>
-						</div>
 						<div class="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
 							<div>
 								<p
@@ -869,7 +860,7 @@
 							{@const badge = getExitReasonBadge(t.exit_reason)}
 							<div
 								class="rounded-xl border p-3 transition-colors hover:bg-(--bg-card-hover)"
-								style="background-color: var(--bg-card); border-color: var(--border);"
+								style="background-color: var(--bg-card-2); border-color: var(--border);"
 							>
 								<div class="flex items-center justify-between gap-2">
 									<div class="flex items-center gap-2">
