@@ -138,7 +138,7 @@
 	<div>
 		<h1 class="font-700 text-2xl" style="color: var(--fg)">Trading Strategy</h1>
 		<p class="mt-0.5 text-sm" style="color: var(--fg-muted)">
-			Build, backtest, and deploy algorithmic trading strategies with multi-group rules.
+			Build and backtest trading strategies with multi-group rules for IDX stocks.
 		</p>
 	</div>
 	<a
@@ -187,8 +187,8 @@
 		</div>
 		<h2 class="font-700 text-lg" style="color: var(--fg)">No Trading Strategies Yet</h2>
 		<p class="font-400 mt-1 max-w-md text-sm" style="color: var(--fg-muted)">
-			Create your first algorithmic strategy by specifying entry rules, take-profit targets,
-			stop-loss limits, and holding periods.
+			Create your first trading strategy by specifying entry rules, take-profit targets, stop-loss
+			limits, and holding periods.
 		</p>
 		<a
 			href="/dashboard/strategies/new"
