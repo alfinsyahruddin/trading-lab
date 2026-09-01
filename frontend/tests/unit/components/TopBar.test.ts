@@ -78,4 +78,18 @@ describe('TopBar', () => {
 
 		expect(screen.getByRole('heading', { name: 'Change Password' })).toBeInTheDocument();
 	});
+
+	it('renders desktop navigation links with active state for current page', () => {
+		render(TopBar);
+		const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
+		const strategiesLink = screen.getByRole('link', { name: /trading strategy/i });
+		const backtestsLink = screen.getByRole('link', { name: /backtest/i });
+
+		expect(dashboardLink).toBeInTheDocument();
+		expect(strategiesLink).toBeInTheDocument();
+		expect(backtestsLink).toBeInTheDocument();
+
+		expect(dashboardLink).toHaveAttribute('aria-current', 'page');
+		expect(strategiesLink).not.toHaveAttribute('aria-current');
+	});
 });

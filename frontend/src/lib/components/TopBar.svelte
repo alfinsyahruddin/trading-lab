@@ -19,8 +19,81 @@
 	let editProfileOpen = $state(false);
 	let changePasswordOpen = $state(false);
 
+	let navElement = $state<HTMLElement | null>(null);
+	let indicatorStyle = $state<{ left: number; width: number; opacity: number }>({
+		left: 0,
+		width: 0,
+		opacity: 0
+	});
+
+	function updateIndicator() {
+		if (!navElement) return;
+		const activeEl = navElement.querySelector<HTMLElement>('a.active');
+		if (activeEl && activeEl.offsetWidth > 0) {
+			indicatorStyle = {
+				left: activeEl.offsetLeft,
+				width: activeEl.offsetWidth,
+				opacity: 1
+			};
+		} else if (activeEl) {
+			requestAnimationFrame(() => {
+				const retryEl = navElement?.querySelector<HTMLElement>('a.active');
+				if (retryEl && retryEl.offsetWidth > 0) {
+					indicatorStyle = {
+						left: retryEl.offsetLeft,
+						width: retryEl.offsetWidth,
+						opacity: 1
+					};
+				}
+			});
+		} else {
+			indicatorStyle = {
+				left: 0,
+				width: 0,
+				opacity: 0
+			};
+		}
+	}
+
+	$effect(() => {
+		// Track route and nav item dependencies
+		const _path = $page.url.pathname;
+		const _items = navItems;
+		if (typeof window !== 'undefined') {
+			requestAnimationFrame(() => {
+				updateIndicator();
+				requestAnimationFrame(() => {
+					updateIndicator();
+				});
+			});
+		}
+	});
+
 	onMount(() => {
 		user = getUser();
+		updateIndicator();
+
+		let resizeObserver: ResizeObserver | null = null;
+		if (typeof window !== 'undefined') {
+			if (document.fonts) {
+				document.fonts.ready.then(() => {
+					updateIndicator();
+				});
+			}
+			if (navElement && typeof ResizeObserver !== 'undefined') {
+				resizeObserver = new ResizeObserver(() => {
+					updateIndicator();
+				});
+				resizeObserver.observe(navElement);
+				for (const child of navElement.children) {
+					resizeObserver.observe(child);
+				}
+			}
+		}
+
+		return () => {
+			resizeObserver?.disconnect();
+		};
 	});
 
 	const navItems = $derived([
@@ -95,7 +168,7 @@
 	}
 </script>
 
-<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} />
+<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onresize={updateIndicator} />
 
 <header
 	class="sticky top-0 z-40 border-b backdrop-blur-md"
@@ -127,19 +200,29 @@
 			<ThemeToggle />
 		</div>
 
-		<!-- Center: Desktop Nav -->
-		<nav class="hidden items-center gap-1 sm:flex">
-			{#each navItems as item}
+		<!-- Center: Desktop Nav with Sliding Rounded Bottom Indicator -->
+		<nav
+			bind:this={navElement}
+			class="desktop-nav relative hidden h-full items-stretch gap-1 self-stretch sm:flex md:gap-1.5"
+			aria-label="Main Navigation"
+		>
+			{#each navItems as item (item.href)}
 				<a
 					href={item.href}
-					class="font-500 flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm transition-colors duration-150"
+					class="desktop-nav-link flex items-center gap-2 px-3 text-sm font-semibold transition-colors duration-150 sm:px-3.5"
 					class:active={isActive(item.href)}
 					aria-current={isActive(item.href) ? 'page' : undefined}
 				>
-					<Icon icon={item.icon} width="16" height="16" />
+					<Icon icon={item.icon} width="16" height="16" class="nav-icon" />
 					<span>{item.label}</span>
 				</a>
 			{/each}
+
+			<!-- Sliding Rounded Bottom Accent Indicator -->
+			<div
+				class="nav-sliding-indicator"
+				style="left: {indicatorStyle.left}px; width: {indicatorStyle.width}px; opacity: {indicatorStyle.opacity};"
+			></div>
 		</nav>
 
 		<!-- Right: User info + Avatar Popover + Mobile hamburger -->
@@ -271,8 +354,8 @@
 			class="animate-dropdown border-b px-4 py-3 shadow-lg sm:hidden"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
-			<nav class="flex flex-col gap-1">
-				{#each navItems as item}
+			<nav class="mobile-nav flex flex-col gap-1">
+				{#each navItems as item (item.href)}
 					<a
 						href={item.href}
 						onclick={() => (mobileMenuOpen = false)}
@@ -386,20 +469,60 @@
 		color: var(--fg);
 	}
 
-	/* Nav link default (inactive) - scoped strictly to nav */
-	nav a {
+	/* Desktop Nav - Clean sliding rounded bottom accent sticking to the bottom of the topbar */
+	.desktop-nav {
+		display: flex;
+		height: 4rem;
+		align-self: stretch;
+		align-items: stretch;
+	}
+
+	.desktop-nav-link {
+		position: relative;
+		display: flex;
+		height: 100%;
+		align-items: center;
+		color: var(--fg-muted);
+		background-color: transparent !important;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.desktop-nav-link :global(svg) {
+		stroke-width: 2.35;
+	}
+
+	.desktop-nav-link.active {
+		color: var(--accent);
+		background-color: transparent !important;
+	}
+
+	.nav-sliding-indicator {
+		position: absolute;
+		bottom: -1px;
+		height: 3px;
+		border-radius: 9999px;
+		background-color: var(--accent);
+		pointer-events: none;
+		will-change: left, width;
+		transition:
+			left 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+			width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+			opacity 0.15s ease;
+	}
+
+	/* Mobile drawer navigation links */
+	.mobile-nav a {
 		color: var(--fg-muted);
 		background-color: transparent;
 	}
 
-	/* Nav link active */
-	nav a.active {
+	.mobile-nav a.active {
 		color: var(--accent);
 		background-color: var(--accent-soft);
 	}
 
-	/* Nav link hover (inactive only) */
-	nav a:not(.active):hover {
+	.mobile-nav a:not(.active):hover {
 		color: var(--fg);
 		background-color: var(--bg-card-hover);
 	}
