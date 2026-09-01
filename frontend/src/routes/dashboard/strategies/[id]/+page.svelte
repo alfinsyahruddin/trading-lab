@@ -14,7 +14,7 @@
 		listBacktests,
 		ApiError
 	} from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
+	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import {
 		STRATEGY_VARIABLES,
@@ -39,6 +39,8 @@
 	let deleteLoading = $state(false);
 
 	const strategyId = $derived($page.params.id);
+	const currentUser = $derived(getUser());
+	const isOwner = $derived(currentUser && strategy ? currentUser.id === strategy.user_id : false);
 
 	const relatedBacktests = $derived(
 		strategy
@@ -200,6 +202,23 @@
 						</h1>
 					</div>
 
+					{#if !isOwner && strategy.owner}
+						<div class="flex items-center gap-2 pt-0.5">
+							<div
+								class="avatar-glass flex size-6 shrink-0 items-center justify-center rounded-full border shadow-2xs"
+								style="color: var(--fg);"
+							>
+								<Icon icon="lucide:user" width="13" height="13" />
+							</div>
+							<div class="flex flex-wrap items-center gap-1.5 text-xs">
+								<span class="font-600" style="color: var(--fg)">{strategy.owner.name}</span>
+								<span class="text-[11px]" style="color: var(--fg-muted)"
+									>({strategy.owner.email})</span
+								>
+							</div>
+						</div>
+					{/if}
+
 					{#if strategy.description}
 						<p class="font-400 max-w-3xl text-sm" style="color: var(--fg-muted)">
 							{strategy.description}
@@ -209,14 +228,16 @@
 
 				<!-- Actions: Run Backtest, Duplicate, Edit, Delete -->
 				<div class="flex flex-wrap items-center gap-2 self-start">
-					<a
-						href="/dashboard/backtests/new"
-						class="btn-interactive font-600 flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs text-white shadow-sm hover:opacity-95"
-						style="background-color: var(--accent);"
-					>
-						<Icon icon="lucide:play" width="13" height="13" />
-						<span>Run Backtest</span>
-					</a>
+					{#if isOwner}
+						<a
+							href="/dashboard/backtests/new"
+							class="btn-interactive font-600 flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs text-white shadow-sm hover:opacity-95"
+							style="background-color: var(--accent);"
+						>
+							<Icon icon="lucide:play" width="13" height="13" />
+							<span>Run Backtest</span>
+						</a>
+					{/if}
 
 					<button
 						type="button"
@@ -229,26 +250,28 @@
 						<span>Duplicate</span>
 					</button>
 
-					<a
-						href="/dashboard/strategies/{strategy.id}/edit"
-						class="btn-interactive font-600 flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
-						style="border-color: var(--border); color: var(--fg);"
-						title="Edit strategy"
-					>
-						<Icon icon="lucide:pencil" width="13" height="13" />
-						<span>Edit</span>
-					</a>
+					{#if isOwner}
+						<a
+							href="/dashboard/strategies/{strategy.id}/edit"
+							class="btn-interactive font-600 flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
+							style="border-color: var(--border); color: var(--fg);"
+							title="Edit strategy"
+						>
+							<Icon icon="lucide:pencil" width="13" height="13" />
+							<span>Edit</span>
+						</a>
 
-					<button
-						type="button"
-						onclick={openDelete}
-						class="btn-interactive flex size-9 items-center justify-center rounded-xl border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
-						style="border-color: var(--border); color: var(--fg-muted);"
-						title="Delete strategy"
-						aria-label="Delete strategy"
-					>
-						<Icon icon="lucide:trash-2" width="15" height="15" />
-					</button>
+						<button
+							type="button"
+							onclick={openDelete}
+							class="btn-interactive flex size-9 items-center justify-center rounded-xl border transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+							style="border-color: var(--border); color: var(--fg-muted);"
+							title="Delete strategy"
+							aria-label="Delete strategy"
+						>
+							<Icon icon="lucide:trash-2" width="15" height="15" />
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -440,110 +463,112 @@
 		</div>
 
 		<!-- ── Related Backtest Executions ───────────────────────────────── -->
-		<div
-			class="flex flex-col rounded-2xl border p-5 sm:p-6"
-			style="background-color: var(--bg-card); border-color: var(--border);"
-		>
-			<div class="mb-4 flex items-center justify-between">
-				<div class="flex items-center gap-2">
-					<Icon icon="lucide:activity" width="18" height="18" style="color: var(--accent);" />
-					<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
-						Backtest History ({relatedBacktests.length})
-					</h2>
-				</div>
+		{#if isOwner}
+			<div
+				class="flex flex-col rounded-2xl border p-5 sm:p-6"
+				style="background-color: var(--bg-card); border-color: var(--border);"
+			>
+				<div class="mb-4 flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<Icon icon="lucide:activity" width="18" height="18" style="color: var(--accent);" />
+						<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
+							Backtest History ({relatedBacktests.length})
+						</h2>
+					</div>
 
-				<a
-					href="/dashboard/backtests/new"
-					class="btn-interactive font-600 inline-flex items-center gap-1 text-xs"
-					style="color: var(--accent);"
-				>
-					<span>Run New Backtest</span>
-					<Icon icon="lucide:chevron-right" width="14" height="14" />
-				</a>
-			</div>
-
-			{#if relatedBacktests.length > 0}
-				<div class="flex flex-col gap-3">
-					{#each relatedBacktests as bt (bt.id)}
-						<a
-							href="/dashboard/backtests/{bt.id}"
-							class="btn-interactive group flex flex-col gap-3 rounded-xl border p-4 transition-all duration-150 hover:shadow-xs sm:flex-row sm:items-center sm:justify-between"
-							style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
-						>
-							<div class="flex flex-col gap-1">
-								<div class="flex flex-wrap items-center gap-2">
-									<span class="font-700 text-sm" style="color: var(--fg)">
-										{bt.name}
-									</span>
-									<span
-										class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
-										style="background-color: var(--bg-card); color: var(--fg)"
-									>
-										{bt.year}
-									</span>
-									<StatusBadge status={bt.status} />
-								</div>
-
-								<div
-									class="flex flex-wrap items-center gap-3 text-xs"
-									style="color: var(--fg-muted)"
-								>
-									<span>Initial: Rp {formatRupiah(bt.initial_cash)}</span>
-									<span>•</span>
-									<span>{formatDuration(bt.backtest_duration_months)}</span>
-									<span>•</span>
-									<span>Max {bt.max_holding_stocks} Stocks</span>
-								</div>
-							</div>
-
-							<div class="flex items-center gap-4 self-end sm:self-center">
-								{#if bt.status === 'DONE' && bt.result}
-									<div class="flex flex-col text-right">
-										<span
-											class="font-600 text-[10px] tracking-wider uppercase"
-											style="color: var(--fg-muted)"
-										>
-											Net P/L
-										</span>
-										<span
-											class="font-700 text-sm"
-											style="color: {bt.result.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-										>
-											{formatPnl(bt.result.net_pnl, bt.result.net_pnl_percentage)}
-										</span>
-									</div>
-								{/if}
-
-								<Icon
-									icon="lucide:chevron-right"
-									width="16"
-									height="16"
-									class="transition-transform duration-150 group-hover:translate-x-0.5"
-									style="color: var(--fg-muted);"
-								/>
-							</div>
-						</a>
-					{/each}
-				</div>
-			{:else}
-				<div
-					class="rounded-xl border border-dashed p-8 text-center"
-					style="border-color: var(--border);"
-				>
-					<p class="font-500 text-sm" style="color: var(--fg-muted)">
-						No backtests run for this strategy yet.
-					</p>
 					<a
 						href="/dashboard/backtests/new"
-						class="btn-interactive font-600 mt-3 inline-flex items-center gap-1.5 text-xs"
+						class="btn-interactive font-600 inline-flex items-center gap-1 text-xs"
 						style="color: var(--accent);"
 					>
-						<Icon icon="lucide:play" width="13" height="13" />
-						<span>Launch Backtest</span>
+						<span>Run New Backtest</span>
+						<Icon icon="lucide:chevron-right" width="14" height="14" />
 					</a>
 				</div>
-			{/if}
-		</div>
+
+				{#if relatedBacktests.length > 0}
+					<div class="flex flex-col gap-3">
+						{#each relatedBacktests as bt (bt.id)}
+							<a
+								href="/dashboard/backtests/{bt.id}"
+								class="btn-interactive group flex flex-col gap-3 rounded-xl border p-4 transition-all duration-150 hover:shadow-xs sm:flex-row sm:items-center sm:justify-between"
+								style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
+							>
+								<div class="flex flex-col gap-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<span class="font-700 text-sm" style="color: var(--fg)">
+											{bt.name}
+										</span>
+										<span
+											class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+											style="background-color: var(--bg-card); color: var(--fg)"
+										>
+											{bt.year}
+										</span>
+										<StatusBadge status={bt.status} />
+									</div>
+
+									<div
+										class="flex flex-wrap items-center gap-3 text-xs"
+										style="color: var(--fg-muted)"
+									>
+										<span>Initial: Rp {formatRupiah(bt.initial_cash)}</span>
+										<span>•</span>
+										<span>{formatDuration(bt.backtest_duration_months)}</span>
+										<span>•</span>
+										<span>Max {bt.max_holding_stocks} Stocks</span>
+									</div>
+								</div>
+
+								<div class="flex items-center gap-4 self-end sm:self-center">
+									{#if bt.status === 'DONE' && bt.result}
+										<div class="flex flex-col text-right">
+											<span
+												class="font-600 text-[10px] tracking-wider uppercase"
+												style="color: var(--fg-muted)"
+											>
+												Net P/L
+											</span>
+											<span
+												class="font-700 text-sm"
+												style="color: {bt.result.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
+											>
+												{formatPnl(bt.result.net_pnl, bt.result.net_pnl_percentage)}
+											</span>
+										</div>
+									{/if}
+
+									<Icon
+										icon="lucide:chevron-right"
+										width="16"
+										height="16"
+										class="transition-transform duration-150 group-hover:translate-x-0.5"
+										style="color: var(--fg-muted);"
+									/>
+								</div>
+							</a>
+						{/each}
+					</div>
+				{:else}
+					<div
+						class="rounded-xl border border-dashed p-8 text-center"
+						style="border-color: var(--border);"
+					>
+						<p class="font-500 text-sm" style="color: var(--fg-muted)">
+							No backtests run for this strategy yet.
+						</p>
+						<a
+							href="/dashboard/backtests/new"
+							class="btn-interactive font-600 mt-3 inline-flex items-center gap-1.5 text-xs"
+							style="color: var(--accent);"
+						>
+							<Icon icon="lucide:play" width="13" height="13" />
+							<span>Launch Backtest</span>
+						</a>
+					</div>
+				{/if}
+			</div>
+		{/if}
 	</div>
 {/if}
 

@@ -5,7 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import StrategyForm from '$lib/components/strategy/StrategyForm.svelte';
 	import { getTradingStrategy, updateTradingStrategy, ApiError } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
+	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import type { CreateStrategyPayload, TradingStrategy } from '$lib/types';
 
@@ -29,6 +29,12 @@
 				return;
 			}
 			strategy = await getTradingStrategy(token, strategyId);
+			const currentUser = getUser();
+			if (currentUser && strategy.user_id !== currentUser.id) {
+				toast.error('You do not have permission to edit this strategy.');
+				goto('/dashboard/strategies');
+				return;
+			}
 		} catch (err) {
 			toast.error(err instanceof ApiError ? err.message : 'Failed to load strategy details.');
 			goto('/dashboard/strategies');

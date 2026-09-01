@@ -118,6 +118,46 @@ impl BacktestRepository {
         Ok(record)
     }
 
+    pub async fn find_by_id_for_user_or_public(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+    ) -> Result<BacktestJobRecord, AppError> {
+        let record = sqlx::query_as::<_, BacktestJobRecord>(
+            r#"
+            SELECT 
+                b.id,
+                b.user_id,
+                b.strategy_id,
+                b.strategy_name,
+                b.name,
+                b.year,
+                b.initial_cash,
+                b.max_holding_stocks,
+                b.backtest_duration_months,
+                b.buy_fee_percentage,
+                b.sell_fee_percentage,
+                b.is_public,
+                b.status,
+                b.error_message,
+                b.created_at,
+                b.updated_at,
+                u.name as owner_name,
+                u.email as owner_email
+            FROM backtest_jobs b
+            JOIN users u ON b.user_id = u.id
+            WHERE b.id = $1 AND (b.user_id = $2 OR b.is_public = true)
+            "#,
+        )
+        .bind(id)
+        .bind(user_id)
+        .fetch_optional(&self.pool)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Backtest not found".into()))?;
+
+        Ok(record)
+    }
+
     pub async fn update_status(
         &self,
         id: Uuid,

@@ -33,7 +33,10 @@ impl TradingStrategyService {
     }
 
     pub async fn get(&self, id: Uuid, user_id: Uuid) -> Result<TradingStrategyResponse, AppError> {
-        let record = self.strategies.find_by_id_and_user(id, user_id).await?;
+        let record = self
+            .strategies
+            .find_by_id_for_user_or_public(id, user_id)
+            .await?;
         Ok(TradingStrategyResponse::from(record))
     }
 

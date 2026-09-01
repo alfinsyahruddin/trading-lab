@@ -20,6 +20,13 @@ pub struct StrategyRuleGroup {
     pub conditions: Vec<StrategyRuleCondition>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct StrategyOwnerResponse {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+}
+
 #[derive(Clone, Debug, FromRow)]
 pub struct TradingStrategyRecord {
     pub id: Uuid,
@@ -32,6 +39,10 @@ pub struct TradingStrategyRecord {
     pub rules: Json<Vec<StrategyRuleGroup>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub owner_name: Option<String>,
+    #[sqlx(default)]
+    pub owner_email: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -45,6 +56,7 @@ pub struct TradingStrategyResponse {
     pub risk_reward_ratio: Option<f64>,
     pub max_holding_period_days: i32,
     pub rules: Vec<StrategyRuleGroup>,
+    pub owner: Option<StrategyOwnerResponse>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -57,6 +69,15 @@ impl From<TradingStrategyRecord> for TradingStrategyResponse {
             None
         };
 
+        let owner = match (record.owner_name, record.owner_email) {
+            (Some(name), Some(email)) => Some(StrategyOwnerResponse {
+                id: record.user_id,
+                name,
+                email,
+            }),
+            _ => None,
+        };
+
         Self {
             id: record.id,
             user_id: record.user_id,
@@ -67,6 +88,7 @@ impl From<TradingStrategyRecord> for TradingStrategyResponse {
             risk_reward_ratio,
             max_holding_period_days: record.max_holding_period_days,
             rules: record.rules.0,
+            owner,
             created_at: record.created_at,
             updated_at: record.updated_at,
         }
@@ -135,6 +157,8 @@ mod tests {
             rules: Json(vec![]),
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            owner_name: None,
+            owner_email: None,
         };
 
         let response = TradingStrategyResponse::from(record);

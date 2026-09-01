@@ -48,6 +48,12 @@ export interface StrategyRuleGroup {
 	conditions: StrategyRuleCondition[];
 }
 
+export interface StrategyOwner {
+	id: string;
+	name: string;
+	email: string;
+}
+
 export interface TradingStrategy {
 	id: string;
 	user_id: string;
@@ -58,6 +64,7 @@ export interface TradingStrategy {
 	risk_reward_ratio: number | null;
 	max_holding_period_days: number;
 	rules: StrategyRuleGroup[];
+	owner?: StrategyOwner | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -83,6 +90,12 @@ export interface UpdateStrategyPayload {
 export type BacktestStatus = 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED';
 export type ExitReason = 'STOP_LOSS' | 'TAKE_PROFIT' | 'MAX_HOLDING_TIME';
 
+export interface BacktestOwner {
+	id: string;
+	name: string;
+	email: string;
+}
+
 export interface BacktestJob {
 	id: string;
 	user_id: string;
@@ -98,6 +111,7 @@ export interface BacktestJob {
 	is_public: boolean;
 	status: BacktestStatus;
 	error_message: string | null;
+	owner?: BacktestOwner | null;
 	result: BacktestResult | null;
 	portfolio_history: PortfolioHistoryEntry[] | null;
 	most_traded: MostTradedEntry[] | null;

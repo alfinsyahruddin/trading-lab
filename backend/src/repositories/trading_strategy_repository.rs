@@ -92,6 +92,44 @@ impl TradingStrategyRepository {
         .ok_or_else(|| AppError::not_found("Trading strategy not found"))
     }
 
+    pub async fn find_by_id_for_user_or_public(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+    ) -> Result<TradingStrategyRecord, AppError> {
+        sqlx::query_as::<_, TradingStrategyRecord>(
+            r#"
+            SELECT 
+                s.id,
+                s.user_id,
+                s.name,
+                s.description,
+                s.tp_percentage,
+                s.sl_percentage,
+                s.max_holding_period_days,
+                s.rules,
+                s.created_at,
+                s.updated_at,
+                u.name as owner_name,
+                u.email as owner_email
+            FROM trading_strategies s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.id = $1 AND (
+                s.user_id = $2
+                OR EXISTS (
+                    SELECT 1 FROM backtest_jobs
+                    WHERE strategy_id = s.id AND is_public = true
+                )
+            )
+            "#,
+        )
+        .bind(id)
+        .bind(user_id)
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Trading strategy not found"))
+    }
+
     pub async fn update(
         &self,
         params: UpdateStrategyRecordParams<'_>,
@@ -145,7 +183,7 @@ impl TradingStrategyRepository {
         user_id: Uuid,
         new_name: &str,
     ) -> Result<TradingStrategyRecord, AppError> {
-        let source = self.find_by_id_and_user(id, user_id).await?;
+        let source = self.find_by_id_for_user_or_public(id, user_id).await?;
 
         sqlx::query_as::<_, TradingStrategyRecord>(
             "INSERT INTO trading_strategies (user_id, name, description, tp_percentage, sl_percentage, max_holding_period_days, rules)

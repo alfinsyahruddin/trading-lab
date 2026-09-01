@@ -11,9 +11,9 @@ use crate::{
     entities::{
         app_error::AppError,
         backtest::{
-            BacktestJobResponse, BacktestPortfolioHistoryRecord, BacktestResultRecord,
-            BacktestTradeRecord, CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
-            UpdateBacktestJobRequest,
+            BacktestJobResponse, BacktestOwnerResponse, BacktestPortfolioHistoryRecord,
+            BacktestResultRecord, BacktestTradeRecord, CreateBacktestJobRequest,
+            MostTradedResponse, TopEntryResponse, UpdateBacktestJobRequest,
         },
         trading_strategy::{StrategyRuleCondition, StrategyRuleGroup},
     },
@@ -66,6 +66,7 @@ impl BacktestService {
                 is_public: job.is_public,
                 status: job.status,
                 error_message: job.error_message,
+                owner: None,
                 result: result.map(Into::into),
                 portfolio_history: Some(portfolio.into_iter().map(Into::into).collect()),
                 most_traded: None,
@@ -82,13 +83,22 @@ impl BacktestService {
     }
 
     pub async fn get(&self, id: Uuid, user_id: Uuid) -> Result<BacktestJobResponse, AppError> {
-        let job = self.repo.find_by_id_and_user(id, user_id).await?;
+        let job = self.repo.find_by_id_for_user_or_public(id, user_id).await?;
         let result = self.repo.find_result_by_job(id).await?;
         let portfolio = self.repo.find_portfolio_history(id).await?;
         let most_traded = self.repo.find_most_traded(id).await?;
         let top_gainers = self.repo.find_top_gainers(id).await?;
         let top_losers = self.repo.find_top_losers(id).await?;
         let trades = self.repo.find_trades(id).await?;
+
+        let owner = match (job.owner_name, job.owner_email) {
+            (Some(name), Some(email)) => Some(BacktestOwnerResponse {
+                id: job.user_id,
+                name,
+                email,
+            }),
+            _ => None,
+        };
 
         Ok(BacktestJobResponse {
             id: job.id,
@@ -105,6 +115,7 @@ impl BacktestService {
             is_public: job.is_public,
             status: job.status,
             error_message: job.error_message,
+            owner,
             result: result.map(Into::into),
             portfolio_history: Some(portfolio.into_iter().map(Into::into).collect()),
             most_traded: Some(
@@ -185,7 +196,7 @@ impl BacktestService {
 
         let strategy = self
             .strategy_repo
-            .find_by_id_and_user(req.strategy_id, user_id)
+            .find_by_id_for_user_or_public(req.strategy_id, user_id)
             .await?;
 
         let is_public = req.is_public.unwrap_or(false);
@@ -245,6 +256,7 @@ impl BacktestService {
             is_public: job.is_public,
             status: job.status,
             error_message: job.error_message,
+            owner: None,
             result: None,
             portfolio_history: None,
             most_traded: None,
@@ -270,7 +282,7 @@ async fn run_backtest(
         .await?;
 
     let strategy = strategy_repo
-        .find_by_id_and_user(strategy_id, user_id)
+        .find_by_id_for_user_or_public(strategy_id, user_id)
         .await?;
 
     let (where_query, volume_filters) = build_where_query(&strategy.rules.0, req.year);

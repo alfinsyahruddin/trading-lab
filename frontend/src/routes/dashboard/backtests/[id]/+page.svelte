@@ -8,7 +8,7 @@
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
 	import { getBacktest, getTradingStrategy, updateBacktest, ApiError } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
+	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
 	import type { BacktestJob, TradingStrategy } from '$lib/types';
@@ -21,6 +21,8 @@
 	let updatingVisibility = $state(false);
 
 	const id = $derived($page.params.id);
+	const currentUser = $derived(getUser());
+	const isOwner = $derived(currentUser && job ? currentUser.id === job.user_id : false);
 
 	onMount(async () => {
 		await loadData();
@@ -205,31 +207,60 @@
 		>
 			<!-- Top Row: Title + Year + Status + Visibility Toggle -->
 			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div class="flex flex-wrap items-center gap-2">
-					<h1 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
-						{job.name}
-					</h1>
-					<span
-						class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
-						style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
-					>
-						<Icon icon="lucide:calendar" width="12" height="12" style="color: var(--fg-muted);" />
-						<span>{job.year}</span>
-					</span>
-					<StatusBadge status={job.status} />
+				<div class="flex flex-col gap-1.5">
+					<div class="flex flex-wrap items-center gap-2">
+						<h1 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
+							{job.name}
+						</h1>
+						<span
+							class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
+							style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
+						>
+							<Icon icon="lucide:calendar" width="12" height="12" style="color: var(--fg-muted);" />
+							<span>{job.year}</span>
+						</span>
+						<StatusBadge status={job.status} />
+					</div>
+
+					{#if !isOwner && job.owner}
+						<div class="flex items-center gap-2 pt-0.5">
+							<div
+								class="avatar-glass flex size-6 shrink-0 items-center justify-center rounded-full border shadow-2xs"
+								style="color: var(--fg);"
+							>
+								<Icon icon="lucide:user" width="13" height="13" />
+							</div>
+							<div class="flex flex-wrap items-center gap-1.5 text-xs">
+								<span class="font-600" style="color: var(--fg)">{job.owner.name}</span>
+								<span class="text-[11px]" style="color: var(--fg-muted)">({job.owner.email})</span>
+							</div>
+						</div>
+					{/if}
 				</div>
 
-				<!-- Small Public/Private Toggle -->
-				<div class="w-38 self-start sm:self-auto">
-					<SegmentedControl
-						size="sm"
-						options={[
-							{ value: false, label: 'Private', icon: 'lucide:lock' },
-							{ value: true, label: 'Public', icon: 'lucide:globe' }
-						]}
-						value={job.is_public}
-						onchange={handleVisibilityChange}
-					/>
+				<!-- Small Public/Private Toggle for owner, badge for viewer -->
+				<div class="self-start sm:self-auto">
+					{#if isOwner}
+						<div class="w-38">
+							<SegmentedControl
+								size="sm"
+								options={[
+									{ value: false, label: 'Private', icon: 'lucide:lock' },
+									{ value: true, label: 'Public', icon: 'lucide:globe' }
+								]}
+								value={job.is_public}
+								onchange={handleVisibilityChange}
+							/>
+						</div>
+					{:else}
+						<span
+							class="font-600 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+							style="background-color: var(--bg-card-hover, #eee); color: var(--fg-muted);"
+						>
+							<Icon icon={job.is_public ? 'lucide:globe' : 'lucide:lock'} width="13" height="13" />
+							<span>{job.is_public ? 'Public' : 'Private'}</span>
+						</span>
+					{/if}
 				</div>
 			</div>
 

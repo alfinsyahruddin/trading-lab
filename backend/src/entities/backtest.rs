@@ -6,6 +6,13 @@ use validator::Validate;
 
 use crate::enums::backtest_status::BacktestStatus;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BacktestOwnerResponse {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+}
+
 #[derive(Debug, FromRow)]
 pub struct BacktestJobRecord {
     pub id: Uuid,
@@ -24,6 +31,10 @@ pub struct BacktestJobRecord {
     pub error_message: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub owner_name: Option<String>,
+    #[sqlx(default)]
+    pub owner_email: Option<String>,
 }
 
 #[derive(Debug, FromRow)]
@@ -100,6 +111,7 @@ pub struct BacktestJobResponse {
     pub is_public: bool,
     pub status: BacktestStatus,
     pub error_message: Option<String>,
+    pub owner: Option<BacktestOwnerResponse>,
     pub result: Option<BacktestResultResponse>,
     pub portfolio_history: Option<Vec<PortfolioHistoryResponse>>,
     pub most_traded: Option<Vec<MostTradedResponse>>,
@@ -375,6 +387,7 @@ mod tests {
             is_public: false,
             status: BacktestStatus::Processing,
             error_message: None,
+            owner: None,
             result: None,
             portfolio_history: None,
             most_traded: None,
