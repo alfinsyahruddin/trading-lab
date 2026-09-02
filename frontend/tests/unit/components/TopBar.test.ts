@@ -92,4 +92,19 @@ describe('TopBar', () => {
 		expect(dashboardLink).toHaveAttribute('aria-current', 'page');
 		expect(strategiesLink).not.toHaveAttribute('aria-current');
 	});
+
+	it('renders Users and Settings navigation links for ADMIN role', () => {
+		const adminUser: UserResponse = {
+			...mockUser,
+			role: 'ADMIN'
+		};
+		session.persistSession('token', 'refresh', adminUser);
+		render(TopBar);
+
+		const usersLink = screen.getByRole('link', { name: /users/i });
+		const settingsLink = screen.getByRole('link', { name: /settings/i });
+
+		expect(usersLink).toBeInTheDocument();
+		expect(settingsLink).toBeInTheDocument();
+	});
 });

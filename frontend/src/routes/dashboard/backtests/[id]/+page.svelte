@@ -7,6 +7,7 @@
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
+	import BacktestAiSummary from '$lib/components/backtest/BacktestAiSummary.svelte';
 	import { getBacktest, getTradingStrategy, updateBacktest, ApiError } from '$lib/api';
 	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
@@ -199,6 +200,11 @@
 		<p class="font-600 text-sm" style="color: var(--danger)">{error}</p>
 	</div>
 {:else if job}
+	<!-- AI Summary (when available) -->
+	{#if job.result?.ai_summary && job.result.ai_summary.length > 0}
+		<BacktestAiSummary summary={job.result.ai_summary} />
+	{/if}
+
 	<!-- Backtest Card (like in backtest list, but without bottom section) -->
 	<div class="mb-6">
 		<div

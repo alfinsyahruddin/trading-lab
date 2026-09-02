@@ -86,3 +86,15 @@ pub async fn duplicate_strategy(
         .await
         .json()
 }
+
+#[post("/api/strategies/ai-suggestions")]
+pub async fn get_ai_suggestions(
+    strategy_service: Data<TradingStrategyService>,
+    _user: AuthenticatedUser,
+    body: Json<crate::entities::strategy_suggestion::StrategyAiSuggestionsRequest>,
+) -> AppResponse<Vec<crate::entities::strategy_suggestion::StrategyAiSuggestion>> {
+    strategy_service
+        .get_ai_suggestions(body.into_inner())
+        .await
+        .json()
+}

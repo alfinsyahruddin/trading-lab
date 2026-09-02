@@ -2,14 +2,23 @@
 	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
 	import WhereConditionsBuilder from './WhereConditionsBuilder.svelte';
+	import StrategyAiSuggestionsCard from './StrategyAiSuggestionsCard.svelte';
 	import { formatRiskReward } from '$lib/constants';
-	import type { CreateStrategyPayload, StrategyRuleGroup, TradingStrategy } from '$lib/types';
+	import { getStrategyAiSuggestions } from '$lib/api';
+	import { getToken } from '$lib/helpers/session';
+	import type {
+		CreateStrategyPayload,
+		StrategyAiSuggestion,
+		StrategyRuleGroup,
+		TradingStrategy
+	} from '$lib/types';
 
 	let {
 		initialData,
 		loading = false,
 		error = '',
 		submitLabel = 'Save Strategy',
+		enableAiSuggestions = false,
 		onsubmit,
 		oncancel
 	}: {
@@ -17,6 +26,7 @@
 		loading?: boolean;
 		error?: string;
 		submitLabel?: string;
+		enableAiSuggestions?: boolean;
 		onsubmit: (data: CreateStrategyPayload) => void;
 		oncancel: () => void;
 	} = $props();
@@ -41,6 +51,10 @@
 			]
 		}
 	]);
+
+	let suggestions = $state<StrategyAiSuggestion[]>([]);
+	let analyzing = $state(false);
+	let suggestionsChecked = $state(false);
 
 	// Sync when initialData changes
 	let initialDataLoaded = false;
@@ -70,20 +84,61 @@
 		return formatRiskReward(tp, sl);
 	});
 
-	function handleSubmit(e: Event) {
+	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		const tp = parseFloat(tpPercentage);
 		const sl = parseFloat(slPercentage);
 		const days = parseInt(maxHoldingPeriodDays, 10);
 
-		onsubmit({
+		const payload: CreateStrategyPayload = {
 			name: name.trim(),
 			description: description.trim() || null,
 			tp_percentage: isNaN(tp) ? 0 : tp,
 			sl_percentage: isNaN(sl) ? 0 : sl,
 			max_holding_period_days: isNaN(days) ? 1 : days,
 			rules
-		});
+		};
+
+		if (enableAiSuggestions && !suggestionsChecked) {
+			analyzing = true;
+			try {
+				const token = getToken();
+				const result = await getStrategyAiSuggestions(token, {
+					name: payload.name,
+					description: payload.description,
+					tp_percentage: payload.tp_percentage,
+					sl_percentage: payload.sl_percentage,
+					max_holding_period_days: payload.max_holding_period_days
+				});
+
+				if (result && result.length > 0) {
+					suggestions = result;
+					suggestionsChecked = true;
+					return;
+				}
+			} catch {
+				// Proceed to submit directly if AI request fails
+			} finally {
+				analyzing = false;
+			}
+		}
+
+		onsubmit(payload);
+	}
+
+	function handleAcceptSuggestion(suggestion: StrategyAiSuggestion) {
+		if (suggestion.field === 'tp_percentage') {
+			tpPercentage = String(suggestion.suggested_value);
+		} else if (suggestion.field === 'sl_percentage') {
+			slPercentage = String(suggestion.suggested_value);
+		} else if (suggestion.field === 'max_holding_period_days') {
+			maxHoldingPeriodDays = String(Math.round(suggestion.suggested_value));
+		}
+		suggestions = suggestions.filter((s) => s.id !== suggestion.id);
+	}
+
+	function handleIgnoreSuggestion(suggestion: StrategyAiSuggestion) {
+		suggestions = suggestions.filter((s) => s.id !== suggestion.id);
 	}
 </script>
 
@@ -268,6 +323,15 @@
 		</div>
 	{/if}
 
+	<!-- Floating AI Suggestions (above action buttons) -->
+	{#if suggestions.length > 0}
+		<StrategyAiSuggestionsCard
+			{suggestions}
+			onaccept={handleAcceptSuggestion}
+			onignore={handleIgnoreSuggestion}
+		/>
+	{/if}
+
 	<!-- Form Action Bar -->
 	<div
 		class="sticky bottom-0 z-30 -mx-4 -mb-6 flex flex-col-reverse gap-2.5 border-t p-4 backdrop-blur-md sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:rounded-2xl"
@@ -283,11 +347,14 @@
 		</button>
 		<button
 			type="submit"
-			disabled={loading || !name.trim()}
-			class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm text-white shadow-md transition-all duration-150 disabled:opacity-50 sm:w-auto"
+			disabled={loading || analyzing || !name.trim() || suggestions.length > 0}
+			class="btn-interactive font-600 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm text-white shadow-md transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
 			style="background-color: var(--accent);"
 		>
-			{#if loading}
+			{#if analyzing}
+				<Icon icon="lucide:loader-2" class="animate-spin" width="18" height="18" />
+				<span>Analyzing Strategy…</span>
+			{:else if loading}
 				<Icon icon="lucide:loader-2" class="animate-spin" width="18" height="18" />
 				<span>Saving…</span>
 			{:else}

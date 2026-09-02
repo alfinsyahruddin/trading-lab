@@ -1,14 +1,28 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import StrategyForm from '$lib/components/strategy/StrategyForm.svelte';
-	import { createTradingStrategy, ApiError } from '$lib/api';
+	import { createTradingStrategy, getSettings, ApiError } from '$lib/api';
 	import { getToken } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import type { CreateStrategyPayload } from '$lib/types';
 
 	let loading = $state(false);
 	let error = $state('');
+	let aiEnabled = $state(false);
+
+	onMount(async () => {
+		try {
+			const token = getToken();
+			if (token) {
+				const settings = await getSettings(token);
+				aiEnabled = settings.ai_enabled;
+			}
+		} catch {
+			// Silently fallback to aiEnabled = false
+		}
+	});
 
 	async function handleCreate(payload: CreateStrategyPayload) {
 		loading = true;
@@ -60,6 +74,7 @@
 	{loading}
 	{error}
 	submitLabel="Create Strategy"
+	enableAiSuggestions={aiEnabled}
 	onsubmit={handleCreate}
 	oncancel={handleCancel}
 />

@@ -12,6 +12,8 @@ pub struct AppConfig {
     pub refresh_token_expiration_seconds: u64,
     pub cors_allowed_origin: String,
     pub sectors_api_key: String,
+    pub gemini_api_key: String,
+    pub gemini_model: String,
 }
 
 impl AppConfig {
@@ -36,6 +38,9 @@ impl AppConfig {
             cors_allowed_origin: env::var("CORS_ALLOWED_ORIGIN")
                 .unwrap_or_else(|_| "http://localhost:3000".into()),
             sectors_api_key: required("SECTORS_API_KEY")?,
+            gemini_api_key: env::var("GEMINI_API_KEY").unwrap_or_default(),
+            gemini_model: env::var("GEMINI_MODEL")
+                .unwrap_or_else(|_| "gemini-3.1-flash-lite".into()),
         })
     }
 }

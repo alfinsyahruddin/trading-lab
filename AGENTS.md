@@ -164,6 +164,16 @@ All responses must strictly adhere to the unified JSON envelope:
   - `POST /api/dashboard/stars/{backtest_id}`: Star a public backtest.
   - `DELETE /api/dashboard/stars/{backtest_id}`: Unstar a public backtest.
 
+#### 5. App Settings & AI Intelligence Domain (`src/routes/settings_route.rs`, `src/clients/llm_client.rs`)
+- **LLM Abstraction**: `LLMTrait` and `GeminiLLM` client supporting structured output extraction via Google Gemini (`gemini-3.1-flash-lite`).
+- **Platform Master Toggle**: `app_settings` table and Redis cache (`app_setting:ai_enabled`) storing platform-wide AI enablement. Admin users can toggle AI capabilities via `/dashboard/settings`.
+- **Backtest AI Executive Summary**: Generates a 5-dimension qualitative summary upon backtest completion or on first view when AI is enabled. Permanently cached in `backtest_results.ai_summary`.
+- **Strategy AI Refinement Suggestions**: Intercepts strategy creation (`POST /api/strategies/ai-suggestions`), analyzing TP, SL, and holding duration against IDX market dynamics and returning one-click "Accept" or "Ignore" recommendations.
+- **Endpoints**:
+  - `GET /api/settings`: Retrieve current platform settings.
+  - `PATCH /api/settings`: Update settings (Admin only).
+  - `POST /api/strategies/ai-suggestions`: Request AI parameter recommendations for a trading strategy.
+
 ### Database & Migrations
 - Migrations reside in `backend/migrations/` with format `YYYYMMDDNNNN_description.sql`.
 - Migrations are applied automatically on startup (`setup_db.rs`).
@@ -240,16 +250,19 @@ Since the application runs in pure CSR mode, route protection executes on the cl
 - `SegmentedControl.svelte`: Tab-like button group switch (e.g. for charts, leaderboard tabs, visibility).
 - `SelectField.svelte` & `TextField.svelte`: Form input fields with error states, icons, and labels.
 - `RoleBadge.svelte`: Badge rendering for `ADMIN` and `MEMBER` roles.
+- `IosSwitch.svelte`: iOS-like toggle switch with smooth animations and accessibility support.
 - `ThemeToggle.svelte`: Dark / light mode toggle synced to localStorage and `data-theme`.
 - `ToastViewport.svelte`: Fixed viewport for reactive notification toasts.
 - `EmptyState.svelte`: Empty placeholder view for lists.
 
 #### 2. Strategy Components (`src/lib/components/strategy/`)
-- `StrategyForm.svelte`: Core strategy parameters (name, description, TP%, SL%, live Risk-to-Reward ratio, max holding period days) and rule builder integration.
+- `StrategyForm.svelte`: Core strategy parameters (name, description, TP%, SL%, live Risk-to-Reward ratio, max holding period days), rule builder integration, and AI suggestions interception.
+- `StrategyAiSuggestionsCard.svelte`: Floating suggestion card on top of strategy submit actions with orange-yellow gradient and one-click "Accept" / "Ignore" resolutions.
 - `WhereConditionsBuilder.svelte`: Dynamic multi-group rule builder supporting intra-group and inter-group `AND`/`OR` connectors and adaptive operator inputs.
 - `VariablePickerModal.svelte`: Categorized financial variable catalog with live search, variable descriptions, selection checkmarks, and category filtering.
 
 #### 3. Backtest Components (`src/lib/components/backtest/`)
+- `BacktestAiSummary.svelte`: AI Executive Summary card featuring animated continuous multi-color gradient border and 5-point performance breakdown.
 - `StatusBadge.svelte`: Indicator badge for `PENDING`, `PROCESSING`, `DONE`, and `FAILED` states.
 - `HalfDoughnutChart.svelte`: Semicircle SVG doughnut chart visualizing win vs loss ratio with centered total trade count.
 - `PortfolioChart.svelte`: Interactive baseline equity curve powered by `lightweight-charts` with Net/Gross value toggle and Jakarta time rendering.
@@ -318,6 +331,8 @@ bun run format
   - `JWT_SECRET`: Secret key for signing and verifying JWT tokens.
   - `SECTORS_API_KEY`: API key for Sectors.app financial market data.
   - `SECTORS_API_URL`: Base URL for Sectors.app API (`https://api.sectors.app`).
+  - `GEMINI_API_KEY`: Google Gemini API key for AI summaries and strategy recommendations.
+  - `GEMINI_MODEL`: Google Gemini model identifier (`gemini-3.1-flash-lite`).
   - `HOST` & `PORT`: Host and port for Actix-web server (`127.0.0.1:8000`).
   - `CORS_ORIGIN`: Allowed origins for CORS (e.g. `http://localhost:3000`).
 - Synchronize `.env.example` and `.env.docker.example` whenever new environment variables are introduced.

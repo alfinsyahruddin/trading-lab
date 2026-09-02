@@ -9,11 +9,13 @@ Trading Lab is a full-stack platform built with a high-performance **Rust backen
 ## Features
 
 - **Visual Strategy Builder**: Construct dynamic multi-group trading rules (`AND`/`OR` grouping) across financial metrics, price/volume indicators, and valuation parameters.
+- **AI Strategy Refinement**: Automated pre-submission parameter evaluation via Google Gemini offering one-click "Accept" or "Ignore" resolutions for Take-Profit, Stop-Loss, and Holding Periods.
 - **Risk & Target Controls**: Configure Take Profit %, Stop Loss %, live Risk-to-Reward ratio calculations, and maximum holding periods.
 - **Simulation & Backtest Engine**: Run asynchronous historical simulations with customizable cash allocations, portfolio holding limits, broker fees, and duration spans (1, 3, 6, 12 months).
+- **AI Executive Summary**: 5-point qualitative performance analysis on backtest results with animated multi-color gradient styling and persistent caching.
 - **Comprehensive Analytics**: Track real-time equity curves (Net & Gross), Sharpe Ratio (2% risk-free rate), Profit Factor, Win/Loss Rate, Max Drawdown/Volatility, Average Holding Times, Top Gainers/Losers, and Most Traded tickers.
 - **Community Leaderboard & Starring**: Explore public backtests ranked by return percentage or popularity, star favorite strategies, and inspect trade breakdowns.
-- **Authentication & RBAC**: Secure Argon2id password hashing, JWT access/refresh token rotation with Redis session revocation, user profile controls, and Admin user management.
+- **Platform Settings & RBAC**: Admin-controlled master AI switch with iOS-style toggle, Argon2id password hashing, JWT token rotation with Redis session revocation, and Admin user management.
 
 ---
 

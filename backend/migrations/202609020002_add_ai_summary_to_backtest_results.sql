@@ -1,0 +1,2 @@
+ALTER TABLE backtest_results
+ADD COLUMN IF NOT EXISTS ai_summary JSONB DEFAULT NULL;

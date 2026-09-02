@@ -147,6 +147,7 @@ export interface BacktestResult {
 	avg_win_hold_days: number;
 	avg_loss_hold_days: number;
 	portfolio_volatility: number;
+	ai_summary?: string[] | null;
 }
 
 export interface PortfolioHistoryEntry {
@@ -232,4 +233,19 @@ export interface LeaderboardEntry {
 export interface LeaderboardPortfolioPoint {
 	date: string;
 	net_value: number;
+}
+
+export interface AppSettings {
+	ai_enabled: boolean;
+}
+
+export type StrategySuggestionField = 'tp_percentage' | 'sl_percentage' | 'max_holding_period_days';
+
+export interface StrategyAiSuggestion {
+	id: string;
+	field: StrategySuggestionField;
+	title: string;
+	current_value: number;
+	suggested_value: number;
+	reason: string;
 }

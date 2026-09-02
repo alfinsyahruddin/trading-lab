@@ -96,6 +96,8 @@ mod tests {
             refresh_token_expiration_seconds: 60,
             cors_allowed_origin: "http://localhost:3000".into(),
             sectors_api_key: "test_key".into(),
+            gemini_api_key: "test_gemini".into(),
+            gemini_model: "gemini-3.1-flash-lite".into(),
         };
 
         let tokens = create_token_pair(&user, Uuid::new_v4(), &config).expect("tokens encode");

@@ -287,6 +287,22 @@ impl BacktestRepository {
         Ok(record)
     }
 
+    pub async fn update_ai_summary(
+        &self,
+        job_id: Uuid,
+        summary: &[String],
+    ) -> Result<(), AppError> {
+        let json_val = serde_json::to_value(summary).unwrap_or_default();
+        sqlx::query("UPDATE backtest_results SET ai_summary = $1 WHERE backtest_job_id = $2")
+            .bind(json_val)
+            .bind(job_id)
+            .execute(&self.pool)
+            .await
+            .map_err(AppError::from)?;
+
+        Ok(())
+    }
+
     pub async fn find_portfolio_history(
         &self,
         job_id: Uuid,

@@ -7,13 +7,14 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    clients::sectors_client::SectorsClientTrait,
+    clients::{llm_client::LLMTrait, sectors_client::SectorsClientTrait},
     entities::{
         app_error::AppError,
         backtest::{
             BacktestJobResponse, BacktestOwnerResponse, BacktestPortfolioHistoryRecord,
-            BacktestResultRecord, BacktestTradeRecord, CreateBacktestJobRequest,
-            MostTradedResponse, TopEntryResponse, UpdateBacktestJobRequest,
+            BacktestResultRecord, BacktestResultResponse, BacktestTradeRecord,
+            CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
+            UpdateBacktestJobRequest,
         },
         trading_strategy::{StrategyRuleCondition, StrategyRuleGroup},
     },
@@ -22,12 +23,15 @@ use crate::{
         backtest_repository::{BacktestRepository, CreateBacktestParams},
         trading_strategy_repository::TradingStrategyRepository,
     },
+    services::settings_service::SettingsService,
 };
 
 pub struct BacktestService {
     repo: Arc<BacktestRepository>,
     strategy_repo: Arc<TradingStrategyRepository>,
     sectors: Arc<dyn SectorsClientTrait>,
+    llm: Arc<dyn LLMTrait>,
+    settings: Arc<SettingsService>,
 }
 
 impl BacktestService {
@@ -35,11 +39,15 @@ impl BacktestService {
         repo: Arc<BacktestRepository>,
         strategy_repo: Arc<TradingStrategyRepository>,
         sectors: Arc<dyn SectorsClientTrait>,
+        llm: Arc<dyn LLMTrait>,
+        settings: Arc<SettingsService>,
     ) -> Self {
         Self {
             repo,
             strategy_repo,
             sectors,
+            llm,
+            settings,
         }
     }
 
@@ -100,6 +108,33 @@ impl BacktestService {
             _ => None,
         };
 
+        let mut result_resp: Option<BacktestResultResponse> = result.map(Into::into);
+
+        if job.status == BacktestStatus::Done {
+            if let Some(ref mut res) = result_resp {
+                if res.ai_summary.as_ref().is_none_or(|s| s.is_empty())
+                    && self.settings.get_ai_enabled().await.unwrap_or(false)
+                {
+                    if let Ok(Some(rec)) = self.repo.find_result_by_job(id).await {
+                        if let Ok(summary) = generate_backtest_ai_summary(
+                            &*self.llm,
+                            &job.name,
+                            &job.strategy_name,
+                            job.year,
+                            job.backtest_duration_months,
+                            job.initial_cash,
+                            &rec,
+                        )
+                        .await
+                        {
+                            let _ = self.repo.update_ai_summary(id, &summary).await;
+                            res.ai_summary = Some(summary);
+                        }
+                    }
+                }
+            }
+        }
+
         Ok(BacktestJobResponse {
             id: job.id,
             user_id: job.user_id,
@@ -116,7 +151,7 @@ impl BacktestService {
             status: job.status,
             error_message: job.error_message,
             owner,
-            result: result.map(Into::into),
+            result: result_resp,
             portfolio_history: Some(portfolio.into_iter().map(Into::into).collect()),
             most_traded: Some(
                 most_traded
@@ -221,12 +256,16 @@ impl BacktestService {
         let repo = self.repo.clone();
         let strategy_repo = self.strategy_repo.clone();
         let sectors = self.sectors.clone();
+        let llm = self.llm.clone();
+        let settings = self.settings.clone();
 
         tokio::spawn(async move {
             if let Err(e) = run_backtest(
                 repo.clone(),
                 strategy_repo,
                 sectors,
+                llm,
+                settings,
                 job_id,
                 strategy_id,
                 user_id,
@@ -269,10 +308,13 @@ impl BacktestService {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn run_backtest(
     repo: Arc<BacktestRepository>,
     strategy_repo: Arc<TradingStrategyRepository>,
     sectors: Arc<dyn SectorsClientTrait>,
+    llm: Arc<dyn LLMTrait>,
+    settings: Arc<SettingsService>,
     job_id: Uuid,
     strategy_id: Uuid,
     user_id: Uuid,
@@ -428,7 +470,94 @@ async fn run_backtest(
     repo.update_status(job_id, BacktestStatus::Done, None)
         .await?;
 
+    if settings.get_ai_enabled().await.unwrap_or(false) {
+        if let Ok(summary) = generate_backtest_ai_summary(
+            &*llm,
+            &req.name,
+            &strategy.name,
+            req.year,
+            req.backtest_duration_months,
+            req.initial_cash,
+            &result_record,
+        )
+        .await
+        {
+            let _ = repo.update_ai_summary(job_id, &summary).await;
+        }
+    }
+
     Ok(())
+}
+
+pub async fn generate_backtest_ai_summary(
+    llm: &dyn LLMTrait,
+    job_name: &str,
+    strategy_name: &str,
+    year: i32,
+    duration_months: i32,
+    initial_cash: f64,
+    result: &BacktestResultRecord,
+) -> Result<Vec<String>, AppError> {
+    let prompt = format!(
+        r#"You are an expert quantitative trading analyst specializing in the Indonesia Stock Exchange (IDX).
+Analyze the following backtest simulation results for strategy "{strategy_name}" (Backtest: "{job_name}", Year: {year}, Duration: {duration_months} months, Initial Cash: Rp{initial_cash:.0}):
+
+Key Backtest Metrics:
+- Net PnL: Rp{net_pnl:.0} ({net_pnl_pct:.2}%)
+- Gross PnL: Rp{gross_pnl:.0} ({gross_pnl_pct:.2}%)
+- Total Fees: Rp{total_fees:.0}
+- Total Trades: {trades_processed} (Wins: {wins}, Losses: {losses}, Win Rate: {win_rate:.2}%)
+- Profit Factor: {profit_factor:.2}
+- Sharpe Ratio: {sharpe_ratio:.2}
+- Portfolio Volatility: {volatility:.2}%
+- Max Profit: Rp{max_profit:.0} ({max_profit_pct:.2}%), Max Loss: Rp{max_loss:.0} ({max_loss_pct:.2}%)
+- Avg Profit: Rp{avg_profit:.0} ({avg_profit_pct:.2}%), Avg Loss: Rp{avg_loss:.0} ({avg_loss_pct:.2}%)
+- Avg Holding Time: {avg_hold:.1} days (Avg Win Hold: {win_hold:.1} days, Avg Loss Hold: {loss_hold:.1} days)
+
+Generate a high-impact executive summary consisting of a JSON array of up to 5 clear, insightful keypoint strings (maximum 5 strings).
+Each keypoint should be 1-2 concise sentences addressing one of the following 5 dimensions:
+1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, and fee drag impact.
+2. Win/Loss Dynamics: Win rate vs profit factor, and average win magnitude compared to average loss.
+3. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
+4. Holding & Execution Efficiency: Win holding duration vs loss holding duration (discipline in cutting losses vs letting winners run).
+5. Strategic Verdict & Actionable Improvement: Concrete recommendation for parameter tuning (e.g. SL, TP, or holding window) under Indonesian market conditions.
+
+Return ONLY a valid JSON array of strings:
+["Keypoint 1...", "Keypoint 2...", "Keypoint 3...", "Keypoint 4...", "Keypoint 5..."]"#,
+        strategy_name = strategy_name,
+        job_name = job_name,
+        year = year,
+        duration_months = duration_months,
+        initial_cash = initial_cash,
+        net_pnl = result.net_pnl,
+        net_pnl_pct = result.net_pnl_percentage,
+        gross_pnl = result.gross_pnl,
+        gross_pnl_pct = result.gross_pnl_percentage,
+        total_fees = result.total_fees,
+        trades_processed = result.trades_processed,
+        wins = result.wins,
+        losses = result.losses,
+        win_rate = result.win_rate,
+        profit_factor = result.profit_factor,
+        sharpe_ratio = result.sharpe_ratio,
+        volatility = result.portfolio_volatility,
+        max_profit = result.max_profit,
+        max_profit_pct = result.max_profit_percentage,
+        max_loss = result.max_loss,
+        max_loss_pct = result.max_loss_percentage,
+        avg_profit = result.avg_profit,
+        avg_profit_pct = result.avg_profit_percentage,
+        avg_loss = result.avg_loss,
+        avg_loss_pct = result.avg_loss_percentage,
+        avg_hold = result.avg_hold_time_days,
+        win_hold = result.avg_win_hold_days,
+        loss_hold = result.avg_loss_hold_days,
+    );
+
+    let summary: Vec<String> =
+        crate::clients::llm_client::generate_structured(llm, &prompt).await?;
+    let truncated: Vec<String> = summary.into_iter().take(5).collect();
+    Ok(truncated)
 }
 
 struct StockData {
@@ -811,6 +940,7 @@ fn simulate_backtest(
         avg_win_hold_days,
         avg_loss_hold_days,
         portfolio_volatility,
+        ai_summary: None,
     };
 
     (result_record, portfolio_history, completed_trades)
@@ -981,5 +1111,62 @@ mod tests {
                 .abs()
                 < 1e-6
         );
+    }
+
+    struct MockLLM;
+
+    #[async_trait::async_trait]
+    impl LLMTrait for MockLLM {
+        async fn generate(&self, _prompt: &str) -> Result<String, AppError> {
+            Ok(r#"["Point 1: Strong performance.", "Point 2: Good win rate.", "Point 3: Low volatility.", "Point 4: Efficient hold time.", "Point 5: Maintain current SL."]"#.into())
+        }
+    }
+
+    #[tokio::test]
+    async fn should_generate_backtest_ai_summary_with_mock() {
+        let result = BacktestResultRecord {
+            id: Uuid::new_v4(),
+            backtest_job_id: Uuid::new_v4(),
+            available_cash: 110_000_000.0,
+            trades_processed: 25,
+            net_pnl: 10_000_000.0,
+            net_pnl_percentage: 10.0,
+            gross_pnl: 10_500_000.0,
+            gross_pnl_percentage: 10.5,
+            win_rate: 64.0,
+            profit_factor: 2.3,
+            wins: 16,
+            losses: 9,
+            sharpe_ratio: 1.8,
+            max_profit: 3_000_000.0,
+            max_profit_percentage: 8.0,
+            max_loss: -1_000_000.0,
+            max_loss_percentage: -3.0,
+            avg_profit: 1_200_000.0,
+            avg_profit_percentage: 4.0,
+            avg_loss: -600_000.0,
+            avg_loss_percentage: -2.0,
+            avg_hold_time_days: 7.5,
+            total_fees: 500_000.0,
+            avg_win_hold_days: 8.0,
+            avg_loss_hold_days: 4.0,
+            portfolio_volatility: 14.2,
+            ai_summary: None,
+        };
+
+        let summary = generate_backtest_ai_summary(
+            &MockLLM,
+            "Momentum 2024",
+            "Strategy Alpha",
+            2024,
+            12,
+            100_000_000.0,
+            &result,
+        )
+        .await
+        .expect("generates summary");
+
+        assert_eq!(summary.len(), 5);
+        assert_eq!(summary[0], "Point 1: Strong performance.");
     }
 }

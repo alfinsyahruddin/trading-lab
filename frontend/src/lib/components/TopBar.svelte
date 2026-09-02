@@ -101,7 +101,10 @@
 		{ href: '/dashboard/strategies', label: 'Trading Strategy', icon: 'lucide:candlestick-chart' },
 		{ href: '/dashboard/backtests', label: 'Backtest', icon: 'lucide:flask-conical' },
 		...(user?.role === 'ADMIN'
-			? [{ href: '/dashboard/users', label: 'Users', icon: 'lucide:users' }]
+			? [
+					{ href: '/dashboard/users', label: 'Users', icon: 'lucide:users' },
+					{ href: '/dashboard/settings', label: 'Settings', icon: 'lucide:settings' }
+				]
 			: [])
 	]);
 

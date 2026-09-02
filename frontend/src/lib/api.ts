@@ -10,7 +10,9 @@ import type {
 	CreateBacktestPayload,
 	UpdateBacktestPayload,
 	DashboardStats,
-	LeaderboardEntry
+	LeaderboardEntry,
+	AppSettings,
+	StrategyAiSuggestion
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -355,4 +357,44 @@ export function starBacktest(token: string | undefined, backtestId: string): Pro
 
 export function unstarBacktest(token: string | undefined, backtestId: string): Promise<string> {
 	return request<string>(`/api/dashboard/stars/${backtestId}`, { method: 'DELETE' }, token);
+}
+
+// --- Settings & AI ---
+
+export function getSettings(token?: string | null): Promise<AppSettings> {
+	return request<AppSettings>('/api/settings', { method: 'GET' }, token ?? undefined);
+}
+
+export function updateSettings(
+	token: string | null | undefined,
+	data: { ai_enabled: boolean }
+): Promise<AppSettings> {
+	return request<AppSettings>(
+		'/api/settings',
+		{
+			method: 'PATCH',
+			body: JSON.stringify(data)
+		},
+		token ?? undefined
+	);
+}
+
+export function getStrategyAiSuggestions(
+	token: string | null | undefined,
+	data: {
+		name: string;
+		description?: string | null;
+		tp_percentage: number;
+		sl_percentage: number;
+		max_holding_period_days: number;
+	}
+): Promise<StrategyAiSuggestion[]> {
+	return request<StrategyAiSuggestion[]>(
+		'/api/strategies/ai-suggestions',
+		{
+			method: 'POST',
+			body: JSON.stringify(data)
+		},
+		token ?? undefined
+	);
 }
