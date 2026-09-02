@@ -1,6 +1,6 @@
 # Trading Lab
 
-> High-performance trading strategy builder and historical backtesting platform for Indonesia Stock Exchange (IDX) traders.
+> Everyone built a stock screener, but no one ever backtested it!
 
 Trading Lab is a full-stack platform built with a high-performance **Rust backend** (Actix-web, SQLx, Redis) and a modern **SvelteKit 5 single-page application** (CSR, Bun, Tailwind CSS v4, TradingView lightweight-charts). It enables Indonesia Stock Exchange (IDX) traders to define complex multi-condition trading strategies, backtest them against Indonesian historical market data, analyze detailed risk and performance metrics, and share winning strategies with the community.
 

@@ -1,5 +1,12 @@
 <script lang="ts">
-	// index.svelte — hero landing page
+	import { onMount } from 'svelte';
+	import { getToken } from '$lib/helpers/session';
+
+	let isLoggedIn = $state(false);
+
+	onMount(() => {
+		isLoggedIn = !!getToken();
+	});
 </script>
 
 <div
@@ -32,30 +39,40 @@
 			/>
 		</div>
 
-		<!-- Tagline -->
+		<!-- Tagline / Slogan -->
 		<p
-			class="font-400 mb-8 max-w-md px-2 text-base leading-relaxed sm:mb-10 sm:text-lg"
+			class="font-500 mb-8 max-w-md px-2 text-base leading-relaxed sm:mb-10 sm:text-lg"
 			style="color: var(--fg-muted)"
 		>
-			Your intelligent trading companion. Analyse, manage, and grow — all in one place.
+			Everyone built a stock screener, but no one ever backtested it!
 		</p>
 
 		<!-- CTA Buttons -->
 		<div class="flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
-			<a
-				href="/login"
-				class="btn-interactive font-700 inline-flex w-full items-center justify-center rounded-xl px-8 py-3.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
-				style="background-color: var(--accent);"
-			>
-				Sign In
-			</a>
-			<a
-				href="/register"
-				class="btn-interactive font-700 inline-flex w-full items-center justify-center rounded-xl border px-8 py-3.5 text-sm shadow-sm hover:bg-(--bg-card) hover:shadow-md active:scale-95 sm:w-auto"
-				style="border-color: var(--border-strong); color: var(--fg);"
-			>
-				Create Account
-			</a>
+			{#if isLoggedIn}
+				<a
+					href="/dashboard"
+					class="btn-interactive font-700 inline-flex w-full items-center justify-center rounded-xl px-8 py-3.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
+					style="background-color: var(--accent);"
+				>
+					Go to Dashboard
+				</a>
+			{:else}
+				<a
+					href="/login"
+					class="btn-interactive font-700 inline-flex w-full items-center justify-center rounded-xl px-8 py-3.5 text-sm text-white shadow-sm hover:opacity-95 hover:shadow-md active:scale-95 sm:w-auto"
+					style="background-color: var(--accent);"
+				>
+					Sign In
+				</a>
+				<a
+					href="/register"
+					class="btn-interactive font-700 inline-flex w-full items-center justify-center rounded-xl border px-8 py-3.5 text-sm shadow-sm hover:bg-(--bg-card) hover:shadow-md active:scale-95 sm:w-auto"
+					style="border-color: var(--border-strong); color: var(--fg);"
+				>
+					Create Account
+				</a>
+			{/if}
 		</div>
 	</div>
 </div>

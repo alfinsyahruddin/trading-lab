@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T13:52:00.000Z",
+  "title": "Design System: Trading Lab",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Electric Cyan",
+        "canonical": "#30b4c9",
+        "tonalRamp": [
+          "#0e3b42",
+          "#155863",
+          "#1d7685",
+          "#2495a7",
+          "#30b4c9",
+          "#59c3d4",
+          "#83d2df",
+          "#ace1ea"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Deep Cyan",
+        "canonical": "#2a9fb2",
+        "tonalRamp": [
+          "#0c3339",
+          "#134d56",
+          "#196773",
+          "#208190",
+          "#2a9fb2",
+          "#55b2c1",
+          "#7fc5d1",
+          "#aad9e0"
+        ]
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Emerald Profit",
+        "canonical": "#22c55e",
+        "tonalRamp": [
+          "#052e16",
+          "#14532d",
+          "#166534",
+          "#15803d",
+          "#22c55e",
+          "#4ade80",
+          "#86efac",
+          "#bbf7d0"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Coral Risk",
+        "canonical": "#ef4444",
+        "tonalRamp": [
+          "#450a0a",
+          "#7f1d1d",
+          "#991b1b",
+          "#b91c1c",
+          "#ef4444",
+          "#f87171",
+          "#fca5a5",
+          "#fecaca"
+        ]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Amber Caution",
+        "canonical": "#f59e0b",
+        "tonalRamp": [
+          "#451a03",
+          "#78350f",
+          "#92400e",
+          "#b45309",
+          "#f59e0b",
+          "#fbbf24",
+          "#fcd34d",
+          "#fde68a"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Slate Light Base",
+        "canonical": "#f1f2f4",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#f1f2f4"
+        ]
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Navy Dark Base",
+        "canonical": "#2a344c",
+        "tonalRamp": [
+          "#141926",
+          "#1f2739",
+          "#2a344c",
+          "#303b5a",
+          "#38476c",
+          "#4d5e8a",
+          "#687ba8",
+          "#8f9ec1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display / Metric",
+        "purpose": "Hero KPI values, large returns, and equity figures with tabular numerals."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Primary page titles and section headers."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles, modal headings, and segment labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "General content, explanations, and table cell data."
+      },
+      "label": {
+        "displayName": "Label / Caption",
+        "purpose": "Form field labels, badge typography, and metadata timestamps."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-subtle",
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "purpose": "Baseline resting elevation for cards and panels."
+      },
+      {
+        "name": "switch-active-glow",
+        "value": "0 0 12px rgba(48, 180, 201, 0.35)",
+        "purpose": "Luminescent cyan halo on active iOS switch controls."
+      },
+      {
+        "name": "modal-elevation",
+        "value": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        "purpose": "Prominent depth for floating modal dialog windows."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-smooth",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Micro-interactions, button active transforms, and modal entrances."
+      },
+      {
+        "name": "ease-ios-spring",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Sliding pill indicator transitions on segmented controls and top navigation."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action button with tactile scale on press.",
+      "html": "<button class=\"ds-btn-primary\">Run Backtest</button>",
+      "css": ".ds-btn-primary { background: #30b4c9; color: #ffffff; padding: 10px 18px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); outline: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; } .ds-btn-primary:hover { background: #2a9fb2; } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { box-shadow: 0 0 0 3px rgba(48, 180, 201, 0.3); }"
+    },
+    {
+      "name": "Text Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard form input with subtle border and cyan focus ring.",
+      "html": "<div class=\"ds-input-group\"><label class=\"ds-label\">Strategy Name</label><input type=\"text\" class=\"ds-input\" placeholder=\"e.g. Momentum Breakout\" value=\"Momentum Alpha\" /></div>",
+      "css": ".ds-input-group { display: flex; flex-direction: column; gap: 6px; font-family: 'Montserrat', sans-serif; } .ds-label { font-size: 13px; font-weight: 500; color: #64748b; } .ds-input { width: 100%; box-sizing: border-box; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input:focus { border-color: #30b4c9; box-shadow: 0 0 0 3px rgba(48, 180, 201, 0.12); }"
+    },
+    {
+      "name": "Status Badge (Done)",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Execution status pill with semantic color tint and indicator dot.",
+      "html": "<span class=\"ds-badge ds-badge-done\"><span class=\"ds-dot\"></span>DONE</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 9999px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; line-height: 1.4; } .ds-badge-done { background: rgba(16, 185, 129, 0.15); color: #10b981; } .ds-dot { width: 6px; height: 6px; border-radius: 50%; background-color: currentColor; }"
+    },
+    {
+      "name": "iOS Switch",
+      "kind": "custom",
+      "refersTo": "ios-switch",
+      "description": "Tactile toggle switch with glowing active track.",
+      "html": "<div class=\"ds-switch ds-switch-active\"><span class=\"ds-switch-thumb\"></span></div>",
+      "css": ".ds-switch { position: relative; display: inline-flex; height: 28px; width: 48px; border-radius: 9999px; background: rgba(120, 120, 128, 0.28); padding: 2px; cursor: pointer; transition: background-color 0.25s, box-shadow 0.25s; box-sizing: border-box; } .ds-switch.ds-switch-active { background: #30b4c9; box-shadow: 0 0 12px rgba(48, 180, 201, 0.35); } .ds-switch-thumb { width: 24px; height: 24px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1); transform: translateX(20px); }"
+    },
+    {
+      "name": "KPI Stats Card",
+      "kind": "card",
+      "refersTo": "card-standard",
+      "description": "Analytical metric card featuring corner radial ambient orb.",
+      "html": "<div class=\"ds-card-stat\"><div class=\"ds-stat-header\"><span class=\"ds-stat-label\">Total Return</span></div><p class=\"ds-stat-val\">+42.8%</p><p class=\"ds-stat-sub\">Win Rate: 68.4%</p></div>",
+      "css": ".ds-card-stat { position: relative; overflow: hidden; background: #303b5a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; font-family: 'Montserrat', sans-serif; } .ds-card-stat::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 90% 80% at 100% 0%, rgba(48, 180, 201, 0.22) 0%, transparent 70%); } .ds-stat-header { display: flex; justify-content: space-between; margin-bottom: 12px; } .ds-stat-label { font-size: 12px; font-weight: 500; color: #94a3b8; } .ds-stat-val { font-size: 32px; font-weight: 700; color: #22c55e; margin: 0; font-variant-numeric: tabular-nums; } .ds-stat-sub { font-size: 13px; font-weight: 500; color: #94a3b8; margin: 4px 0 0 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quantitative Cockpit",
+    "overview": "Trading Lab combines the focused precision of professional financial trading software with the clarity and elegance of modern web interfaces. The visual language is structured for high data density, rapid cognitive scanning, and unambiguous decision-making during fast-paced market analysis.\n\nThe UI is anchored by a dual-palette architecture: a deep, commanding Navy Dark theme (#2A344C) that reduces eye strain during extended analytical sessions, and a crisp, high-contrast Slate Light theme (#F1F2F4) for daylight productivity. An electric Brand Cyan (#30B4C9) acts as the single primary accent, guiding user focus to primary actions, active navigation states, and key interactive controls.",
+    "keyCharacteristics": [
+      "High-Density Legibility: Clean typography hierarchy powered by Montserrat with tabular numbers for financial figures and equity metrics.",
+      "Tonal Layering Over Heavy Shadows: Visual depth achieved through surface tiering, subtle 1px border frames, and localized radial atmospheric orbs.",
+      "Tactile Micro-Interactions: Custom iOS-inspired sliding segmented controls, smooth pill toggles, and sliding bottom navigation indicators.",
+      "AI Intelligence Distinction: Chromatic multi-stop rotating conic gradient borders (#FBAF33 -> #FE426B -> #DE98FE -> #38C1FB) reserve dynamic lighting strictly for AI-generated insights and recommendations."
+    ],
+    "rules": [
+      {
+        "name": "The 10% Accent Rarity Rule",
+        "body": "Electric Cyan is reserved strictly for interactive affordances and primary state indicators. It must never coat background containers or non-interactive decorations.",
+        "section": "colors"
+      },
+      {
+        "name": "The Strict Financial Polarity Rule",
+        "body": "Green (#22C55E) and Red (#EF4444) are exclusively reserved for financial outcomes (gain vs loss, TP vs SL) and execution status. Never use them for decorative or non-semantic UI elements.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Metric Rule",
+        "body": "Every numeric figure representing prices, currency values, percentages, star counts, or dates must use tabular numbers (tabular-nums) to maintain alignment during live updates.",
+        "section": "typography"
+      },
+      {
+        "name": "The Structural Border Rule",
+        "body": "All cards, modals, dropdowns, and input containers must have an explicit 1px border (var(--border) or var(--border-strong)). Shadows alone must never define a container's edge.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do format all financial figures, percentages, and metrics with tabular-nums for rock-solid tabular alignment.",
+      "Do use var(--accent) for actionable highlights and active navigation states.",
+      "Do maintain strict 1px border framing on cards and surfaces in both dark and light modes.",
+      "Do provide smooth active micro-interactions (active:scale-97) on clickable buttons and interactive items.",
+      "Do pair status badges with colored status dots for accessibility and instantaneous scanning."
+    ],
+    "donts": [
+      "Don't use neon or saturated primary backgrounds for large content cards; keep backgrounds restful and navy/slate.",
+      "Don't use red or green for non-financial decorative accents.",
+      "Don't mix custom font families; stick to Montserrat for display/body and monospace for numbers/code.",
+      "Don't apply heavy drop shadows without a 1px structural container border.",
+      "Don't use raw unformatted numbers in charts or stat cards without appropriate precision and currency prefixes."
+    ]
+  }
+}

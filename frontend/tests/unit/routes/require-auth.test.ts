@@ -42,8 +42,8 @@ function dashboardGuard() {
 	}
 }
 
-// Simulate the index/login/register guard logic
-function publicGuard() {
+// Simulate the login/register guard logic (mirrors login/+page.ts & register/+page.ts)
+function authEntryGuard() {
 	const token = getToken();
 	if (token) {
 		redirect(302, '/dashboard');
@@ -75,14 +75,14 @@ describe('CSR auth guards', () => {
 		});
 	});
 
-	describe('public guard (redirect if authenticated)', () => {
+	describe('login/register auth entry guard (redirect if authenticated)', () => {
 		it('does not redirect when no token', () => {
-			expect(() => publicGuard()).not.toThrow();
+			expect(() => authEntryGuard()).not.toThrow();
 		});
 
 		it('redirects to /dashboard when token is present', () => {
 			persistSession('valid-token', 'refresh-token', mockUser);
-			expect(() => publicGuard()).toThrowError('Redirect 302 to /dashboard');
+			expect(() => authEntryGuard()).toThrowError('Redirect 302 to /dashboard');
 		});
 	});
 });
