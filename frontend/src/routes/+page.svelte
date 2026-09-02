@@ -25,29 +25,32 @@
 		window.addEventListener('scroll', handleScroll, { passive: true });
 
 		// Intersection observer for sections
-		const io = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((e) => {
-					if (e.isIntersecting) {
-						if (e.target.id === 'features-section') featuresVisible = true;
-						if (e.target.id === 'screenshot-section') screenshotVisible = true;
-						if (e.target.id === 'how-section') howVisible = true;
-					}
-				});
-			},
-			{ threshold: 0.15 }
-		);
+		let io: IntersectionObserver | null = null;
+		if (typeof IntersectionObserver !== 'undefined') {
+			io = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((e) => {
+						if (e.isIntersecting) {
+							if (e.target.id === 'features-section') featuresVisible = true;
+							if (e.target.id === 'screenshot-section') screenshotVisible = true;
+							if (e.target.id === 'how-section') howVisible = true;
+						}
+					});
+				},
+				{ threshold: 0.15 }
+			);
 
-		const featureEl = document.getElementById('features-section');
-		const screenshotEl = document.getElementById('screenshot-section');
-		const howEl = document.getElementById('how-section');
-		if (featureEl) io.observe(featureEl);
-		if (screenshotEl) io.observe(screenshotEl);
-		if (howEl) io.observe(howEl);
+			const featureEl = document.getElementById('features-section');
+			const screenshotEl = document.getElementById('screenshot-section');
+			const howEl = document.getElementById('how-section');
+			if (featureEl) io.observe(featureEl);
+			if (screenshotEl) io.observe(screenshotEl);
+			if (howEl) io.observe(howEl);
+		}
 
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
-			io.disconnect();
+			io?.disconnect();
 		};
 	});
 
@@ -786,15 +789,27 @@
 				© Copyright {new Date().getFullYear()} Trading Lab by Alphabyte. All rights reserved.
 			</p>
 			<nav class="flex items-center gap-5" aria-label="Footer navigation">
-				<a href="/login" class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)">
-					Sign In
-				</a>
-				<a
-					href="/register"
-					class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
-				>
-					Get Started
-				</a>
+				{#if isLoggedIn}
+					<a
+						href="/dashboard"
+						class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
+					>
+						Dashboard
+					</a>
+				{:else}
+					<a
+						href="/login"
+						class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
+					>
+						Sign In
+					</a>
+					<a
+						href="/register"
+						class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
+					>
+						Get Started
+					</a>
+				{/if}
 			</nav>
 		</div>
 	</footer>

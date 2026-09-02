@@ -6,24 +6,30 @@ import * as session from '$lib/helpers/session';
 describe('HomePage (+page.svelte)', () => {
 	beforeEach(() => {
 		localStorage.clear();
+		session.clearSession();
 		vi.clearAllMocks();
 	});
 
-	it('renders slogan, Sign In and Create Account buttons when logged out', () => {
+	it('renders slogan, Sign In and Start Backtesting buttons when logged out', () => {
 		render(HomePage);
 
 		expect(
-			screen.getByText('Everyone built a stock screener, but no one ever backtested it!')
+			screen.getByRole('heading', {
+				level: 1,
+				name: /everyone built a/i
+			})
 		).toBeInTheDocument();
 
-		const signInLink = screen.getByRole('link', { name: /Sign In/i });
-		const createAccountLink = screen.getByRole('link', { name: /Create Account/i });
+		const signInLinks = screen.getAllByRole('link', { name: /Sign In/i });
+		const startLinks = screen.getAllByRole('link', {
+			name: /Start Backtesting|Create Free Account|Get Started/i
+		});
 
-		expect(signInLink).toBeInTheDocument();
-		expect(signInLink).toHaveAttribute('href', '/login');
-		expect(createAccountLink).toBeInTheDocument();
-		expect(createAccountLink).toHaveAttribute('href', '/register');
-		expect(screen.queryByRole('link', { name: /Go to Dashboard/i })).not.toBeInTheDocument();
+		expect(signInLinks.length).toBeGreaterThanOrEqual(1);
+		expect(signInLinks[0]).toHaveAttribute('href', '/login');
+		expect(startLinks.length).toBeGreaterThanOrEqual(1);
+		expect(startLinks[0]).toHaveAttribute('href', '/register');
+		expect(screen.queryByRole('link', { name: /Dashboard/i })).not.toBeInTheDocument();
 	});
 
 	it('renders Go to Dashboard button when logged in without redirecting', () => {
@@ -42,6 +48,8 @@ describe('HomePage (+page.svelte)', () => {
 		expect(dashboardLink).toBeInTheDocument();
 		expect(dashboardLink).toHaveAttribute('href', '/dashboard');
 		expect(screen.queryByRole('link', { name: /Sign In/i })).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: /Create Account/i })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('link', { name: /Start Backtesting|Create Free Account|Get Started/i })
+		).not.toBeInTheDocument();
 	});
 });
