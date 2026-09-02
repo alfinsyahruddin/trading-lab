@@ -6,6 +6,23 @@ Trading Lab is a full-stack platform built with a high-performance **Rust backen
 
 ---
 
+## Landing Page
+
+The public landing page (`/`) is a cinematic, parallax-enabled marketing surface with:
+
+- **Visual world**: Deep-space financial observatory — cosmic void background, luminous orbital arc illustration with IDX ticker constellations, WebGL-like CSS shader starfield canvas, and nebula atmosphere.
+- **Typography**: [Barlow Condensed](https://fonts.google.com/specimen/Barlow+Condensed) (display / headlines) + [Figtree](https://fonts.google.com/specimen/Figtree) (body / UI copy). Neither is Montserrat, preserving a distinct landing identity from the app's dashboard.
+- **Sections**: Hero → Feature highlights (4 cards) → App screenshots → 3-step workflow → Community leaderboard preview → CTA → Footer.
+- **Themes**: Dark mode only — immersing visitors in the deep cosmic void aesthetic without distractions.
+- **Motion**: Parallax scroll layers on hero orbital image, twinkling starfield canvas animation, staggered section reveals via IntersectionObserver, animated orbital rings on the CTA section, and reduced-motion fallback.
+- **Static assets** (in `frontend/static/`):
+  - `landing-hero.jpg` — IDX orbital arc constellation illustration
+  - `landing-nebula.jpg` — Deep space nebula background
+  - `landing-ai.jpg` — AI neural network illustration
+  - `screenshot-dashboard.png`, `screenshot-backtest.png`, `screenshot-ai.png` — App UI screenshots
+
+---
+
 ## Features
 
 ### 🛠️ Strategy Builder & Rule Engine

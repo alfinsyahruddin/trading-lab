@@ -227,3 +227,61 @@ Form language emphasizes smooth, approachable geometry through progressive corne
 - **Don't** mix custom font families; stick to Montserrat for display/body and monospace for numbers/code.
 - **Don't** apply heavy drop shadows without a 1px structural container border.
 - **Don't** use raw unformatted numbers in charts or stat cards without appropriate precision and currency prefixes.
+
+---
+
+## Landing Page Design Identity
+
+The public marketing landing page (`/`) operates under a **separate visual world** — the *Deep-Space Financial Observatory* — intentionally distinct from the dashboard's "Quantitative Cockpit" aesthetic. These systems coexist without conflict.
+
+### World: Deep-Space Financial Observatory
+
+**Concept:** IDX stocks as data constellations orbiting a central pulsar. Each screener pass is an astronomical observation; each backtest, a measured event track. The page establishes empirical credibility through scientific wonder.
+
+**Design constants:**
+- **Background ground:** `#070A12` (near-void cosmic black) — darker than the app's `#2A344C` to fully separate the marketing context.
+- **Orbital arcs:** Brand Cyan (`#30B4C9`) at 1px, with `rgba(48, 180, 201, 0.25)` glow radials.
+- **AI accent:** Faint gold `#F5C842` (replaces amber; reserved for AI features only on this surface).
+- **Positive signal:** `#22C55E` (inherited from app system, used for return percentages in leaderboard).
+- **Dark card surface:** `rgba(13, 21, 37, 0.72)` with 1px cyan-tinted border.
+- **Theme:** Strict Dark Mode Only — cinematic observatory aesthetic locked to dark cosmic void.
+
+### Typography (Landing-Exclusive)
+
+| Role | Family | Weight | Notes |
+|------|--------|--------|-------|
+| Display / headlines | Barlow Condensed | 800 | Italic for key slogan phrase |
+| Sub-headlines | Barlow Condensed | 700 | Section headings |
+| Step numbers | Barlow Condensed | 800 | 3rem, 30% opacity accent |
+| Body / descriptions | Figtree | 400–500 | Replaces Montserrat on this surface |
+| Labels / eyebrows | Figtree | 600 | Tracked 0.2em uppercase |
+| Stats / metrics | Barlow Condensed | 700 | Tabular nums |
+
+Both faces are loaded from Google Fonts scoped to the landing page only — they do not affect the dashboard or any app route.
+
+### Motion Principles
+
+- **Parallax:** Three layers — nebula image (0.12x scroll factor), orbital arc image (0.06x), content pinned.
+- **Starfield:** 2D canvas with ~250 micro-dots, sinusoidal twinkle at variable speeds. Cleared and redrawn at 60fps. No GPU shader dependency.
+- **Entrance:** `opacity: 0 → 1` + `translateY(24px → 0)` via IntersectionObserver; `cubic-bezier(0.22, 1, 0.36, 1)` for hero; `ease` for sections.
+- **CTA rings:** Three concentric SVG circles in slow independent rotation (40s / 25s / 15s).
+- **Pulsar:** Sinusoidal `scale(1 → 1.5)` beat at 2.5s, with box-shadow bloom.
+- **Reduced motion:** All animations disabled via `@media (prefers-reduced-motion: reduce)`.
+
+### Static Assets
+
+All assets reside in `frontend/static/` with `landing-` prefix:
+| File | Description |
+|------|-------------|
+| `landing-hero.jpg` | IDX orbital arc constellation (AI-generated) |
+| `landing-nebula.jpg` | Deep space nebula background (AI-generated) |
+| `landing-ai.jpg` | Neural network constellation illustration (AI-generated) |
+| `screenshot-dashboard.png` | App dashboard screenshot |
+| `screenshot-backtest.png` | Backtest results screenshot |
+| `screenshot-ai.png` | AI strategy suggestions screenshot |
+
+### Isolation Rules
+
+- The `.lp-root` CSS scope contains all landing-page tokens as custom properties. No global tokens from `app.css` are used directly (to prevent bleed).
+- Fonts are loaded via `<svelte:head>` and scoped to `:global(body):has(.lp-root)` — they activate only when the landing page is mounted.
+- The landing page does **not** use TailwindCSS utility classes — all styling is scoped component CSS, keeping the footprint isolated from the app's utility layer.
