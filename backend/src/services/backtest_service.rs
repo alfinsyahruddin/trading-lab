@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
-use chrono::{NaiveDate, Utc};
+use chrono::NaiveDate;
 use futures_util::future::join_all;
 use uuid::Uuid;
 use validator::Validate;
@@ -347,19 +347,10 @@ async fn run_backtest(
         stocks.iter().map(|s| &s.symbol).collect::<Vec<_>>()
     );
 
-    let today = Utc::now().naive_utc().date();
-    let mut start_date = NaiveDate::from_ymd_opt(req.year + 1, 1, 1).unwrap();
-    if start_date > today {
-        start_date = NaiveDate::from_ymd_opt(req.year, 1, 1).unwrap();
-    }
-
-    let raw_end_date = chrono::NaiveDate::checked_add_months(
-        start_date,
-        chrono::Months::new(req.backtest_duration_months as u32),
-    )
-    .unwrap();
-
-    let end_date = std::cmp::min(raw_end_date, today);
+    let (start_date, end_date) = crate::helpers::date_helper::calculate_backtest_date_range(
+        req.year,
+        req.backtest_duration_months as u32,
+    );
     let start_str = start_date.format("%Y-%m-%d").to_string();
     let end_str = end_date.format("%Y-%m-%d").to_string();
     eprintln!(
