@@ -7,10 +7,7 @@
 	let heroVisible = $state(false);
 	let featuresVisible = $state(false);
 	let screenshotVisible = $state(false);
-
-	// Canvas refs
-	let canvasEl: HTMLCanvasElement | null = null;
-	let animFrameId: number;
+	let howVisible = $state(false);
 
 	onMount(() => {
 		isLoggedIn = !!getToken();
@@ -32,6 +29,7 @@
 					if (e.isIntersecting) {
 						if (e.target.id === 'features-section') featuresVisible = true;
 						if (e.target.id === 'screenshot-section') screenshotVisible = true;
+						if (e.target.id === 'how-section') howVisible = true;
 					}
 				});
 			},
@@ -40,64 +38,16 @@
 
 		const featureEl = document.getElementById('features-section');
 		const screenshotEl = document.getElementById('screenshot-section');
+		const howEl = document.getElementById('how-section');
 		if (featureEl) io.observe(featureEl);
 		if (screenshotEl) io.observe(screenshotEl);
-
-		// Starfield canvas
-		if (canvasEl) {
-			initStarfield(canvasEl);
-		}
+		if (howEl) io.observe(howEl);
 
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 			io.disconnect();
-			cancelAnimationFrame(animFrameId);
 		};
 	});
-
-	function initStarfield(canvas: HTMLCanvasElement) {
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
-
-		let w = (canvas.width = window.innerWidth);
-		let h = (canvas.height = window.innerHeight);
-
-		const stars: { x: number; y: number; r: number; a: number; speed: number; twinkle: number }[] =
-			[];
-		const count = Math.min(250, Math.floor((w * h) / 6000));
-
-		for (let i = 0; i < count; i++) {
-			stars.push({
-				x: Math.random() * w,
-				y: Math.random() * h,
-				r: Math.random() * 1.2 + 0.2,
-				a: Math.random(),
-				speed: Math.random() * 0.003 + 0.001,
-				twinkle: Math.random() * Math.PI * 2
-			});
-		}
-
-		function draw() {
-			ctx!.clearRect(0, 0, w, h);
-			for (const s of stars) {
-				s.twinkle += s.speed;
-				const alpha = 0.3 + 0.5 * ((Math.sin(s.twinkle) + 1) / 2);
-				ctx!.beginPath();
-				ctx!.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-				ctx!.fillStyle = `rgba(180,230,255,${alpha})`;
-				ctx!.fill();
-			}
-			animFrameId = requestAnimationFrame(draw);
-		}
-
-		draw();
-
-		const onResize = () => {
-			w = canvas.width = window.innerWidth;
-			h = canvas.height = window.innerHeight;
-		};
-		window.addEventListener('resize', onResize);
-	}
 
 	// Parallax helpers
 	function parallax(factor: number) {
@@ -109,7 +59,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 	<link
-		href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Figtree:wght@300;400;500;600&display=swap"
+		href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800&display=swap"
 		rel="stylesheet"
 	/>
 </svelte:head>
@@ -118,25 +68,29 @@
 <div class="lp-root">
 	<!-- ─── HERO ─────────────────────────────────────────── -->
 	<section class="lp-hero">
-		<!-- Nebula image layer -->
-		<div class="lp-nebula-layer" style={parallax(0.12)}>
-			<img
-				src="/landing-nebula.jpg"
-				alt=""
-				aria-hidden="true"
-				class="lp-nebula-img"
-				loading="eager"
-			/>
-		</div>
-
-		<!-- Stars canvas -->
-		<canvas bind:this={canvasEl} class="lp-starfield" aria-hidden="true"></canvas>
-
-		<!-- Orbital arc hero image -->
-		<div class="lp-orbital-wrap" style={parallax(0.06)}>
-			<img src="/landing-hero.jpg" alt="IDX stock constellation orbital" class="lp-orbital-img" />
-			<!-- Cyan glow ring overlay -->
-			<div class="lp-orbital-glow" aria-hidden="true"></div>
+		<div class="lp-terminal-panel" aria-hidden="true">
+			<div class="lp-terminal-topline"><span>IDX / STRATEGY LAB</span><span>MARKET DATA</span></div>
+			<div class="lp-terminal-chart">
+				<svg viewBox="0 0 580 250" role="presentation">
+					<path
+						class="lp-chart-grid"
+						d="M0 50H580M0 100H580M0 150H580M0 200H580M115 0V250M230 0V250M345 0V250M460 0V250"
+					/>
+					<path
+						class="lp-chart-area"
+						d="M0 205 L55 190 L100 196 L145 155 L195 170 L240 124 L290 140 L338 78 L390 104 L440 58 L490 72 L540 28 L580 42 V250 H0 Z"
+					/>
+					<path
+						class="lp-chart-line"
+						d="M0 205 L55 190 L100 196 L145 155 L195 170 L240 124 L290 140 L338 78 L390 104 L440 58 L490 72 L540 28 L580 42"
+					/>
+				</svg>
+			</div>
+			<div class="lp-terminal-metrics">
+				<span>RETURN <b>+24.8%</b></span><span>SHARPE <b>1.82</b></span><span
+					>STATUS <b>READY</b></span
+				>
+			</div>
 		</div>
 
 		<!-- Wordmark + copy -->
@@ -164,12 +118,12 @@
 				</div>
 				<div class="lp-stat-divider" aria-hidden="true"></div>
 				<div class="lp-stat">
-					<span class="lp-stat-num">4 Yrs</span>
+					<span class="lp-stat-num">4 Years</span>
 					<span class="lp-stat-label">Historical Data</span>
 				</div>
 				<div class="lp-stat-divider" aria-hidden="true"></div>
 				<div class="lp-stat">
-					<span class="lp-stat-num">6</span>
+					<span class="lp-stat-num">8+</span>
 					<span class="lp-stat-label">Performance Metrics</span>
 				</div>
 			</div>
@@ -278,7 +232,7 @@
 					</div>
 					<h3 class="lp-feature-title">Historical Backtest Engine</h3>
 					<p class="lp-feature-desc">
-						Run asynchronous simulations against real IDX daily data. Configure capital, fees,
+						Run asynchronous backtests against real IDX daily data. Configure capital, fees,
 						portfolio size, and duration. Get results in seconds.
 					</p>
 					<ul class="lp-feature-bullets">
@@ -453,9 +407,9 @@
 	</section>
 
 	<!-- ─── HOW IT WORKS ─────────────────────────────────── -->
-	<section class="lp-section lp-how">
+	<section id="how-section" class="lp-section lp-how">
 		<div class="lp-section-inner">
-			<div class="lp-section-header">
+			<div class="lp-section-header" class:lp-visible={howVisible}>
 				<p class="lp-eyebrow">The Workflow</p>
 				<h2 class="lp-section-headline">From hypothesis to evidence in three steps.</h2>
 			</div>
@@ -474,7 +428,7 @@
 				<li class="lp-step">
 					<div class="lp-step-num" aria-hidden="true">02</div>
 					<div class="lp-step-body">
-						<h3 class="lp-step-title">Run the simulation</h3>
+						<h3 class="lp-step-title">Run the backtest</h3>
 						<p class="lp-step-desc">
 							Select your year, starting capital, and broker fees. The engine simulates trades
 							against real IDX daily data asynchronously—no waiting, no blocking.
@@ -525,7 +479,7 @@
 				<img src="/logo-dark.svg" alt="Trading Lab" class="lp-footer-logo" />
 			</div>
 			<p class="lp-footer-copy">
-				For educational and research purposes only. Not financial advice.
+				© Copyright {new Date().getFullYear()} Trading Lab by Alphabyte. All rights reserved.
 			</p>
 			<nav class="lp-footer-links" aria-label="Footer navigation">
 				<a href="/login" class="lp-footer-link">Sign In</a>
@@ -574,56 +528,6 @@
 		justify-content: center;
 		overflow: hidden;
 		background-color: var(--lp-void);
-	}
-
-	.lp-nebula-layer {
-		position: absolute;
-		inset: -10% 0;
-		will-change: transform;
-		pointer-events: none;
-	}
-
-	.lp-nebula-img {
-		width: 100%;
-		height: 110%;
-		object-fit: cover;
-		opacity: 0.7;
-	}
-
-	.lp-starfield {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		z-index: 1;
-	}
-
-	.lp-orbital-wrap {
-		position: absolute;
-		right: -5%;
-		top: 50%;
-		transform: translateY(-50%);
-		width: min(60vw, 680px);
-		aspect-ratio: 16/9;
-		will-change: transform;
-		pointer-events: none;
-		z-index: 1;
-	}
-
-	.lp-orbital-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 50%;
-		opacity: 0.55;
-		mask-image: radial-gradient(ellipse 80% 80% at center, black 40%, transparent 100%);
-		-webkit-mask-image: radial-gradient(ellipse 80% 80% at center, black 40%, transparent 100%);
-	}
-
-	.lp-orbital-glow {
-		position: absolute;
-		inset: 0;
-		border-radius: 50%;
-		background: radial-gradient(ellipse 60% 60% at center, var(--lp-cyan-glow) 0%, transparent 70%);
 	}
 
 	/* Hero content */
@@ -1428,10 +1332,6 @@
 			justify-content: center;
 		}
 
-		.lp-orbital-wrap {
-			display: none;
-		}
-
 		.lp-hero-headline {
 			font-size: clamp(2.2rem, 8vw, 3rem);
 		}
@@ -1507,5 +1407,220 @@
 	::selection {
 		background: rgba(48, 180, 201, 0.25);
 		color: var(--lp-fg);
+	}
+
+	/* ─── MINIMAL TERMINAL OVERRIDES ───────────────────────── */
+	:global(body):has(.lp-root),
+	.lp-root {
+		font-family: 'Montserrat', system-ui, sans-serif;
+		background: #2a344c;
+	}
+
+	.lp-root {
+		--lp-void: #2a344c;
+		--lp-navy: #303b5a;
+		--lp-card: #303b5a;
+		--lp-card-border: rgba(255, 255, 255, 0.1);
+		--lp-fg: #f1f5f9;
+		--lp-fg-muted: #94a3b8;
+		--lp-fg-dim: rgba(148, 163, 184, 0.72);
+		--lp-section-bg: #303b5a;
+	}
+
+	.lp-hero {
+		min-height: 100svh;
+		justify-content: flex-start;
+		background-color: var(--lp-void);
+		background-image:
+			linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+		background-size: 48px 48px;
+	}
+
+	.lp-hero::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			90deg,
+			var(--lp-void) 22%,
+			rgba(42, 52, 76, 0.82) 54%,
+			rgba(42, 52, 76, 0.22)
+		);
+		pointer-events: none;
+	}
+
+	.lp-terminal-panel {
+		position: absolute;
+		right: max(4vw, 2rem);
+		top: 50%;
+		z-index: 1;
+		width: min(46vw, 620px);
+		padding: 1rem;
+		border: 1px solid var(--lp-card-border);
+		background: rgba(48, 59, 90, 0.74);
+		box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28);
+		transform: translateY(-50%);
+	}
+
+	.lp-terminal-topline,
+	.lp-terminal-metrics {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.625rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		color: var(--lp-fg-muted);
+	}
+
+	.lp-terminal-topline {
+		padding: 0.15rem 0.15rem 0.9rem;
+	}
+	.lp-terminal-metrics {
+		padding: 0.9rem 0.15rem 0.1rem;
+	}
+	.lp-terminal-metrics b {
+		color: var(--lp-cyan);
+		font-weight: 600;
+	}
+	.lp-terminal-chart svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.lp-chart-grid {
+		fill: none;
+		stroke: rgba(255, 255, 255, 0.09);
+		stroke-width: 1;
+	}
+	.lp-chart-area {
+		fill: rgba(48, 180, 201, 0.08);
+	}
+	.lp-chart-line {
+		fill: none;
+		stroke: var(--lp-cyan);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.lp-hero-content {
+		margin-left: max(6%, 2rem);
+		max-width: 650px;
+	}
+	.lp-logo-img {
+		height: 30px;
+	}
+	.lp-hero-headline,
+	.lp-section-headline,
+	.lp-feature-title,
+	.lp-step-title,
+	.lp-cta-headline {
+		font-family: 'Montserrat', system-ui, sans-serif;
+		letter-spacing: -0.04em;
+	}
+	.lp-hero-headline {
+		font-size: clamp(2.45rem, 5vw, 4.35rem);
+	}
+	.lp-eyebrow,
+	.lp-stat-label,
+	.lp-screen-tag {
+		font-family: 'IBM Plex Mono', monospace;
+	}
+	.lp-stat-strip {
+		gap: 1.25rem;
+		padding: 0.95rem 0;
+		border-block: 1px solid var(--lp-card-border);
+	}
+	.lp-stat-divider {
+		background: var(--lp-card-border);
+	}
+	.lp-btn-primary,
+	.lp-btn-ghost {
+		border-radius: 4px;
+		font-family: 'Montserrat', system-ui, sans-serif;
+	}
+	.lp-btn-primary {
+		box-shadow: none;
+	}
+	.lp-btn-primary:hover {
+		box-shadow: 0 5px 18px rgba(48, 180, 201, 0.22);
+	}
+
+	.lp-separator {
+		display: none;
+	}
+	.lp-section {
+		padding-block: 6.5rem;
+	}
+	.lp-features,
+	.lp-how {
+		background: var(--lp-void);
+	}
+	.lp-features::before,
+	.lp-how::before {
+		display: none;
+	}
+	.lp-screenshots {
+		background: var(--lp-section-bg);
+	}
+	.lp-feature-card {
+		border-radius: 16px;
+		box-shadow: none;
+		backdrop-filter: none;
+	}
+	.lp-feature-card:hover {
+		box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+	}
+	.lp-screen-frame {
+		border-radius: 6px;
+		box-shadow: 0 18px 48px rgba(15, 23, 42, 0.3);
+	}
+	.lp-screen-glow {
+		border-radius: 6px;
+	}
+	.lp-step-num {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 2.45rem;
+	}
+
+	.lp-cta-section {
+		min-height: 52vh;
+		background: var(--lp-section-bg);
+	}
+	.lp-cta-section::before {
+		content: '';
+		position: absolute;
+		inset: 12% max(5vw, 1.5rem);
+		border: 1px solid var(--lp-card-border);
+		background-image:
+			linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+			linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+		background-size: 32px 32px;
+	}
+	.lp-cta-cosmos {
+		display: none;
+	}
+	.lp-footer {
+		background: var(--lp-void);
+	}
+
+	@media (max-width: 768px) {
+		.lp-hero {
+			justify-content: center;
+		}
+		.lp-hero::before {
+			background: rgba(42, 52, 76, 0.82);
+		}
+		.lp-terminal-panel {
+			opacity: 0.22;
+			right: -24%;
+			width: 88vw;
+		}
+		.lp-hero-content {
+			margin-left: 0;
+		}
 	}
 </style>
