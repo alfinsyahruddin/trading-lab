@@ -8,14 +8,44 @@ Trading Lab is a full-stack platform built with a high-performance **Rust backen
 
 ## Features
 
-- **Visual Strategy Builder**: Construct dynamic multi-group trading rules (`AND`/`OR` grouping) across financial metrics, price/volume indicators, and valuation parameters.
-- **AI Strategy Refinement**: Automated pre-submission parameter evaluation via Google Gemini offering one-click "Accept" or "Ignore" resolutions for Take-Profit, Stop-Loss, and Holding Periods.
-- **Risk & Target Controls**: Configure Take Profit %, Stop Loss %, live Risk-to-Reward ratio calculations, and maximum holding periods.
-- **Simulation & Backtest Engine**: Run asynchronous historical simulations with customizable cash allocations, portfolio holding limits, broker fees, and duration spans (1, 3, 6, 12 months).
-- **AI Executive Summary**: 5-point qualitative performance analysis on backtest results with animated multi-color gradient styling and persistent caching.
-- **Comprehensive Analytics**: Track real-time equity curves (Net & Gross), Sharpe Ratio (2% risk-free rate), Profit Factor, Win/Loss Rate, Max Drawdown/Volatility, Average Holding Times, Top Gainers/Losers, and Most Traded tickers.
-- **Community Leaderboard & Starring**: Explore public backtests ranked by return percentage or popularity, star favorite strategies, and inspect trade breakdowns.
-- **Platform Settings & RBAC**: Admin-controlled master AI switch with iOS-style toggle, Argon2id password hashing, JWT token rotation with Redis session revocation, and Admin user management.
+### 🛠️ Strategy Builder & Rule Engine
+- **Visual Condition Builder**: Construct dynamic, multi-group screening rules with customizable intra-group and inter-group logical connectors (`AND` / `OR`).
+- **Comprehensive IDX Indicator Catalog**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
+- **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
+- **One-Click Strategy Duplication**: Easily duplicate existing strategies with automated unique naming (`{Name} (Copy)`) to rapidly iterate on rule variations.
+
+### 🤖 AI-Powered Trading Intelligence (Google Gemini)
+- **AI Strategy Refinement**: Intercepts strategy creation and modification to analyze Take-Profit, Stop-Loss, and holding duration against IDX market dynamics, offering one-click "Accept" or "Ignore" suggestions.
+- **AI Executive Summary**: Generates a structured, 5-point qualitative breakdown on completed backtests (Market Alignment, Risk-Adjusted Efficiency, Profit Drivers, Drawdown Exposure, and Iteration Advice).
+- **Persistent AI Caching**: AI summaries are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
+- **Platform-Wide Master Toggle**: Administrators can dynamically enable or disable AI capabilities across the entire platform via app settings.
+
+### 🎯 Risk & Trade Management
+- **Target & Stop Controls**: Configure explicit Take-Profit (%) and Stop-Loss (%) exit thresholds.
+- **Live Risk-to-Reward ($R:R$) Ratio**: Real-time calculated Risk-to-Reward ratio with adaptive visual feedback when risk exceeds reward.
+- **Holding Period Limits**: Enforce maximum holding periods (in days) to automatically liquidate stagnant positions and protect capital velocity.
+
+### ⚡ Historical Backtesting Engine
+- **Asynchronous Simulation**: High-performance historical simulation engine running in non-blocking Tokio background tasks.
+- **Real Market Data Integration**: Powered by Sectors.app IDX market data with permanent Redis caching, cache-miss telemetry, and 429 rate-limit backoff retries.
+- **Customizable Simulation Parameters**: Configure starting capital, maximum simultaneous portfolio holdings, broker commission fees (buy/sell), and historical durations (1, 3, 6, 12 months).
+
+### 📊 Deep Analytics & Interactive Visualizations
+- **Interactive Equity Curve**: High-performance interactive baseline equity chart powered by **TradingView Lightweight Charts** with Jakarta timezone rendering and Net vs Gross equity toggling.
+- **Key Performance Metrics**: Instant calculation of Total Return %, Win Rate %, Profit Factor, Sharpe Ratio (2% risk-free rate), Portfolio Volatility, and Average Holding Time.
+- **Win/Loss Doughnut & Sparklines**: Semicircular SVG win vs loss distribution chart and mini sparkline equity previews on list cards.
+- **Detailed Trade Telemetry**: In-depth breakdown of Top Gainers, Top Losers, Most Traded Tickers, and a complete trade execution history log with exit reasons (Take-Profit, Stop-Loss, Max Holding Days, or Period End).
+
+### 🌐 Community Leaderboard & Social Collaboration
+- **Public Strategy Discovery**: Explore top-performing strategies shared by the community, ranked by **Highest Net Return** or **Top Starred**.
+- **Interactive Starring**: Star favorite community backtests to curate a personal collection and highlight leading strategies on the leaderboard.
+- **Granular Privacy Controls**: Toggle simulation visibility (`is_public`) at any time to share winning backtests with the community or keep proprietary strategies private.
+
+### 🔒 Enterprise Security & Administration
+- **Stateful JWT Session Management**: JWT access and refresh token pair rotation backed by Redis session tracking with instantaneous revocation on logout or password change.
+- **Role-Based Access Control (RBAC)**: Distinct permissions for `ADMIN` and `MEMBER` roles with route extractors and client-side guards.
+- **Admin Management Console**: Dedicated admin panel for managing registered users, creating accounts with explicit roles, resetting credentials, and moderating content.
+- **Profile & Credential Management**: User self-service modal dialogs for updating profile details and securely changing passwords with Argon2id hashing.
 
 ---
 
@@ -26,6 +56,7 @@ Trading Lab is a full-stack platform built with a high-performance **Rust backen
 - **Database**: PostgreSQL 16 via [SQLx 0.8](https://github.com/launchbadge/sqlx) (async, parameterized queries)
 - **Session Cache**: Redis 7 via `redis-rs` (Tokio connection manager)
 - **Market Data**: [Reqwest](https://docs.rs/reqwest/) client with Redis caching and 429 retry backoff (Sectors.app API)
+- **AI Intelligence**: Google Gemini API (`gemini-3.1-flash-lite`) via `LLMTrait` / `GeminiLLM`
 - **Security**: Argon2id (`argon2`), JWT (`jsonwebtoken`)
 - **Validation**: `validator` crate
 
@@ -47,14 +78,20 @@ trading-lab/
 ├── backend/                  # Rust API service
 │   ├── migrations/           # SQLx migration files (PostgreSQL schema)
 │   ├── src/
-│   │   ├── clients/          # Sectors.app financial market data client
-│   │   ├── entities/         # Domain models, requests, responses, errors
-│   │   ├── guards/           # Actix-web request extractors (JWT & RBAC)
-│   │   ├── helpers/          # Cryptography, JWT, hashing helpers
+│   │   ├── clients/          # Sectors.app financial market data & Gemini LLM clients
+│   │   ├── constants/        # Global constants & financial indicator definitions
+│   │   ├── entities/         # Domain models, requests, responses, errors, settings
+│   │   ├── enums/            # System enums (UserRole, BacktestStatus, TokenType)
+│   │   ├── guards/           # Actix-web request extractors (AuthenticatedUser, RequireAdmin)
+│   │   ├── helpers/          # Cryptography, JWT, Argon2 hashing helpers
 │   │   ├── repositories/     # PostgreSQL SQLx query layer
-│   │   ├── routes/           # REST API endpoints
-│   │   ├── services/         # Business logic & simulation engine
-│   │   └── setup/            # Infrastructure setup (DB, Redis, HTTP)
+│   │   ├── routes/           # REST API endpoints (users, strategies, backtests, dashboard, settings)
+│   │   ├── services/         # Business logic, calculation routines & simulation engine
+│   │   ├── setup/            # Infrastructure setup (PostgreSQL, Redis, HTTP client)
+│   │   ├── di.rs             # AppDependencies container
+│   │   ├── http.rs           # Server middleware & CORS configuration
+│   │   ├── lib.rs            # Library entrypoint
+│   │   └── main.rs           # Application server entrypoint
 │   ├── tests/                # Contract & integration tests
 │   ├── Cargo.toml            # Rust dependencies & profiles
 │   ├── Dockerfile            # Multi-stage Rust build container
@@ -66,9 +103,10 @@ trading-lab/
 │   │   ├── lib/
 │   │   │   ├── api.ts        # Typed API client with auto-refresh deduplication
 │   │   │   ├── constants.ts  # Financial indicator definitions & storage keys
+│   │   │   ├── types.ts      # TypeScript interfaces and domain models
 │   │   │   ├── components/   # UI components (dashboard, strategy, backtest, common)
 │   │   │   └── helpers/      # Client session, theme, and reactive toast helpers
-│   │   └── routes/           # CSR page routes (Dashboard, Strategies, Backtests, Admin)
+│   │   └── routes/           # CSR page routes (Dashboard, Strategies, Backtests, Settings, Users)
 │   ├── tests/unit/           # Vitest component and unit test suites
 │   ├── Dockerfile            # Multi-stage Bun build -> Nginx Alpine container
 │   ├── nginx.conf            # Nginx SPA fallback configuration

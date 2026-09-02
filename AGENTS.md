@@ -239,12 +239,15 @@ Since the application runs in pure CSR mode, route protection executes on the cl
   - `src/routes/dashboard/backtests/+page.svelte`: Backtest list cards with sparkline previews and status polling.
   - `src/routes/dashboard/backtests/new/+page.svelte`: Run backtest configuration form (with year, duration, fees, cash, and public/private visibility).
   - `src/routes/dashboard/backtests/[id]/+page.svelte`: Comprehensive backtest results, performance metrics, equity chart, top gainers/losers, most traded stocks, and trade log.
+  - `src/routes/dashboard/settings/+page.svelte`: Platform settings management (e.g. Master AI switch — Admin only).
   - `src/routes/dashboard/users/+page.svelte`: Admin user management view (role assignment, create user modal, password reset, account deletion).
 
 ### UI Component Architecture
 
 #### 1. Common & Shared UI Components (`src/lib/components/`)
 - `TopBar.svelte`: Sticky app navigation bar with user dropdown, edit profile modal, change password modal, and theme toggle.
+- `EditProfileModal.svelte`: Modal dialog for updating the authenticated user's name and email.
+- `ChangePasswordModal.svelte`: Modal dialog for changing current user password with validation.
 - `Modal.svelte` & `ConfirmModal.svelte`: Accessible dialog modal containers with backdrop blur and action hooks.
 - `DataTable.svelte`: Generic responsive tabular view for data lists.
 - `SegmentedControl.svelte`: Tab-like button group switch (e.g. for charts, leaderboard tabs, visibility).
