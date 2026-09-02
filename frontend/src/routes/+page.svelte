@@ -7,7 +7,6 @@
 	let heroVisible = $state(false);
 	let featuresVisible = $state(false);
 	let screenshotVisible = $state(false);
-	let socialVisible = $state(false);
 
 	// Canvas refs
 	let canvasEl: HTMLCanvasElement | null = null;
@@ -33,7 +32,6 @@
 					if (e.isIntersecting) {
 						if (e.target.id === 'features-section') featuresVisible = true;
 						if (e.target.id === 'screenshot-section') screenshotVisible = true;
-						if (e.target.id === 'social-section') socialVisible = true;
 					}
 				});
 			},
@@ -42,10 +40,8 @@
 
 		const featureEl = document.getElementById('features-section');
 		const screenshotEl = document.getElementById('screenshot-section');
-		const socialEl = document.getElementById('social-section');
 		if (featureEl) io.observe(featureEl);
 		if (screenshotEl) io.observe(screenshotEl);
-		if (socialEl) io.observe(socialEl);
 
 		// Starfield canvas
 		if (canvasEl) {
@@ -147,34 +143,17 @@
 		<div class="lp-hero-content" class:lp-visible={heroVisible}>
 			<!-- Logo wordmark -->
 			<div class="lp-wordmark">
-				<svg
-					width="36"
-					height="36"
-					viewBox="0 0 36 36"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-					class="lp-logo-icon"
-					aria-hidden="true"
-				>
-					<circle cx="18" cy="18" r="16" stroke="#30B4C9" stroke-width="1.5" />
-					<circle cx="18" cy="18" r="9" stroke="#30B4C9" stroke-width="1" opacity="0.5" />
-					<circle cx="18" cy="18" r="3" fill="#30B4C9" />
-					<circle cx="29" cy="10" r="1.5" fill="#30B4C9" opacity="0.8" />
-					<circle cx="7" cy="26" r="1" fill="#30B4C9" opacity="0.5" />
-					<line x1="18" y1="2" x2="29" y2="10" stroke="#30B4C9" stroke-width="0.75" opacity="0.4" />
-					<line x1="18" y1="34" x2="7" y2="26" stroke="#30B4C9" stroke-width="0.75" opacity="0.4" />
-				</svg>
-				<span class="lp-wordmark-text">Trading Lab</span>
+				<img src="/logo-dark.svg" alt="Trading Lab" class="lp-logo-img" />
 			</div>
 
 			<!-- Slogan -->
 			<h1 class="lp-hero-headline">
-				Everyone built a<br />stock screener, but<br /><em>no one ever backtested it.</em>
+				Everyone built a<br />trading strategy, but<br /><em>no one ever backtested it.</em>
 			</h1>
 
 			<!-- Sub-copy -->
 			<p class="lp-hero-sub">
-				Define your strategy. Test it against real IDX history.<br />Discover what actually works.
+				Build your strategy. Test it on real IDX history.<br />Discover what actually works.
 			</p>
 
 			<!-- Stat strip -->
@@ -312,10 +291,28 @@
 				<!-- Feature 3: AI Intelligence -->
 				<article class="lp-feature-card lp-fc-delay-2 lp-fc-ai">
 					<div class="lp-feature-icon lp-feature-icon-ai" aria-hidden="true">
-						<img src="/landing-ai.jpg" alt="" class="lp-ai-thumb" />
+						<svg
+							width="24"
+							height="24"
+							viewBox="0 0 607 607"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+							class="shrink-0"
+						>
+							<defs>
+								<linearGradient id="landingAiIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+									<stop offset="0%" stop-color="#fbaf33" />
+									<stop offset="70%" stop-color="#de98fe" />
+									<stop offset="100%" stop-color="#38c1fb" />
+								</linearGradient>
+							</defs>
+							<path
+								d="M279.22 488.635C295.407 525.561 303.5 565.016 303.5 607C303.5 565.016 311.34 525.561 327.021 488.635C343.208 451.709 364.959 419.589 392.274 392.274C419.589 364.959 451.709 343.461 488.635 327.78C525.561 311.593 565.016 303.5 607 303.5C565.016 303.5 525.561 295.66 488.635 279.979C452.696 264.483 420.004 242.345 392.274 214.726C364.655 186.996 342.517 154.304 327.021 118.365C311.34 81.4392 303.5 41.9842 303.5 0C303.5 41.9842 295.407 81.4392 279.22 118.365C263.539 155.291 242.041 187.411 214.726 214.726C186.996 242.345 154.304 264.483 118.365 279.979C81.4392 295.66 41.9842 303.5 0 303.5C41.9842 303.5 81.4392 311.593 118.365 327.78C155.291 343.461 187.411 364.959 214.726 392.274C242.041 419.589 263.539 451.709 279.22 488.635Z"
+								fill="url(#landingAiIconGrad)"
+							/>
+						</svg>
 					</div>
-					<div class="lp-ai-badge">✦ AI-Powered</div>
-					<h3 class="lp-feature-title">AI Strategy Intelligence</h3>
+					<h3 class="lp-feature-title lp-feature-title-ai">AI-Powered</h3>
 					<p class="lp-feature-desc">
 						AI reviews your parameters and rules against IDX market dynamics, offering one-click
 						refinements. After each backtest, get a structured 5-point executive summary.
@@ -369,7 +366,7 @@
 		<div class="lp-section-inner">
 			<div class="lp-section-header" class:lp-visible={screenshotVisible}>
 				<p class="lp-eyebrow">Inside the Platform</p>
-				<h2 class="lp-section-headline">Built for serious analysis.</h2>
+				<h2 class="lp-section-headline">Built for serious traders.</h2>
 				<p class="lp-section-sub">
 					Every screen is designed to surface what matters: data, clarity, and confidence.
 				</p>
@@ -432,6 +429,25 @@
 						</p>
 					</div>
 				</div>
+
+				<!-- AI Summary screenshot -->
+				<div class="lp-screen-ai-summary">
+					<div class="lp-screen-frame lp-screen-frame-ai-summary">
+						<img
+							src="/screenshot-ai-summary.png"
+							alt="AI executive summary with qualitative performance breakdown"
+							class="lp-screen-img"
+							loading="lazy"
+						/>
+						<div class="lp-screen-glow lp-screen-glow-ai-summary" aria-hidden="true"></div>
+					</div>
+					<div class="lp-screen-label">
+						<span class="lp-screen-tag lp-screen-tag-ai-summary">✦ AI Summary</span>
+						<p class="lp-screen-caption">
+							Instant 5-point qualitative breakdown and key takeaways for every backtest.
+						</p>
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -479,105 +495,18 @@
 		</div>
 	</section>
 
-	<!-- ─── COMMUNITY PROOF ──────────────────────────────── -->
-	<section id="social-section" class="lp-section lp-social" class:lp-visible={socialVisible}>
-		<div class="lp-section-inner">
-			<div class="lp-section-header" class:lp-visible={socialVisible}>
-				<p class="lp-eyebrow">Community</p>
-				<h2 class="lp-section-headline">The best strategies rise to the top.</h2>
-				<p class="lp-section-sub">
-					Explore top-performing public backtests ranked by net return or community stars. Star the
-					ones that inspire you.
-				</p>
-			</div>
-
-			<!-- Leaderboard mockup cards -->
-			<div class="lp-leaderboard" class:lp-visible={socialVisible}>
-				<div class="lp-lb-card lp-lb-delay-0">
-					<div class="lp-lb-rank">#1</div>
-					<div class="lp-lb-body">
-						<div class="lp-lb-title">Value Momentum Strategy</div>
-						<div class="lp-lb-meta">by Alfin · 2024 · 1 Year</div>
-					</div>
-					<div class="lp-lb-sparkline" aria-hidden="true">
-						<svg viewBox="0 0 80 32" class="lp-sparkline-svg">
-							<polyline
-								points="0,28 10,22 20,24 30,16 40,18 50,10 60,8 70,4 80,2"
-								stroke="#30B4C9"
-								stroke-width="1.5"
-								fill="none"
-								stroke-linecap="round"
-							/>
-						</svg>
-					</div>
-					<div class="lp-lb-return lp-positive">+11.95%</div>
-					<div class="lp-lb-stars">⭐ 24</div>
-				</div>
-
-				<div class="lp-lb-card lp-lb-delay-1">
-					<div class="lp-lb-rank">#2</div>
-					<div class="lp-lb-body">
-						<div class="lp-lb-title">Growth Quality Filter</div>
-						<div class="lp-lb-meta">by Budi · 2023 · 6 Months</div>
-					</div>
-					<div class="lp-lb-sparkline" aria-hidden="true">
-						<svg viewBox="0 0 80 32" class="lp-sparkline-svg">
-							<polyline
-								points="0,26 10,20 20,22 30,18 40,12 50,14 60,9 70,6 80,3"
-								stroke="#30B4C9"
-								stroke-width="1.5"
-								fill="none"
-								stroke-linecap="round"
-							/>
-						</svg>
-					</div>
-					<div class="lp-lb-return lp-positive">+9.42%</div>
-					<div class="lp-lb-stars">⭐ 17</div>
-				</div>
-
-				<div class="lp-lb-card lp-lb-delay-2">
-					<div class="lp-lb-rank">#3</div>
-					<div class="lp-lb-body">
-						<div class="lp-lb-title">Dividend Compounder</div>
-						<div class="lp-lb-meta">by Siti · 2024 · 1 Year</div>
-					</div>
-					<div class="lp-lb-sparkline" aria-hidden="true">
-						<svg viewBox="0 0 80 32" class="lp-sparkline-svg">
-							<polyline
-								points="0,30 10,26 20,22 30,20 40,18 50,15 60,12 70,9 80,5"
-								stroke="#30B4C9"
-								stroke-width="1.5"
-								fill="none"
-								stroke-linecap="round"
-							/>
-						</svg>
-					</div>
-					<div class="lp-lb-return lp-positive">+7.81%</div>
-					<div class="lp-lb-stars">⭐ 11</div>
-				</div>
-			</div>
-
-			<p class="lp-community-note">
-				Illustrative. Based on the kinds of strategies traders build on Trading Lab.
-			</p>
-		</div>
-	</section>
-
 	<!-- ─── CTA FOOTER ───────────────────────────────────── -->
 	<section class="lp-section lp-cta-section">
 		<div class="lp-cta-cosmos" aria-hidden="true">
 			<div class="lp-cta-ring lp-ring-1"></div>
 			<div class="lp-cta-ring lp-ring-2"></div>
 			<div class="lp-cta-ring lp-ring-3"></div>
-			<div class="lp-cta-pulsar"></div>
 		</div>
 		<div class="lp-cta-content">
 			<h2 class="lp-cta-headline">
-				Your screener is a hypothesis.<br /><em>Backtest it.</em>
+				Stop Guessing.<br /><em>Start Backtesting.</em>
 			</h2>
-			<p class="lp-cta-sub">
-				Join Indonesian traders who stopped guessing and started measuring.
-			</p>
+			<p class="lp-cta-sub">Build your strategy. Test your edge. Trade with confidence.</p>
 			<div class="lp-cta-row">
 				{#if isLoggedIn}
 					<a href="/dashboard" class="lp-btn-primary lp-btn-lg">Open Dashboard</a>
@@ -593,18 +522,7 @@
 	<footer class="lp-footer">
 		<div class="lp-footer-inner">
 			<div class="lp-footer-brand">
-				<svg
-					width="20"
-					height="20"
-					viewBox="0 0 36 36"
-					fill="none"
-					class="lp-footer-icon"
-					aria-hidden="true"
-				>
-					<circle cx="18" cy="18" r="16" stroke="#30B4C9" stroke-width="1.5" />
-					<circle cx="18" cy="18" r="3" fill="#30B4C9" />
-				</svg>
-				<span class="lp-footer-name">Trading Lab</span>
+				<img src="/logo-dark.svg" alt="Trading Lab" class="lp-footer-logo" />
 			</div>
 			<p class="lp-footer-copy">
 				For educational and research purposes only. Not financial advice.
@@ -736,16 +654,12 @@
 	.lp-wordmark {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
 	}
 
-	.lp-wordmark-text {
-		font-family: 'Barlow Condensed', sans-serif;
-		font-size: 1.25rem;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--lp-cyan);
+	.lp-logo-img {
+		height: 36px;
+		width: auto;
+		display: block;
 	}
 
 	/* Headline */
@@ -985,7 +899,11 @@
 		content: '';
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(48, 180, 201, 0.04) 0%, transparent 70%);
+		background: radial-gradient(
+			ellipse 80% 50% at 50% 0%,
+			rgba(48, 180, 201, 0.04) 0%,
+			transparent 70%
+		);
 		pointer-events: none;
 	}
 
@@ -1024,16 +942,43 @@
 	.lp-feature-card:hover {
 		border-color: rgba(48, 180, 201, 0.38);
 		box-shadow: 0 0 32px rgba(48, 180, 201, 0.1);
-		transform: translateY(-2px);
 	}
 
 	.lp-fc-ai {
-		border-color: rgba(245, 200, 66, 0.2);
+		position: relative;
+		background: linear-gradient(135deg, #fbae3310 0%, #fe426b10 33%, #de98fe10 66%, #38c1fb10 100%);
+		border: 1px solid transparent;
+	}
+
+	.lp-fc-ai::before {
+		content: '';
+		position: absolute;
+		inset: -1px;
+		border-radius: 16px;
+		padding: 1px;
+		background: linear-gradient(135deg, #fbaf33 0%, #fe426b 33%, #de98fe 66%, #38c1fb 100%);
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask-composite: exclude;
+		pointer-events: none;
+		opacity: 0.85;
+		transition: opacity 0.25s ease;
 	}
 
 	.lp-fc-ai:hover {
-		border-color: rgba(245, 200, 66, 0.45);
-		box-shadow: 0 0 32px rgba(245, 200, 66, 0.1);
+		border-color: transparent;
+		box-shadow:
+			0 0 32px rgba(222, 152, 254, 0.18),
+			0 0 32px rgba(56, 193, 251, 0.12);
+	}
+
+	.lp-fc-ai:hover::before {
+		opacity: 1;
 	}
 
 	.lp-feature-icon {
@@ -1049,32 +994,15 @@
 	}
 
 	.lp-feature-icon-ai {
-		width: 44px;
-		height: 44px;
-		border-radius: 10px;
-		overflow: hidden;
-		border: 1px solid rgba(245, 200, 66, 0.25);
-		padding: 0;
+		background: linear-gradient(135deg, rgba(222, 152, 254, 0.1) 0%, rgba(56, 193, 251, 0.1) 100%);
+		border: 1px solid rgba(222, 152, 254, 0.25);
 	}
 
-	.lp-ai-thumb {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.lp-ai-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 0.2rem 0.6rem;
-		border-radius: 999px;
-		background: var(--lp-gold-dim);
-		border: 1px solid rgba(245, 200, 66, 0.3);
-		font-size: 0.65rem;
-		font-weight: 600;
-		letter-spacing: 0.05em;
-		color: var(--lp-gold);
+	.lp-feature-title-ai {
+		background: linear-gradient(135deg, #fbaf33 0%, #de98fe 50%, #38c1fb 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 		width: fit-content;
 	}
 
@@ -1160,10 +1088,17 @@
 
 	.lp-screen-secondary {
 		grid-column: 1 / 2;
+		grid-row: 2 / span 2;
 	}
 
 	.lp-screen-ai {
 		grid-column: 2 / 3;
+		grid-row: 2 / 3;
+	}
+
+	.lp-screen-ai-summary {
+		grid-column: 2 / 3;
+		grid-row: 3 / 4;
 	}
 
 	.lp-screen-frame {
@@ -1180,6 +1115,10 @@
 
 	.lp-screen-frame-ai {
 		border-color: rgba(245, 200, 66, 0.2);
+	}
+
+	.lp-screen-frame-ai-summary {
+		border-color: rgba(222, 152, 254, 0.25);
 	}
 
 	.lp-screen-img {
@@ -1200,6 +1139,10 @@
 		box-shadow: inset 0 0 0 1px rgba(245, 200, 66, 0.15);
 	}
 
+	.lp-screen-glow-ai-summary {
+		box-shadow: inset 0 0 0 1px rgba(56, 193, 251, 0.2);
+	}
+
 	.lp-screen-label {
 		margin-top: 0.85rem;
 		display: flex;
@@ -1217,6 +1160,14 @@
 
 	.lp-screen-tag-ai {
 		color: var(--lp-gold);
+	}
+
+	.lp-screen-tag-ai-summary {
+		background: linear-gradient(135deg, #de98fe 0%, #38c1fb 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		width: fit-content;
 	}
 
 	.lp-screen-caption {
@@ -1294,125 +1245,6 @@
 		margin: 0;
 	}
 
-	/* ─── COMMUNITY ─────────────────────────────────────────── */
-	.lp-social {
-		background: linear-gradient(180deg, var(--lp-void) 0%, var(--lp-section-bg) 100%);
-	}
-
-	.lp-leaderboard {
-		display: flex;
-		flex-direction: column;
-		gap: 0.85rem;
-		opacity: 0;
-		transform: translateY(20px);
-		transition:
-			opacity 0.6s ease 0.2s,
-			transform 0.6s ease 0.2s;
-	}
-
-	.lp-leaderboard.lp-visible {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	.lp-lb-card {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-		background: var(--lp-card);
-		border: 1px solid var(--lp-card-border);
-		border-radius: 12px;
-		padding: 1rem 1.25rem;
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		transition:
-			border-color 0.2s ease,
-			transform 0.2s ease;
-	}
-
-	.lp-lb-card:hover {
-		border-color: rgba(48, 180, 201, 0.35);
-		transform: translateX(4px);
-	}
-
-	.lp-lb-delay-0 {
-		animation-delay: 0ms;
-	}
-	.lp-lb-delay-1 {
-		animation-delay: 80ms;
-	}
-	.lp-lb-delay-2 {
-		animation-delay: 160ms;
-	}
-
-	.lp-lb-rank {
-		font-family: 'Barlow Condensed', sans-serif;
-		font-size: 1.4rem;
-		font-weight: 700;
-		color: var(--lp-cyan);
-		min-width: 2.5rem;
-		font-variant-numeric: tabular-nums;
-	}
-
-	.lp-lb-body {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.lp-lb-title {
-		font-size: 0.92rem;
-		font-weight: 600;
-		color: var(--lp-fg);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.lp-lb-meta {
-		font-size: 0.75rem;
-		color: var(--lp-fg-dim);
-		margin-top: 0.1rem;
-	}
-
-	.lp-lb-sparkline {
-		width: 80px;
-		height: 32px;
-		flex-shrink: 0;
-	}
-
-	.lp-sparkline-svg {
-		width: 100%;
-		height: 100%;
-	}
-
-	.lp-lb-return {
-		font-family: 'Barlow Condensed', sans-serif;
-		font-size: 1.2rem;
-		font-weight: 700;
-		font-variant-numeric: tabular-nums;
-		min-width: 6rem;
-		text-align: right;
-	}
-
-	.lp-positive {
-		color: var(--lp-positive);
-	}
-
-	.lp-lb-stars {
-		font-size: 0.8rem;
-		color: var(--lp-fg-dim);
-		min-width: 3.5rem;
-		text-align: right;
-	}
-
-	.lp-community-note {
-		font-size: 0.72rem;
-		color: var(--lp-fg-dim);
-		text-align: center;
-		margin-top: 1.5rem;
-		font-style: italic;
-	}
-
 	/* ─── CTA SECTION ───────────────────────────────────────── */
 	.lp-cta-section {
 		background: var(--lp-void);
@@ -1462,16 +1294,6 @@
 		height: min(30vw, 220px);
 		border-color: rgba(48, 180, 201, 0.08);
 		animation-duration: 15s;
-	}
-
-	.lp-cta-pulsar {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--lp-cyan);
-		box-shadow: 0 0 20px var(--lp-cyan-glow);
-		animation: pulsarBeat 2.5s ease-in-out infinite;
-		position: absolute;
 	}
 
 	@keyframes orbitRotate {
@@ -1556,16 +1378,13 @@
 	.lp-footer-brand {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
 	}
 
-	.lp-footer-name {
-		font-family: 'Barlow Condensed', sans-serif;
-		font-size: 1rem;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--lp-fg-muted);
+	.lp-footer-logo {
+		height: 22px;
+		width: auto;
+		display: block;
+		opacity: 0.85;
 	}
 
 	.lp-footer-copy {
@@ -1623,8 +1442,10 @@
 
 		.lp-screen-main,
 		.lp-screen-secondary,
-		.lp-screen-ai {
+		.lp-screen-ai,
+		.lp-screen-ai-summary {
 			grid-column: 1 / -1;
+			grid-row: auto;
 		}
 
 		.lp-step {
@@ -1634,15 +1455,6 @@
 
 		.lp-step-num {
 			font-size: 2rem;
-		}
-
-		.lp-lb-card {
-			flex-wrap: wrap;
-			gap: 0.75rem;
-		}
-
-		.lp-lb-sparkline {
-			display: none;
 		}
 
 		.lp-footer-inner {
@@ -1668,7 +1480,6 @@
 	/* ─── REDUCED MOTION ──────────────────────────────────────── */
 	@media (prefers-reduced-motion: reduce) {
 		.lp-cta-ring,
-		.lp-cta-pulsar,
 		.lp-scroll-dot {
 			animation: none;
 		}
@@ -1676,8 +1487,7 @@
 		.lp-hero-content,
 		.lp-section-header,
 		.lp-features-grid,
-		.lp-screens-stack,
-		.lp-leaderboard {
+		.lp-screens-stack {
 			opacity: 1;
 			transform: none;
 			transition: none;
