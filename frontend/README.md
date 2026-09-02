@@ -132,7 +132,6 @@ frontend/
 │       ├── +layout.svelte                       # Root layout (theme init & toast viewport)
 │       ├── +layout.ts                           # Global SSR disabled (ssr = false)
 │       ├── +page.svelte                         # Landing page with hero overview
-│       ├── +page.ts                             # Client redirect to /dashboard if authenticated
 │       ├── login/                               # Authentication login page
 │       ├── register/                            # Member registration page
 │       └── dashboard/
@@ -172,7 +171,7 @@ frontend/
 ## Client-Side Authentication Flow (CSR Mode)
 
 1. Root layout disables SSR (`export const ssr = false;`).
-2. Landing (`/`), login (`/login`), and register (`/register`) routes check `getToken()`; if valid, they redirect to `/dashboard`.
+2. Login (`/login`) and register (`/register`) routes check `getToken()`; if valid, they redirect to `/dashboard`.
 3. User logs in via `POST /api/users/login`; access/refresh tokens and profile are saved to `localStorage`.
 4. All `/dashboard/*` routes enforce authentication in `dashboard/+layout.ts`.
 5. Admin-only pages (`/dashboard/users`, `/dashboard/settings`) enforce role checks on both client navigation and API request extractors.

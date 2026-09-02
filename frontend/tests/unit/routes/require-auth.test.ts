@@ -42,7 +42,7 @@ function dashboardGuard() {
 	}
 }
 
-// Simulate the index/login/register guard logic
+// Simulate the login/register guard logic (mirrors login/+page.ts and register/+page.ts)
 function publicGuard() {
 	const token = getToken();
 	if (token) {
