@@ -98,7 +98,7 @@
 
 			<TextField
 				label="Full Name"
-				placeholder="John Doe"
+				placeholder="Tokyo"
 				bind:value={name}
 				error={nameError}
 				required
@@ -108,7 +108,7 @@
 			<TextField
 				label="Email Address"
 				type="email"
-				placeholder="name@example.com"
+				placeholder="tokyo@mail.com"
 				bind:value={email}
 				error={emailError}
 				required

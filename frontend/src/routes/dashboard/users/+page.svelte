@@ -287,14 +287,14 @@
 			<TextField
 				label="Full Name"
 				type="text"
-				placeholder="John Doe"
+				placeholder="Tokyo"
 				bind:value={createName}
 				required
 			/>
 			<TextField
 				label="Email"
 				type="email"
-				placeholder="john@example.com"
+				placeholder="tokyo@mail.com"
 				bind:value={createEmail}
 				required
 			/>

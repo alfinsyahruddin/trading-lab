@@ -1,8 +1,25 @@
 # Trading Lab
 
-> High-performance trading strategy builder and historical backtesting platform for Indonesia Stock Exchange (IDX) traders.
+> Everyone built a trading strategy, but no one ever backtested it!
 
 Trading Lab is a full-stack platform built with a high-performance **Rust backend** (Actix-web, SQLx, Redis) and a modern **SvelteKit 5 single-page application** (CSR, Bun, Tailwind CSS v4, TradingView lightweight-charts). It enables Indonesia Stock Exchange (IDX) traders to define complex multi-condition trading strategies, backtest them against Indonesian historical market data, analyze detailed risk and performance metrics, and share winning strategies with the community.
+
+---
+
+## Landing Page
+
+The public landing page (`/`) is a cinematic, parallax-enabled marketing surface with:
+
+- **Visual world**: Deep-space financial observatory — cosmic void background, luminous orbital arc illustration with IDX ticker constellations, WebGL-like CSS shader starfield canvas, and nebula atmosphere.
+- **Typography**: [Barlow Condensed](https://fonts.google.com/specimen/Barlow+Condensed) (display / headlines) + [Figtree](https://fonts.google.com/specimen/Figtree) (body / UI copy). Neither is Montserrat, preserving a distinct landing identity from the app's dashboard.
+- **Sections**: Hero → Feature highlights (4 cards) → App screenshots → 3-step workflow → Community leaderboard preview → CTA → Footer.
+- **Themes**: Dark mode only — immersing visitors in the deep cosmic void aesthetic without distractions.
+- **Motion**: Parallax scroll layers on hero orbital image, twinkling starfield canvas animation, staggered section reveals via IntersectionObserver, animated orbital rings on the CTA section, and reduced-motion fallback.
+- **Static assets** (in `frontend/static/`):
+  - `landing-hero.jpg` — IDX orbital arc constellation illustration
+  - `landing-nebula.jpg` — Deep space nebula background
+  - `landing-ai.jpg` — AI neural network illustration
+  - `backtest-dark.png`, `backtest-light.png`, `dashboard-dark.png`, `dashboard-light.png`, `ai-suggestions-dark.png`, `ai-suggestions-light.png`, `ai-summary-dark.png`, `ai-summary-light.png` — Theme-adaptive app UI screenshots
 
 ---
 

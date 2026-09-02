@@ -229,6 +229,7 @@ cargo clippy --all-targets --all-features --locked -- -D warnings
 ### Client-Side Routing & Auth Guards
 Since the application runs in pure CSR mode, route protection executes on the client:
 - `src/routes/login/+page.ts`, `register/+page.ts`: Redirect authenticated users to `/dashboard`.
+- `src/routes/+page.svelte`: Public hero landing page (retains access when authenticated and offers a "Go to Dashboard" CTA).
 - `src/routes/dashboard/+layout.ts`: Checks `getToken()`; redirects unauthenticated visitors to `/login`.
 - **Routes Breakdown**:
   - `src/routes/dashboard/+page.svelte`: Dashboard home overview featuring user KPI stats cards, community backtest leaderboard (Highest Return & Top Starred), and star interaction.

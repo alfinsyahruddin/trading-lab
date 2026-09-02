@@ -223,7 +223,7 @@
 				<TextField
 					label="Strategy Name"
 					type="text"
-					placeholder="e.g. High Yield Growth Scanner"
+					placeholder="e.g. Undervalued stocks"
 					bind:value={name}
 					required
 				/>
