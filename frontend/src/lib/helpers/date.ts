@@ -7,7 +7,8 @@
  */
 export function calculateBacktestDateRange(
 	year: number,
-	durationMonths: number
+	durationMonths: number,
+	maxDate: Date = new Date()
 ): { startDate: Date; endDate: Date; formatted: string } {
 	const safeYear = Number(year) || 2025;
 	const safeMonths = Math.max(1, Number(durationMonths) || 12);
@@ -16,7 +17,12 @@ export function calculateBacktestDateRange(
 	const startDate = new Date(startYear, 0, 1);
 
 	// Last day of the N-th month is day 0 of month index (safeMonths)
-	const endDate = new Date(startYear, safeMonths, 0);
+	let endDate = new Date(startYear, safeMonths, 0);
+
+	const maxD = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+	if (endDate > maxD) {
+		endDate = maxD >= startDate ? maxD : startDate;
+	}
 
 	return {
 		startDate,

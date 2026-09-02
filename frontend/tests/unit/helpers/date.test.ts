@@ -45,8 +45,9 @@ describe('date helper', () => {
 		expect(result.formatted).toBe('1 Jan 2026 - 30 Jun 2026');
 	});
 
-	it('calculates 12 months date range for screener year 2025 (matching backend)', () => {
-		const result = calculateBacktestDateRange(2025, 12);
+	it('calculates 12 months date range for screener year 2025 when maxDate is in future (matching backend)', () => {
+		const maxDate = new Date(2027, 0, 1);
+		const result = calculateBacktestDateRange(2025, 12, maxDate);
 		expect(result.startDate.getFullYear()).toBe(2026);
 		expect(result.startDate.getMonth()).toBe(0);
 		expect(result.startDate.getDate()).toBe(1);
@@ -56,6 +57,20 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(31);
 
 		expect(result.formatted).toBe('1 Jan 2026 - 31 Dec 2026');
+	});
+
+	it('caps end date at current date when date range exceeds maxDate (matching backend)', () => {
+		const maxDate = new Date(2026, 8, 2); // 2 Sep 2026
+		const result = calculateBacktestDateRange(2025, 12, maxDate);
+		expect(result.startDate.getFullYear()).toBe(2026);
+		expect(result.startDate.getMonth()).toBe(0);
+		expect(result.startDate.getDate()).toBe(1);
+
+		expect(result.endDate.getFullYear()).toBe(2026);
+		expect(result.endDate.getMonth()).toBe(8); // Sep
+		expect(result.endDate.getDate()).toBe(2);
+
+		expect(result.formatted).toBe('1 Jan 2026 - 2 Sep 2026');
 	});
 
 	it('calculates leap year February correctly (screener year 2023 -> 2024)', () => {

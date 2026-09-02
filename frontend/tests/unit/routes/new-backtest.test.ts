@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import NewBacktestPage from '../../../src/routes/dashboard/backtests/new/+page.svelte';
 import * as api from '$lib/api';
 import * as session from '$lib/helpers/session';
+import { calculateBacktestDateRange } from '$lib/helpers/date';
 import type { TradingStrategy } from '$lib/types';
 
 vi.mock('$app/navigation', () => ({
@@ -48,8 +49,8 @@ describe('NewBacktestPage', () => {
 		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
 
 		// Default year is 2025 -> test year 2026, default duration is 12 months (1 Year)
-		// 1 Jan 2026 to 31 Dec 2026
-		expect(screen.getByText('1 Jan 2026 - 31 Dec 2026')).toBeInTheDocument();
+		const expectedDateRange = calculateBacktestDateRange(2025, 12).formatted;
+		expect(screen.getByText(expectedDateRange)).toBeInTheDocument();
 	});
 
 	it('updates Backtest Date when duration or year changes', async () => {
