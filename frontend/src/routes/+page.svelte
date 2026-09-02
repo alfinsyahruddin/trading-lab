@@ -5,7 +5,6 @@
 	import { getToken } from '$lib/helpers/session';
 
 	let isLoggedIn = $state(false);
-	let scrollY = $state(0);
 	let heroVisible = $state(false);
 	let featuresVisible = $state(false);
 	let screenshotVisible = $state(false);
@@ -17,12 +16,6 @@
 		// Stagger reveal
 		setTimeout(() => (heroVisible = true), 100);
 		setTimeout(() => (featuresVisible = true), 600);
-
-		// Scroll listeners
-		const handleScroll = () => {
-			scrollY = window.scrollY;
-		};
-		window.addEventListener('scroll', handleScroll, { passive: true });
 
 		// Intersection observer for sections
 		let io: IntersectionObserver | null = null;
@@ -49,15 +42,9 @@
 		}
 
 		return () => {
-			window.removeEventListener('scroll', handleScroll);
 			io?.disconnect();
 		};
 	});
-
-	// Parallax helpers
-	function parallax(factor: number) {
-		return `transform: translateY(${scrollY * factor}px)`;
-	}
 </script>
 
 <svelte:head>
@@ -520,7 +507,7 @@
 				class:translate-y-6={!screenshotVisible}
 			>
 				<!-- Main screenshot -->
-				<div class="md:col-span-2" style={parallax(-0.02)}>
+				<div class="max-md:mb-0 md:col-span-2 md:mb-6">
 					<div
 						class="overflow-hidden rounded-xl border border-(--border) bg-(--bg-card) shadow-none dark:shadow-2xl"
 					>
@@ -537,7 +524,7 @@
 							loading="lazy"
 						/>
 					</div>
-					<div class="mt-3 flex flex-col gap-0.5 sm:mt-3.5 sm:gap-1">
+					<div class="mt-3 flex flex-col gap-0.5 max-md:mb-0 sm:mt-3.5 sm:gap-1">
 						<span class="font-mono text-xs font-semibold tracking-wider text-(--accent) uppercase">
 							Backtest Results
 						</span>
@@ -733,33 +720,33 @@
 				Build your strategy. Test your edge. Trade with confidence.
 			</p>
 			<div
-				class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3.5"
+				class="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3.5"
 			>
 				{#if isLoggedIn}
 					<a
 						href="/dashboard"
-						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97 sm:px-8 sm:py-3.5 sm:text-base"
 					>
 						<span>Open Dashboard</span>
 						<Icon
 							icon="lucide:arrow-right"
-							class="size-4.5 transition-transform duration-150 group-hover:translate-x-0.5"
+							class="size-4 transition-transform duration-150 group-hover:translate-x-0.5 sm:size-4.5"
 						/>
 					</a>
 				{:else}
 					<a
 						href="/register"
-						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97 sm:px-8 sm:py-3.5 sm:text-base"
 					>
 						<span>Create Free Account</span>
 						<Icon
 							icon="lucide:arrow-right"
-							class="size-4.5 transition-transform duration-150 group-hover:translate-x-0.5"
+							class="size-4 transition-transform duration-150 group-hover:translate-x-0.5 sm:size-4.5"
 						/>
 					</a>
 					<a
 						href="/login"
-						class="btn-interactive inline-flex items-center justify-center rounded-md border border-(--border) bg-transparent px-6 py-3.5 text-base font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97"
+						class="btn-interactive inline-flex items-center justify-center rounded-md border border-(--border) bg-transparent px-5 py-2.5 text-sm font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97 sm:px-6 sm:py-3.5 sm:text-base"
 					>
 						Sign In
 					</a>
