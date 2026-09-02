@@ -241,14 +241,7 @@
 
 				<div class="flex flex-col gap-1.5">
 					<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Date</span>
-					<div
-						class="font-500 flex h-[42px] items-center gap-2 rounded-lg border px-3.5 text-sm"
-						style="
-							background-color: var(--bg-input-disabled, var(--bg));
-							border-color: var(--border);
-							color: var(--fg);
-						"
-					>
+					<div class="font-500 flex h-[42px] items-center gap-2 text-sm" style="color: var(--fg)">
 						<Icon icon="lucide:calendar" width="16" height="16" style="color: var(--fg-muted)" />
 						<span>{backtestDateRange}</span>
 					</div>

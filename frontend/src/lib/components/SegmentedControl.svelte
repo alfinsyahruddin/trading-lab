@@ -102,7 +102,7 @@
 	:global(.dark) .ios-segmented-track,
 	:global(html.dark) .ios-segmented-track,
 	:root.dark .ios-segmented-track {
-		background-color: #313f5b;
+		background-color: #2d3857;
 		border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
 	}
 
