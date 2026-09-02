@@ -185,9 +185,34 @@ impl TradingStrategyService {
             .as_deref()
             .unwrap_or("No description provided");
 
+        let rules_formatted = match &request.rules {
+            Some(groups) if !groups.is_empty() => {
+                let mut lines = Vec::new();
+                for (g_idx, group) in groups.iter().enumerate() {
+                    let mut cond_strs = Vec::new();
+                    for (c_idx, c) in group.conditions.iter().enumerate() {
+                        let conn = c.connector_to_next.as_deref().unwrap_or("AND");
+                        cond_strs.push(format!(
+                            "[Condition {}]: {} {} {} (next: {})",
+                            c_idx, c.variable, c.operator, c.value, conn
+                        ));
+                    }
+                    let grp_conn = group.connector_to_next.as_deref().unwrap_or("AND");
+                    lines.push(format!(
+                        "Group {} (next: {}):\n  {}",
+                        g_idx,
+                        grp_conn,
+                        cond_strs.join("\n  ")
+                    ));
+                }
+                lines.join("\n")
+            }
+            _ => "No conditional rules defined.".to_string(),
+        };
+
         let prompt = format!(
             r#"You are an expert quantitative trading strategist specializing in Indonesia Stock Exchange (IDX) equity trading.
-Analyze the following trading strategy parameters:
+Analyze the following trading strategy parameters and where condition rules:
 - Strategy Name: "{name}"
 - Description: "{desc}"
 - Take Profit (TP): {tp:.2}%
@@ -195,27 +220,79 @@ Analyze the following trading strategy parameters:
 - Risk-to-Reward Ratio: {rr:.2}:1
 - Max Holding Period: {holding} days
 
-Evaluate these parameters against Indonesia Stock Exchange (IDX) market realities (e.g. asymmetrical auto-rejection limit ARA/ARB, average swing duration of 5-20 days, and minimum 1:2 to 1:3 risk-to-reward ratio for positive expectancy).
+Current Where Condition Rules:
+{rules_str}
 
-Generate actionable parameter refinement suggestions.
-Available fields you can suggest modifications for are ONLY:
-- "tp_percentage" (Take Profit percentage, e.g. 8.0 to 30.0)
-- "sl_percentage" (Stop Loss percentage, e.g. 2.5 to 8.0)
-- "max_holding_period_days" (Max holding period in days, e.g. 5 to 60)
+Available Screener Variables for Rules:
+- Price & Market: "price", "volume", "market_cap", "shares_outstanding"
+- Valuation Ratios: "pe", "pb", "ps", "pcf", "peg", "enterprise_to_ebitda", "enterprise_to_revenue"
+- Profitability & Returns: "net_profit_margin", "gross_profit_margin", "operating_profit_margin", "roe", "roa", "roce"
+- Dividends: "dividend_yield", "dividend_payout_ratio", "dps"
+- Financial Health: "der", "debt_to_equity", "debt_to_asset", "current_ratio", "quick_ratio", "total_debt"
+- Cash Flow & Growth: "free_cash_flow", "operating_cash_flow", "revenue_growth_yoy", "net_profit_growth_yoy"
+- Classification: "sector", "sub_sector"
 
-Format the output strictly as a JSON array of suggestions (maximum 3 items):
+Available Rule Operators: "=", "!=", ">", "<", ">=", "<=", "~~", "in", "is"
+
+Evaluate these parameters and rules against Indonesia Stock Exchange (IDX) realities:
+1. Risk Parameters: Ensure TP/SL ratio provides a positive expectancy (at least 1:2 to 1:3 R:R), SL accounts for IDX volatility without premature stop-outs, and holding period aligns with swing/trend duration.
+2. Screener Rules: Recommend adding or adjusting rules to filter out low-liquidity penny stocks (e.g. market_cap >= 1000000000000, price > 100 or 200), apply fundamental quality filters (e.g. roe > 10, pe < 20, der < 2.0), or align with the strategy's stated theme/description.
+
+Generate actionable parameter AND rule refinement suggestions.
+You may return up to 4 suggestions total (a mix of parameter adjustments and rule additions/edits).
+
+Format the output strictly as a JSON array matching this schema:
 [
   {{
     "id": "suggestion-1",
+    "suggestion_type": "PARAMETER",
     "field": "sl_percentage",
-    "title": "Optimize Risk-Reward Ratio",
     "current_value": {sl:.2},
     "suggested_value": 3.5,
-    "reason": "Lowering stop loss from {sl:.2}% to 3.5% elevates your Risk:Reward ratio from {rr:.2} to 2.86:1, improving capital preservation during market pullbacks."
+    "rule_action": null,
+    "rule_payload": null,
+    "title": "Optimize Risk-Reward Ratio",
+    "reason": "Lowering stop loss from {sl:.2}% to 3.5% elevates your Risk:Reward ratio from {rr:.2} to 2.86:1, improving capital preservation."
+  }},
+  {{
+    "id": "suggestion-2",
+    "suggestion_type": "RULE",
+    "field": null,
+    "current_value": null,
+    "suggested_value": null,
+    "rule_action": "ADD_CONDITION",
+    "rule_payload": {{
+      "group_index": 0,
+      "condition_index": null,
+      "variable": "market_cap",
+      "operator": ">=",
+      "value": "1000000000000",
+      "connector_to_next": "AND"
+    }},
+    "title": "Filter Out Illiquid Micro-Caps",
+    "reason": "Adding market_cap >= 1T IDR prevents screening illiquid small-cap stocks on IDX that are vulnerable to extreme slippage."
+  }},
+  {{
+    "id": "suggestion-3",
+    "suggestion_type": "RULE",
+    "field": null,
+    "current_value": null,
+    "suggested_value": null,
+    "rule_action": "EDIT_CONDITION",
+    "rule_payload": {{
+      "group_index": 0,
+      "condition_index": 0,
+      "variable": "price",
+      "operator": ">",
+      "value": "200",
+      "connector_to_next": "AND"
+    }},
+    "title": "Avoid Penny Stock Price Band",
+    "reason": "Raising minimum price from 50 to 200 avoids FCA (Full Call Auction) watchlist stocks on the IDX."
   }}
 ]
 
-If the strategy parameters are already completely optimal, return an empty array [].
+If the strategy parameters and rules are already completely optimal, return an empty array [].
 Return ONLY valid JSON."#,
             name = request.name,
             desc = description,
@@ -223,6 +300,7 @@ Return ONLY valid JSON."#,
             sl = request.sl_percentage,
             rr = risk_reward_ratio,
             holding = request.max_holding_period_days,
+            rules_str = rules_formatted,
         );
 
         let suggestions: Result<Vec<StrategyAiSuggestion>, _> =
@@ -231,10 +309,96 @@ Return ONLY valid JSON."#,
         match suggestions {
             Ok(sug) => {
                 let valid_fields = ["tp_percentage", "sl_percentage", "max_holding_period_days"];
+                let valid_variables = [
+                    "price",
+                    "volume",
+                    "market_cap",
+                    "shares_outstanding",
+                    "pe",
+                    "pb",
+                    "ps",
+                    "pcf",
+                    "peg",
+                    "enterprise_to_ebitda",
+                    "enterprise_to_revenue",
+                    "pb_peer_avg",
+                    "pe_peer_avg",
+                    "ps_peer_avg",
+                    "revenue",
+                    "cost_of_revenue",
+                    "gross_profit",
+                    "operating_expense",
+                    "operating_pnl",
+                    "ebit",
+                    "ebitda",
+                    "earnings_before_tax",
+                    "tax",
+                    "earnings",
+                    "non_operating_income_or_loss",
+                    "net_profit_margin",
+                    "gross_profit_margin",
+                    "operating_profit_margin",
+                    "roe",
+                    "roa",
+                    "roce",
+                    "dividend",
+                    "dividend_yield",
+                    "dividend_payout_ratio",
+                    "dps",
+                    "eps",
+                    "bps",
+                    "operating_cash_flow",
+                    "investing_cash_flow",
+                    "financing_cash_flow",
+                    "net_cash_flow",
+                    "free_cash_flow",
+                    "total_assets",
+                    "current_assets",
+                    "cash_and_equivalents",
+                    "inventory",
+                    "total_equity",
+                    "total_liabilities",
+                    "current_liabilities",
+                    "total_debt",
+                    "short_term_debt",
+                    "long_term_debt",
+                    "der",
+                    "debt_to_equity",
+                    "debt_to_asset",
+                    "current_ratio",
+                    "quick_ratio",
+                    "interest_coverage_ratio",
+                    "revenue_growth_yoy",
+                    "net_profit_growth_yoy",
+                    "operating_profit_growth_yoy",
+                    "eps_growth_yoy",
+                    "sector",
+                    "sub_sector",
+                ];
+                let valid_operators = ["=", "!=", ">", "<", ">=", "<=", "~~", "in", "is"];
+
                 let filtered: Vec<StrategyAiSuggestion> = sug
                     .into_iter()
-                    .filter(|s| valid_fields.contains(&s.field.as_str()) && s.suggested_value > 0.0)
-                    .take(3)
+                    .filter(|s| {
+                        if s.suggestion_type.eq_ignore_ascii_case("RULE") {
+                            if let Some(ref payload) = s.rule_payload {
+                                valid_variables.contains(&payload.variable.as_str())
+                                    && valid_operators.contains(&payload.operator.as_str())
+                                    && !payload.value.trim().is_empty()
+                            } else {
+                                false
+                            }
+                        } else {
+                            // Default to PARAMETER
+                            if let Some(ref field) = s.field {
+                                valid_fields.contains(&field.as_str())
+                                    && s.suggested_value.map(|v| v > 0.0).unwrap_or(false)
+                            } else {
+                                false
+                            }
+                        }
+                    })
+                    .take(4)
                     .collect();
                 Ok(filtered)
             }

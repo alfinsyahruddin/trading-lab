@@ -12,7 +12,8 @@ import type {
 	DashboardStats,
 	LeaderboardEntry,
 	AppSettings,
-	StrategyAiSuggestion
+	StrategyAiSuggestion,
+	StrategyRuleGroup
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -387,6 +388,7 @@ export function getStrategyAiSuggestions(
 		tp_percentage: number;
 		sl_percentage: number;
 		max_holding_period_days: number;
+		rules?: StrategyRuleGroup[];
 	}
 ): Promise<StrategyAiSuggestion[]> {
 	return request<StrategyAiSuggestion[]>(

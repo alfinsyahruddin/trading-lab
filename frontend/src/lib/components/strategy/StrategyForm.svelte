@@ -108,7 +108,8 @@
 					description: payload.description,
 					tp_percentage: payload.tp_percentage,
 					sl_percentage: payload.sl_percentage,
-					max_holding_period_days: payload.max_holding_period_days
+					max_holding_period_days: payload.max_holding_period_days,
+					rules: payload.rules
 				});
 
 				if (result && result.length > 0) {
@@ -127,12 +128,65 @@
 	}
 
 	function handleAcceptSuggestion(suggestion: StrategyAiSuggestion) {
-		if (suggestion.field === 'tp_percentage') {
-			tpPercentage = String(suggestion.suggested_value);
-		} else if (suggestion.field === 'sl_percentage') {
-			slPercentage = String(suggestion.suggested_value);
-		} else if (suggestion.field === 'max_holding_period_days') {
-			maxHoldingPeriodDays = String(Math.round(suggestion.suggested_value));
+		if (suggestion.suggestion_type === 'RULE' && suggestion.rule_payload) {
+			const { group_index, condition_index, variable, operator, value, connector_to_next } =
+				suggestion.rule_payload;
+
+			// Ensure target group exists
+			while (rules.length <= group_index) {
+				rules.push({
+					id: crypto.randomUUID(),
+					connector_to_next: null,
+					conditions: []
+				});
+			}
+
+			const targetGroup = rules[group_index];
+
+			if (
+				suggestion.rule_action === 'EDIT_CONDITION' &&
+				condition_index !== null &&
+				condition_index !== undefined &&
+				targetGroup.conditions[condition_index]
+			) {
+				targetGroup.conditions[condition_index].variable = variable;
+				targetGroup.conditions[condition_index].operator = operator;
+				targetGroup.conditions[condition_index].value = value;
+			} else {
+				// ADD_CONDITION
+				if (targetGroup.conditions.length > 0) {
+					targetGroup.conditions[targetGroup.conditions.length - 1].connector_to_next =
+						targetGroup.conditions[targetGroup.conditions.length - 1].connector_to_next || 'AND';
+				}
+				targetGroup.conditions.push({
+					id: crypto.randomUUID(),
+					variable,
+					operator,
+					value,
+					connector_to_next: connector_to_next ?? null
+				});
+			}
+			rules = [...rules];
+		} else {
+			if (
+				suggestion.field === 'tp_percentage' &&
+				suggestion.suggested_value !== null &&
+				suggestion.suggested_value !== undefined
+			) {
+				tpPercentage = String(suggestion.suggested_value);
+			} else if (
+				suggestion.field === 'sl_percentage' &&
+				suggestion.suggested_value !== null &&
+				suggestion.suggested_value !== undefined
+			) {
+				slPercentage = String(suggestion.suggested_value);
+			} else if (
+				suggestion.field === 'max_holding_period_days' &&
+				suggestion.suggested_value !== null &&
+				suggestion.suggested_value !== undefined
+			) {
+				maxHoldingPeriodDays = String(Math.round(suggestion.suggested_value));
+			}
 		}
 		suggestions = suggestions.filter((s) => s.id !== suggestion.id);
 	}

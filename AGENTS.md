@@ -168,11 +168,11 @@ All responses must strictly adhere to the unified JSON envelope:
 - **LLM Abstraction**: `LLMTrait` and `GeminiLLM` client supporting structured output extraction via Google Gemini (`gemini-3.1-flash-lite`).
 - **Platform Master Toggle**: `app_settings` table and Redis cache (`app_setting:ai_enabled`) storing platform-wide AI enablement. Admin users can toggle AI capabilities via `/dashboard/settings`.
 - **Backtest AI Executive Summary**: Generates a 5-dimension qualitative summary upon backtest completion or on first view when AI is enabled. Permanently cached in `backtest_results.ai_summary`.
-- **Strategy AI Refinement Suggestions**: Intercepts strategy creation (`POST /api/strategies/ai-suggestions`), analyzing TP, SL, and holding duration against IDX market dynamics and returning one-click "Accept" or "Ignore" recommendations.
+- **Strategy AI Refinement Suggestions**: Intercepts strategy creation (`POST /api/strategies/ai-suggestions`), analyzing general parameters (TP, SL, holding duration) and conditional rules (`rules`) against IDX market dynamics and screener variables, returning one-click "Accept" or "Ignore" recommendations for parameter adjustments and rule enhancements (adding variables, editing values/operators).
 - **Endpoints**:
   - `GET /api/settings`: Retrieve current platform settings.
   - `PATCH /api/settings`: Update settings (Admin only).
-  - `POST /api/strategies/ai-suggestions`: Request AI parameter recommendations for a trading strategy.
+  - `POST /api/strategies/ai-suggestions`: Request AI parameter and rule recommendations for a trading strategy.
 
 ### Database & Migrations
 - Migrations reside in `backend/migrations/` with format `YYYYMMDDNNNN_description.sql`.
@@ -260,7 +260,7 @@ Since the application runs in pure CSR mode, route protection executes on the cl
 
 #### 2. Strategy Components (`src/lib/components/strategy/`)
 - `StrategyForm.svelte`: Core strategy parameters (name, description, TP%, SL%, live Risk-to-Reward ratio, max holding period days), rule builder integration, and AI suggestions interception.
-- `StrategyAiSuggestionsCard.svelte`: Floating suggestion card on top of strategy submit actions with orange-yellow gradient and one-click "Accept" / "Ignore" resolutions.
+- `StrategyAiSuggestionsCard.svelte`: Floating suggestion card on top of strategy submit actions with orange-yellow gradient and one-click "Accept" / "Ignore" resolutions for parameter adjustments and conditional rule enhancements.
 - `WhereConditionsBuilder.svelte`: Dynamic multi-group rule builder supporting intra-group and inter-group `AND`/`OR` connectors and adaptive operator inputs.
 - `VariablePickerModal.svelte`: Categorized financial variable catalog with live search, variable descriptions, selection checkmarks, and category filtering.
 

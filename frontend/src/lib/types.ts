@@ -239,13 +239,28 @@ export interface AppSettings {
 	ai_enabled: boolean;
 }
 
+export type StrategySuggestionType = 'PARAMETER' | 'RULE';
+export type StrategyRuleAction = 'ADD_CONDITION' | 'EDIT_CONDITION';
+
+export interface StrategyRulePayload {
+	group_index: number;
+	condition_index?: number | null;
+	variable: string;
+	operator: string;
+	value: string;
+	connector_to_next?: RuleConnector | null;
+}
+
 export type StrategySuggestionField = 'tp_percentage' | 'sl_percentage' | 'max_holding_period_days';
 
 export interface StrategyAiSuggestion {
 	id: string;
-	field: StrategySuggestionField;
+	suggestion_type?: StrategySuggestionType;
+	field?: StrategySuggestionField | null;
 	title: string;
-	current_value: number;
-	suggested_value: number;
+	current_value?: number | null;
+	suggested_value?: number | null;
+	rule_action?: StrategyRuleAction | null;
+	rule_payload?: StrategyRulePayload | null;
 	reason: string;
 }

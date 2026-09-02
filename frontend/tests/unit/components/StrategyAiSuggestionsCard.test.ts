@@ -73,4 +73,52 @@ describe('StrategyAiSuggestionsCard', () => {
 		expect(onignore).toHaveBeenCalledWith(mockSuggestions[1]);
 		expect(onaccept).not.toHaveBeenCalled();
 	});
+
+	it('renders rule suggestions with appropriate badges and details', () => {
+		const ruleSuggestions: StrategyAiSuggestion[] = [
+			{
+				id: 'sug-rule-1',
+				suggestion_type: 'RULE',
+				rule_action: 'ADD_CONDITION',
+				rule_payload: {
+					group_index: 0,
+					condition_index: null,
+					variable: 'market_cap',
+					operator: '>=',
+					value: '1000000000000',
+					connector_to_next: 'AND'
+				},
+				title: 'Filter Out Illiquid Micro-Caps',
+				reason: 'Adding market_cap >= 1T IDR prevents screening illiquid small-cap stocks.'
+			},
+			{
+				id: 'sug-rule-2',
+				suggestion_type: 'RULE',
+				rule_action: 'EDIT_CONDITION',
+				rule_payload: {
+					group_index: 0,
+					condition_index: 0,
+					variable: 'price',
+					operator: '>',
+					value: '200',
+					connector_to_next: null
+				},
+				title: 'Avoid Penny Stock Watchlist',
+				reason: 'Raising minimum price avoids FCA stocks.'
+			}
+		];
+
+		render(StrategyAiSuggestionsCard, {
+			props: {
+				suggestions: ruleSuggestions,
+				onaccept: vi.fn(),
+				onignore: vi.fn()
+			}
+		});
+
+		expect(screen.getByText('Filter Out Illiquid Micro-Caps')).toBeInTheDocument();
+		expect(screen.getByText('Avoid Penny Stock Watchlist')).toBeInTheDocument();
+		expect(screen.getByText(/Add Rule:/i)).toBeInTheDocument();
+		expect(screen.getByText(/Modify Rule:/i)).toBeInTheDocument();
+	});
 });

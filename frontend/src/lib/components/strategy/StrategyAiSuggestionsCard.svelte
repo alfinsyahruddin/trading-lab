@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
+	import { STRATEGY_OPERATORS, STRATEGY_VARIABLES } from '$lib/constants';
 	import type { StrategyAiSuggestion } from '$lib/types';
 
 	let {
@@ -12,7 +13,7 @@
 		onignore: (suggestion: StrategyAiSuggestion) => void;
 	} = $props();
 
-	function getFieldLabel(field: string): string {
+	function getFieldLabel(field?: string | null): string {
 		switch (field) {
 			case 'tp_percentage':
 				return 'Take Profit';
@@ -21,15 +22,26 @@
 			case 'max_holding_period_days':
 				return 'Max Holding Period';
 			default:
-				return field;
+				return field || 'Parameter';
 		}
 	}
 
-	function formatFieldValue(field: string, val: number): string {
+	function formatFieldValue(field?: string | null, val?: number | null): string {
+		if (val === undefined || val === null) return '';
 		if (field === 'max_holding_period_days') {
 			return `${Math.round(val)} Days`;
 		}
 		return `${val}%`;
+	}
+
+	function getVariableLabel(code: string): string {
+		const found = STRATEGY_VARIABLES.find((v) => v.code === code);
+		return found ? `${found.name} (${found.code})` : code;
+	}
+
+	function getOperatorDisplay(op: string): string {
+		const found = STRATEGY_OPERATORS.find((o) => o.value === op);
+		return found ? found.symbol : op;
 	}
 </script>
 
@@ -118,23 +130,52 @@
 								<h4 class="font-700 text-xs sm:text-sm" style="color: var(--fg);">
 									{item.title}
 								</h4>
-								<span
-									class="font-600 rounded-md px-1.5 py-0.5 text-[11px]"
-									style="
-										background-color: var(--bg-card);
-										color: var(--fg);
-										border: 1px solid var(--border);
-									"
-								>
-									{getFieldLabel(item.field)}:
-									<span style="color: var(--fg-muted); text-decoration: line-through;"
-										>{formatFieldValue(item.field, item.current_value)}</span
+								{#if item.suggestion_type === 'RULE' && item.rule_payload}
+									<span
+										class="font-600 rounded-md px-1.5 py-0.5 text-[11px]"
+										style="
+											background-color: var(--bg-card);
+											color: var(--fg);
+											border: 1px solid var(--border);
+										"
 									>
-									<Icon icon="lucide:arrow-right" class="mx-0.5 inline" width="10" height="10" />
-									<span class="font-700" style="color: #FF9500;"
-										>{formatFieldValue(item.field, item.suggested_value)}</span
+										<span class="font-700" style="color: #FF9500;">
+											{item.rule_action === 'EDIT_CONDITION' ? 'Modify Rule:' : 'Add Rule:'}
+										</span>
+										<span class="ml-1 font-mono">
+											{getVariableLabel(item.rule_payload.variable)}
+											{getOperatorDisplay(item.rule_payload.operator)}
+											{item.rule_payload.value}
+										</span>
+									</span>
+								{:else if item.field}
+									<span
+										class="font-600 rounded-md px-1.5 py-0.5 text-[11px]"
+										style="
+											background-color: var(--bg-card);
+											color: var(--fg);
+											border: 1px solid var(--border);
+										"
 									>
-								</span>
+										{getFieldLabel(item.field)}:
+										{#if item.current_value !== null && item.current_value !== undefined}
+											<span style="color: var(--fg-muted); text-decoration: line-through;"
+												>{formatFieldValue(item.field, item.current_value)}</span
+											>
+											<Icon
+												icon="lucide:arrow-right"
+												class="mx-0.5 inline"
+												width="10"
+												height="10"
+											/>
+										{/if}
+										{#if item.suggested_value !== null && item.suggested_value !== undefined}
+											<span class="font-700" style="color: #FF9500;"
+												>{formatFieldValue(item.field, item.suggested_value)}</span
+											>
+										{/if}
+									</span>
+								{/if}
 							</div>
 
 							<p class="text-xs leading-relaxed" style="color: var(--fg-muted);">

@@ -109,7 +109,7 @@ frontend/
 │   │       │   ├── LeaderboardCard.svelte       # Public leaderboard entry with star action
 │   │       │   └── StatsCard.svelte             # Glassmorphism user KPI statistics card
 │   │       ├── strategy/
-│   │       │   ├── StrategyAiSuggestionsCard.svelte # Floating AI suggestions recommendation card
+│   │       │   ├── StrategyAiSuggestionsCard.svelte # Floating AI recommendations card for parameters & rules
 │   │       │   ├── StrategyForm.svelte          # Strategy config, parameters, and rule editor
 │   │       │   ├── VariablePickerModal.svelte   # Financial metric variable catalog modal
 │   │       │   └── WhereConditionsBuilder.svelte# Dynamic multi-group rule builder

@@ -153,7 +153,7 @@ All endpoints return a unified JSON envelope:
 - `PATCH /api/strategies/{id}` — Update strategy parameters and filtering rules
 - `DELETE /api/strategies/{id}` — Delete a trading strategy
 - `POST /api/strategies/{id}/duplicate` — Duplicate strategy with a unique copy name
-- `POST /api/strategies/ai-suggestions` — Request AI parameter recommendations for strategy rules
+- `POST /api/strategies/ai-suggestions` — Request AI parameter and conditional rule recommendations for trading strategies
 
 ### 4. Backtest Simulations (`/api/backtests`)
 - `GET /api/backtests` — List backtest jobs owned by authenticated user with sparklines
