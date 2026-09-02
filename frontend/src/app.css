@@ -23,6 +23,7 @@
 	--bg-card-2: #ffffff; /* nested card */
 	--bg-card-hover: #f4f6fa;
 	--bg-input: #ffffff;
+	--bg-input-disabled: #eef1f6;
 	--fg: #1e293b;
 	--fg-muted: #64748b;
 	--border: #e2e8f0;
@@ -42,6 +43,7 @@
 	--bg-card-2: #38476c; /* nested card */
 	--bg-card-hover: #354163;
 	--bg-input: #384365;
+	--bg-input-disabled: #2d364f;
 	--fg: #f1f5f9;
 	--fg-muted: #94a3b8;
 	--border: rgba(255, 255, 255, 0.1);
@@ -123,6 +125,14 @@ textarea:disabled,
 .btn-interactive:disabled,
 .btn-interactive[aria-disabled='true'] {
 	cursor: not-allowed;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+	background-color: var(--bg-input-disabled);
+	color: var(--fg-muted);
+	border-color: var(--border);
 }
 
 /* Smooth transitions for theme changes */

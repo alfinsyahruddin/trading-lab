@@ -43,13 +43,15 @@
 		{min}
 		{max}
 		bind:value
-		class="font-400 w-full rounded-lg border px-3.5 py-2.5 text-base transition-all duration-150 outline-none sm:text-sm"
+		class="font-400 w-full rounded-lg border px-3.5 py-2.5 text-base transition-all duration-150 outline-none disabled:cursor-not-allowed sm:text-sm"
 		style="
-			background-color: var(--bg-input, var(--bg));
-			border-color: {error ? 'var(--danger)' : 'var(--border-strong)'};
-			color: var(--fg);
+			background-color: {disabled ? 'var(--bg-input-disabled, var(--bg))' : 'var(--bg-input, var(--bg))'};
+			border-color: {error ? 'var(--danger)' : disabled ? 'var(--border)' : 'var(--border-strong)'};
+			color: {disabled ? 'var(--fg-muted)' : 'var(--fg)'};
+			cursor: {disabled ? 'not-allowed' : 'text'};
 		"
 		onfocus={(e) => {
+			if (disabled) return;
 			(e.currentTarget as HTMLInputElement).style.borderColor = error
 				? 'var(--danger)'
 				: 'var(--accent)';
@@ -58,6 +60,7 @@
 				: '0 0 0 3px rgba(48,180,201,0.1)';
 		}}
 		onblur={(e) => {
+			if (disabled) return;
 			(e.currentTarget as HTMLInputElement).style.borderColor = error
 				? 'var(--danger)'
 				: 'var(--border-strong)';

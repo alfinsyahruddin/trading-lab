@@ -36,24 +36,27 @@
 		bind:value
 		{disabled}
 		{required}
-		class="select-field font-400 w-full cursor-pointer appearance-none rounded-lg border px-3.5 py-2.5 text-base transition-all duration-150 outline-none sm:text-sm"
+		class="select-field font-400 w-full appearance-none rounded-lg border px-3.5 py-2.5 text-base transition-all duration-150 outline-none disabled:cursor-not-allowed sm:text-sm"
 		style="
-			background-color: var(--bg-input, var(--bg));
-			border-color: {error ? 'var(--danger)' : 'var(--border-strong)'};
-			color: var(--fg);
+			background-color: {disabled ? 'var(--bg-input-disabled, var(--bg))' : 'var(--bg-input, var(--bg))'};
+			border-color: {error ? 'var(--danger)' : disabled ? 'var(--border)' : 'var(--border-strong)'};
+			color: {disabled ? 'var(--fg-muted)' : 'var(--fg)'};
+			cursor: {disabled ? 'not-allowed' : 'pointer'};
 		"
 		onfocus={(e) => {
+			if (disabled) return;
 			(e.currentTarget as HTMLSelectElement).style.borderColor = 'var(--accent)';
 			(e.currentTarget as HTMLSelectElement).style.boxShadow = '0 0 0 3px rgba(48,180,201,0.1)';
 		}}
 		onblur={(e) => {
+			if (disabled) return;
 			(e.currentTarget as HTMLSelectElement).style.borderColor = error
 				? 'var(--danger)'
 				: 'var(--border-strong)';
 			(e.currentTarget as HTMLSelectElement).style.boxShadow = 'none';
 		}}
 	>
-		{#each options as opt}
+		{#each options as opt (opt.value)}
 			<option value={opt.value}>{opt.label}</option>
 		{/each}
 	</select>
@@ -69,5 +72,9 @@
 		background-repeat: no-repeat;
 		background-position: right 12px center;
 		padding-right: 36px;
+	}
+
+	.select-field:disabled {
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%2394a3b8' d='M6 8L1 3h10z'/></svg>");
 	}
 </style>
