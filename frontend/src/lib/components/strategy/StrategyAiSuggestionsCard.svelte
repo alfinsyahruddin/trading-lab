@@ -147,10 +147,11 @@
 							<button
 								type="button"
 								onclick={() => onignore(item)}
-								class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition-colors duration-150 hover:bg-(--bg-card-hover)"
+								class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition-all duration-150 hover:bg-[rgba(255,149,0,0.15)] active:scale-95"
 								style="
-									border-color: var(--border-strong);
-									color: var(--fg-muted);
+									border-color: rgba(255, 149, 0, 0.4);
+									color: #FF9500;
+									background-color: rgba(255, 149, 0, 0.08);
 								"
 							>
 								<Icon icon="lucide:x" width="13" height="13" />
