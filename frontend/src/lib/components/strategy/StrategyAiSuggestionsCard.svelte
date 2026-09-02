@@ -49,20 +49,37 @@
 				style="border-color: rgba(255, 149, 0, 0.2);"
 			>
 				<div class="flex items-center gap-2.5">
-					<div
-						class="flex size-7 items-center justify-center rounded-lg shadow-xs"
+					<svg
+						width="20"
+						height="20"
+						viewBox="0 0 607 607"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg"
+						class="shrink-0"
+					>
+						<defs>
+							<linearGradient id="strategyAiIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+								<stop offset="0%" stop-color="#FF9500" />
+								<stop offset="100%" stop-color="#FFCC00" />
+							</linearGradient>
+						</defs>
+						<path
+							d="M279.22 488.635C295.407 525.561 303.5 565.016 303.5 607C303.5 565.016 311.34 525.561 327.021 488.635C343.208 451.709 364.959 419.589 392.274 392.274C419.589 364.959 451.709 343.461 488.635 327.78C525.561 311.593 565.016 303.5 607 303.5C565.016 303.5 525.561 295.66 488.635 279.979C452.696 264.483 420.004 242.345 392.274 214.726C364.655 186.996 342.517 154.304 327.021 118.365C311.34 81.4392 303.5 41.9842 303.5 0C303.5 41.9842 295.407 81.4392 279.22 118.365C263.539 155.291 242.041 187.411 214.726 214.726C186.996 242.345 154.304 264.483 118.365 279.979C81.4392 295.66 41.9842 303.5 0 303.5C41.9842 303.5 81.4392 311.593 118.365 327.78C155.291 343.461 187.411 364.959 214.726 392.274C242.041 419.589 263.539 451.709 279.22 488.635Z"
+							fill="url(#strategyAiIconGrad)"
+						/>
+					</svg>
+
+					<h3
+						class="font-700 text-sm tracking-tight sm:text-base"
 						style="
 							background: linear-gradient(135deg, #FF9500 0%, #FFCC00 100%);
-							color: #ffffff;
+							-webkit-background-clip: text;
+							-webkit-text-fill-color: transparent;
+							background-clip: text;
 						"
 					>
-						<Icon icon="lucide:sparkles" width="15" height="15" />
-					</div>
-					<div>
-						<h3 class="font-700 text-sm sm:text-base" style="color: var(--fg)">
-							AI Strategy Suggestions
-						</h3>
-					</div>
+						AI Strategy Suggestions
+					</h3>
 				</div>
 
 				<div class="flex items-center gap-2">
@@ -143,10 +160,8 @@
 							<button
 								type="button"
 								onclick={() => onaccept(item)}
-								class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs text-white shadow-xs transition-all duration-150 active:scale-95"
-								style="
-									background: linear-gradient(135deg, #FF9500 0%, #FFCC00 100%);
-								"
+								class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs text-white shadow-xs transition-all duration-150 hover:brightness-105 active:scale-95"
+								style="background-color: #FF9500;"
 							>
 								<Icon icon="lucide:check" width="13" height="13" />
 								<span>Accept</span>
