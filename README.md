@@ -19,7 +19,7 @@ The public landing page (`/`) is a cinematic, parallax-enabled marketing surface
   - `landing-hero.jpg` — IDX orbital arc constellation illustration
   - `landing-nebula.jpg` — Deep space nebula background
   - `landing-ai.jpg` — AI neural network illustration
-  - `screenshot-dashboard.png`, `screenshot-backtest.png`, `screenshot-ai.png` — App UI screenshots
+  - `backtest-dark.png`, `backtest-light.png`, `dashboard-dark.png`, `dashboard-light.png`, `ai-suggestions-dark.png`, `ai-suggestions-light.png`, `ai-summary-dark.png`, `ai-summary-light.png` — Theme-adaptive app UI screenshots
 
 ---
 

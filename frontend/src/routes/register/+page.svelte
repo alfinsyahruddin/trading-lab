@@ -83,18 +83,20 @@
 	<div class="relative z-10 w-full max-w-sm">
 		<!-- Logo -->
 		<div class="mb-6 flex flex-col items-center sm:mb-8">
-			<img
-				src="/logo-dark.svg"
-				alt="Trading Lab"
-				class="logo-dark-theme h-7"
-				style="max-width: 160px;"
-			/>
-			<img
-				src="/logo-light.svg"
-				alt="Trading Lab"
-				class="logo-light-theme h-7"
-				style="max-width: 160px;"
-			/>
+			<a href="/" class="transition-opacity duration-150 hover:opacity-85">
+				<img
+					src="/logo-dark.svg"
+					alt="Trading Lab"
+					class="logo-dark-theme h-7"
+					style="max-width: 160px;"
+				/>
+				<img
+					src="/logo-light.svg"
+					alt="Trading Lab"
+					class="logo-light-theme h-7"
+					style="max-width: 160px;"
+				/>
+			</a>
 		</div>
 
 		<!-- Card -->
@@ -109,7 +111,7 @@
 				<TextField
 					label="Full Name"
 					type="text"
-					placeholder="John Doe"
+					placeholder="Tokyo"
 					bind:value={name}
 					error={nameError}
 					required
@@ -117,7 +119,7 @@
 				<TextField
 					label="Email"
 					type="email"
-					placeholder="you@example.com"
+					placeholder="tokyo@mail.com"
 					bind:value={email}
 					error={emailError}
 					required

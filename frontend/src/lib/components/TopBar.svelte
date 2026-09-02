@@ -181,10 +181,7 @@
 		<!-- Left: Logo + Theme toggle -->
 		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- Logo (no hover background) -->
-			<a
-				href="/dashboard"
-				class="shrink-0 bg-transparent transition-opacity duration-150 hover:opacity-85"
-			>
+			<a href="/" class="shrink-0 bg-transparent transition-opacity duration-150 hover:opacity-85">
 				<img
 					src="/logo-dark.svg"
 					alt="Trading Lab"

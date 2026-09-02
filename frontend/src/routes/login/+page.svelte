@@ -111,18 +111,20 @@
 	<div class="relative z-10 w-full max-w-sm">
 		<!-- Logo -->
 		<div class="mb-6 flex flex-col items-center sm:mb-8">
-			<img
-				src="/logo-dark.svg"
-				alt="Trading Lab"
-				class="logo-dark-theme h-7"
-				style="max-width: 160px;"
-			/>
-			<img
-				src="/logo-light.svg"
-				alt="Trading Lab"
-				class="logo-light-theme h-7"
-				style="max-width: 160px;"
-			/>
+			<a href="/" class="transition-opacity duration-150 hover:opacity-85">
+				<img
+					src="/logo-dark.svg"
+					alt="Trading Lab"
+					class="logo-dark-theme h-7"
+					style="max-width: 160px;"
+				/>
+				<img
+					src="/logo-light.svg"
+					alt="Trading Lab"
+					class="logo-light-theme h-7"
+					style="max-width: 160px;"
+				/>
+			</a>
 		</div>
 
 		<!-- Card -->

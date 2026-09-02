@@ -1,0 +1,95 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
+import LandingPage from '../../../src/routes/+page.svelte';
+import * as session from '$lib/helpers/session';
+
+// Mock matchMedia
+Object.defineProperty(globalThis, 'matchMedia', {
+	value: (query: string) => ({
+		matches: query.includes('dark'),
+		addListener: () => {},
+		removeListener: () => {}
+	})
+});
+
+// Mock IntersectionObserver
+class MockIntersectionObserver {
+	observe = vi.fn();
+	unobserve = vi.fn();
+	disconnect = vi.fn();
+}
+Object.defineProperty(globalThis, 'IntersectionObserver', {
+	value: MockIntersectionObserver,
+	configurable: true
+});
+
+describe('Landing Page (+page.svelte)', () => {
+	beforeEach(() => {
+		session.clearSession();
+	});
+
+	it('renders theme toggle switch in top header row alongside logo', () => {
+		render(LandingPage);
+		const themeToggleBtn = screen.getByRole('button', { name: /toggle theme/i });
+		expect(themeToggleBtn).toBeInTheDocument();
+
+		const logos = screen.getAllByAltText('Trading Lab');
+		expect(logos.length).toBeGreaterThanOrEqual(2); // header and footer logos
+	});
+
+	it('renders unauthenticated CTAs (Start Backtesting and Sign In) when user is not logged in', () => {
+		render(LandingPage);
+		const startBacktestingBtns = screen.getAllByRole('link', {
+			name: /start backtesting|create free account/i
+		});
+		expect(startBacktestingBtns.length).toBeGreaterThanOrEqual(2);
+
+		const signInLinks = screen.getAllByRole('link', { name: /sign in/i });
+		expect(signInLinks.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('renders authenticated CTAs (Dashboard links) when user is logged in', () => {
+		session.persistSession('token', 'refresh', {
+			id: 'user-1',
+			name: 'Test User',
+			email: 'test@example.com',
+			role: 'MEMBER',
+			created_at: '2026-08-30T00:00:00Z',
+			updated_at: '2026-08-30T00:00:00Z'
+		});
+
+		render(LandingPage);
+		const dashboardLinks = screen.getAllByRole('link', { name: /dashboard/i });
+		expect(dashboardLinks.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('renders platform feature highlights and workflow steps', () => {
+		render(LandingPage);
+		expect(screen.getByRole('heading', { name: /visual strategy builder/i })).toBeInTheDocument();
+		expect(
+			screen.getByRole('heading', { name: /(?:reliable|historical) backtest engine/i })
+		).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /ai-powered/i })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /deep analytics/i })).toBeInTheDocument();
+
+		expect(screen.getByRole('heading', { name: /build your strategy/i })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /run the backtest/i })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /analyze and refine/i })).toBeInTheDocument();
+	});
+
+	it('renders screenshot images with light and dark mode variants', () => {
+		const { container } = render(LandingPage);
+		const images = Array.from(container.querySelectorAll('img')).map((img) =>
+			img.getAttribute('src')
+		);
+
+		expect(images).toContain('/backtest-light.png');
+		expect(images).toContain('/backtest-dark.png');
+		expect(images).toContain('/dashboard-light.png');
+		expect(images).toContain('/dashboard-dark.png');
+		expect(images).toContain('/ai-suggestions-light.png');
+		expect(images).toContain('/ai-suggestions-dark.png');
+		expect(images).toContain('/ai-summary-light.png');
+		expect(images).toContain('/ai-summary-dark.png');
+	});
+});

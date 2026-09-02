@@ -31,6 +31,13 @@ describe('TopBar', () => {
 		session.persistSession('token', 'refresh', mockUser);
 	});
 
+	it('renders logo linking to landing page (/)', () => {
+		const { container } = render(TopBar);
+		const logoLink = container.querySelector('a:has(img[alt="Trading Lab"])');
+		expect(logoLink).toBeInTheDocument();
+		expect(logoLink).toHaveAttribute('href', '/');
+	});
+
 	it('renders user name and avatar button, with no standalone topbar logout button', () => {
 		render(TopBar);
 		expect(screen.getByText('Alice Trader')).toBeInTheDocument();
