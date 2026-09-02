@@ -88,7 +88,7 @@
 		></div>
 
 		<!-- Top Right Theme Toggle -->
-		<div class="absolute top-6 right-6 z-20 sm:top-8 sm:right-8 lg:right-12">
+		<div class="absolute top-4 right-4 z-20 sm:top-8 sm:right-8 lg:right-12">
 			<ThemeToggle />
 		</div>
 
@@ -136,7 +136,7 @@
 
 		<!-- Hero Content (Left side) -->
 		<div
-			class="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-start gap-7 px-6 py-12 transition-all duration-700 sm:px-8 md:mx-0 md:ml-[max(6%,2rem)] md:max-w-xl lg:max-w-2xl"
+			class="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 py-10 transition-all duration-700 sm:gap-7 sm:px-8 sm:py-12 md:mx-0 md:ml-[max(6%,2rem)] md:max-w-xl lg:max-w-2xl"
 			class:opacity-100={heroVisible}
 			class:translate-y-0={heroVisible}
 			class:opacity-0={!heroVisible}
@@ -159,41 +159,46 @@
 			</a>
 
 			<!-- Slogan -->
-			<h1 class="text-4xl font-extrabold tracking-tight text-(--fg) sm:text-5xl lg:text-6xl">
+			<h1 class="text-3xl font-extrabold tracking-tight text-(--fg) sm:text-5xl lg:text-6xl">
 				Everyone built a<br />trading strategy, but<br /><em
 					class="font-bold text-(--accent) not-italic">no one ever<br />backtested it.</em
 				>
 			</h1>
 
 			<!-- Sub-copy -->
-			<p class="max-w-lg text-base leading-relaxed text-(--fg-muted) sm:text-lg">
-				Build your strategy. Test it on real IDX history.<br />Discover what actually works.
+			<p
+				class="max-w-lg text-sm leading-relaxed text-(--fg-muted) sm:text-base sm:leading-relaxed lg:text-lg"
+			>
+				Build your strategy. Test it on real IDX history.<br class="hidden sm:inline" />Discover
+				what actually works.
 			</p>
 
 			<!-- Stat strip -->
-			<div class="flex flex-wrap items-center gap-5 border-y border-(--border) py-3.5 sm:gap-7">
-				<div class="flex flex-col gap-0.5">
-					<span class="font-mono text-2xl font-bold text-(--accent) sm:text-3xl">50+</span>
+			<div
+				class="grid w-full grid-cols-3 divide-x divide-(--border) border-y border-(--border) py-3 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-7 sm:divide-x-0 sm:py-3.5"
+			>
+				<div class="flex flex-col gap-0.5 px-2 first:pl-0 sm:px-0">
+					<span class="font-mono text-xl font-bold text-(--accent) sm:text-3xl">50+</span>
 					<span
-						class="font-mono text-[11px] font-medium tracking-wider text-(--fg-muted) uppercase"
+						class="font-mono text-[10px] font-medium tracking-wider text-(--fg-muted) uppercase sm:text-[11px]"
 					>
 						IDX Indicators
 					</span>
 				</div>
-				<div class="h-9 w-px bg-(--border)" aria-hidden="true"></div>
-				<div class="flex flex-col gap-0.5">
-					<span class="font-mono text-2xl font-bold text-(--accent) sm:text-3xl">4 Years</span>
+				<div class="hidden h-9 w-px bg-(--border) sm:block" aria-hidden="true"></div>
+				<div class="flex flex-col gap-0.5 px-2 sm:px-0">
+					<span class="font-mono text-xl font-bold text-(--accent) sm:text-3xl">4 Years</span>
 					<span
-						class="font-mono text-[11px] font-medium tracking-wider text-(--fg-muted) uppercase"
+						class="font-mono text-[10px] font-medium tracking-wider text-(--fg-muted) uppercase sm:text-[11px]"
 					>
 						Historical Data
 					</span>
 				</div>
-				<div class="h-9 w-px bg-(--border)" aria-hidden="true"></div>
-				<div class="flex flex-col gap-0.5">
-					<span class="font-mono text-2xl font-bold text-(--accent) sm:text-3xl">8+</span>
+				<div class="hidden h-9 w-px bg-(--border) sm:block" aria-hidden="true"></div>
+				<div class="flex flex-col gap-0.5 px-2 last:pr-0 sm:px-0">
+					<span class="font-mono text-xl font-bold text-(--accent) sm:text-3xl">8+</span>
 					<span
-						class="font-mono text-[11px] font-medium tracking-wider text-(--fg-muted) uppercase"
+						class="font-mono text-[10px] font-medium tracking-wider text-(--fg-muted) uppercase sm:text-[11px]"
 					>
 						Performance Metrics
 					</span>
@@ -201,11 +206,13 @@
 			</div>
 
 			<!-- CTAs -->
-			<div class="flex flex-wrap items-center gap-3.5 pt-1">
+			<div
+				class="flex w-full flex-col gap-3 pt-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3.5"
+			>
 				{#if isLoggedIn}
 					<a
 						href="/dashboard"
-						class="btn-interactive group inline-flex items-center gap-2 rounded-md bg-(--accent) px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
 					>
 						<span>Go to Dashboard</span>
 						<Icon
@@ -216,7 +223,7 @@
 				{:else}
 					<a
 						href="/register"
-						class="btn-interactive group inline-flex items-center gap-2 rounded-md bg-(--accent) px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
 					>
 						<span>Start Backtesting</span>
 						<Icon
@@ -226,7 +233,7 @@
 					</a>
 					<a
 						href="/login"
-						class="btn-interactive inline-flex items-center rounded-md border border-(--border) bg-transparent px-6 py-3 text-sm font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97"
+						class="btn-interactive inline-flex items-center justify-center rounded-md border border-(--border) bg-transparent px-6 py-3 text-sm font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97"
 					>
 						Sign In
 					</a>
@@ -246,10 +253,10 @@
 	</section>
 
 	<!-- ─── FEATURES ──────────────────────────────────────── -->
-	<section id="features-section" class="relative bg-(--bg) px-4 py-24 sm:px-6 lg:py-28">
+	<section id="features-section" class="relative bg-(--bg) px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
 		<div class="mx-auto max-w-6xl">
 			<div
-				class="mb-14 text-center transition-all duration-700"
+				class="mb-10 text-center transition-all duration-700 sm:mb-14"
 				class:opacity-100={featuresVisible}
 				class:translate-y-0={featuresVisible}
 				class:opacity-0={!featuresVisible}
@@ -259,11 +266,11 @@
 					The Platform
 				</p>
 				<h2
-					class="mt-2.5 text-3xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl"
+					class="mt-2 text-2xl font-extrabold tracking-tight text-(--fg) sm:mt-2.5 sm:text-4xl lg:text-5xl"
 				>
 					Your strategy deserves evidence.
 				</h2>
-				<p class="mx-auto mt-3.5 max-w-xl text-base text-(--fg-muted)">
+				<p class="mx-auto mt-3 max-w-xl text-sm text-(--fg-muted) sm:mt-3.5 sm:text-base">
 					Stop guessing. Build a multi-condition filter, fire it against years of IDX data, and see
 					the numbers.
 				</p>
@@ -278,7 +285,7 @@
 			>
 				<!-- Feature 1: Strategy Builder -->
 				<article
-					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-6.5 shadow-xs transition-all duration-200 hover:border-(--accent)/40"
+					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
 						class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-(--accent)/20 bg-(--accent-soft)"
@@ -322,7 +329,7 @@
 
 				<!-- Feature 2: Backtesting Engine -->
 				<article
-					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-6.5 shadow-xs transition-all duration-200 hover:border-(--accent)/40"
+					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
 						class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-(--accent)/20 bg-(--accent-soft)"
@@ -376,7 +383,7 @@
 					class="group rounded-2xl bg-[linear-gradient(135deg,#fbaf33_0%,#fe426b_33%,#de98fe_66%,#38c1fb_100%)] p-px transition-all duration-200"
 				>
 					<div
-						class="flex h-full flex-col gap-3 rounded-[15px] p-6.5 shadow-xs"
+						class="flex h-full flex-col gap-3 rounded-[15px] p-5 shadow-xs sm:p-6.5"
 						style="background: linear-gradient(135deg, rgba(251, 175, 51, 0.1) 0%, rgba(254, 66, 107, 0.1) 33%, rgba(222, 152, 254, 0.1) 66%, rgba(56, 193, 251, 0.1) 100%), var(--bg-card);"
 					>
 						<div
@@ -429,7 +436,7 @@
 
 				<!-- Feature 4: Analytics -->
 				<article
-					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-6.5 shadow-xs transition-all duration-200 hover:border-(--accent)/40"
+					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
 						class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-(--accent)/20 bg-(--accent-soft)"
@@ -479,11 +486,11 @@
 	<!-- ─── SCREENSHOT PROOF ──────────────────────────────── -->
 	<section
 		id="screenshot-section"
-		class="border-t border-(--border) bg-(--bg-card)/40 px-4 py-24 sm:px-6 lg:py-28"
+		class="border-t border-(--border) bg-(--bg-card)/40 px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
 	>
 		<div class="mx-auto max-w-6xl">
 			<div
-				class="mb-14 text-center transition-all duration-700"
+				class="mb-10 text-center transition-all duration-700 sm:mb-14"
 				class:opacity-100={screenshotVisible}
 				class:translate-y-0={screenshotVisible}
 				class:opacity-0={!screenshotVisible}
@@ -493,11 +500,11 @@
 					Inside the Platform
 				</p>
 				<h2
-					class="mt-2.5 text-3xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl"
+					class="mt-2 text-2xl font-extrabold tracking-tight text-(--fg) sm:mt-2.5 sm:text-4xl lg:text-5xl"
 				>
 					Built for serious traders.
 				</h2>
-				<p class="mx-auto mt-3.5 max-w-xl text-base text-(--fg-muted)">
+				<p class="mx-auto mt-3 max-w-xl text-sm text-(--fg-muted) sm:mt-3.5 sm:text-base">
 					Every screen is designed to surface what matters: data, clarity, and confidence.
 				</p>
 			</div>
@@ -527,7 +534,7 @@
 							loading="lazy"
 						/>
 					</div>
-					<div class="mt-3.5 flex flex-col gap-1">
+					<div class="mt-3 flex flex-col gap-0.5 sm:mt-3.5 sm:gap-1">
 						<span class="font-mono text-xs font-semibold tracking-wider text-(--accent) uppercase">
 							Backtest Results
 						</span>
@@ -555,7 +562,7 @@
 							loading="lazy"
 						/>
 					</div>
-					<div class="mt-3.5 flex flex-col gap-1">
+					<div class="mt-3 flex flex-col gap-0.5 sm:mt-3.5 sm:gap-1">
 						<span class="font-mono text-xs font-semibold tracking-wider text-(--accent) uppercase">
 							Community Dashboard
 						</span>
@@ -583,7 +590,7 @@
 							loading="lazy"
 						/>
 					</div>
-					<div class="mt-3.5 flex flex-col gap-1">
+					<div class="mt-3 flex flex-col gap-0.5 sm:mt-3.5 sm:gap-1">
 						<span class="font-mono text-xs font-semibold tracking-wider text-[#f5c842] uppercase">
 							✦ AI Suggestions
 						</span>
@@ -611,7 +618,7 @@
 							loading="lazy"
 						/>
 					</div>
-					<div class="mt-3.5 flex flex-col gap-1">
+					<div class="mt-3 flex flex-col gap-0.5 sm:mt-3.5 sm:gap-1">
 						<span
 							class="w-fit bg-[linear-gradient(135deg,#de98fe_0%,#38c1fb_100%)] bg-clip-text font-mono text-xs font-semibold tracking-wider text-transparent uppercase"
 						>
@@ -629,11 +636,11 @@
 	<!-- ─── HOW IT WORKS ─────────────────────────────────── -->
 	<section
 		id="how-section"
-		class="border-t border-(--border) bg-(--bg) px-4 py-24 sm:px-6 lg:py-28"
+		class="border-t border-(--border) bg-(--bg) px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
 	>
 		<div class="mx-auto max-w-4xl">
 			<div
-				class="mb-14 text-center transition-all duration-700"
+				class="mb-10 text-center transition-all duration-700 sm:mb-14"
 				class:opacity-100={howVisible}
 				class:translate-y-0={howVisible}
 				class:opacity-0={!howVisible}
@@ -643,22 +650,22 @@
 					The Workflow
 				</p>
 				<h2
-					class="mt-2.5 text-3xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl"
+					class="mt-2 text-2xl font-extrabold tracking-tight text-(--fg) sm:mt-2.5 sm:text-4xl lg:text-5xl"
 				>
 					From hypothesis to evidence.
 				</h2>
 			</div>
 
-			<ol class="flex flex-col gap-10" aria-label="How Trading Lab works">
-				<li class="flex items-start gap-6 sm:gap-8">
+			<ol class="flex flex-col gap-8 sm:gap-10" aria-label="How Trading Lab works">
+				<li class="flex items-start gap-4 sm:gap-8">
 					<div
-						class="min-w-14 font-mono text-4xl font-extrabold text-(--accent)/35 sm:text-5xl"
+						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
 					>
 						01
 					</div>
-					<div class="flex flex-col gap-1.5">
-						<h3 class="text-xl font-bold tracking-tight text-(--fg) sm:text-2xl">
+					<div class="flex flex-col gap-1 sm:gap-1.5">
+						<h3 class="text-lg font-bold tracking-tight text-(--fg) sm:text-2xl">
 							Build your strategy
 						</h3>
 						<p class="text-sm leading-relaxed text-(--fg-muted) sm:text-base">
@@ -667,15 +674,15 @@
 						</p>
 					</div>
 				</li>
-				<li class="flex items-start gap-6 sm:gap-8">
+				<li class="flex items-start gap-4 sm:gap-8">
 					<div
-						class="min-w-14 font-mono text-4xl font-extrabold text-(--accent)/35 sm:text-5xl"
+						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
 					>
 						02
 					</div>
-					<div class="flex flex-col gap-1.5">
-						<h3 class="text-xl font-bold tracking-tight text-(--fg) sm:text-2xl">
+					<div class="flex flex-col gap-1 sm:gap-1.5">
+						<h3 class="text-lg font-bold tracking-tight text-(--fg) sm:text-2xl">
 							Run the backtest
 						</h3>
 						<p class="text-sm leading-relaxed text-(--fg-muted) sm:text-base">
@@ -684,15 +691,15 @@
 						</p>
 					</div>
 				</li>
-				<li class="flex items-start gap-6 sm:gap-8">
+				<li class="flex items-start gap-4 sm:gap-8">
 					<div
-						class="min-w-14 font-mono text-4xl font-extrabold text-(--accent)/35 sm:text-5xl"
+						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
 					>
 						03
 					</div>
-					<div class="flex flex-col gap-1.5">
-						<h3 class="text-xl font-bold tracking-tight text-(--fg) sm:text-2xl">
+					<div class="flex flex-col gap-1 sm:gap-1.5">
+						<h3 class="text-lg font-bold tracking-tight text-(--fg) sm:text-2xl">
 							Analyze and refine
 						</h3>
 						<p class="text-sm leading-relaxed text-(--fg-muted) sm:text-base">
@@ -707,26 +714,28 @@
 
 	<!-- ─── CTA FOOTER ───────────────────────────────────── -->
 	<section
-		class="relative flex min-h-[52vh] flex-col items-center justify-center overflow-hidden border-t border-(--border) bg-(--bg-card) px-4 py-20 text-center sm:px-6 sm:py-24"
+		class="relative flex min-h-[45vh] flex-col items-center justify-center overflow-hidden border-t border-(--border) bg-(--bg-card) px-4 py-16 text-center sm:min-h-[52vh] sm:px-6 sm:py-24"
 	>
 		<!-- Inner Blueprint / Grid Box Frame Pattern -->
 		<div
-			class="pointer-events-none absolute inset-x-4 inset-y-8 border border-(--border) bg-[linear-gradient(to_right,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.035)_1px,transparent_1px)] bg-size-[32px_32px] sm:inset-x-[max(5vw,1.5rem)] sm:inset-y-[12%] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)]"
+			class="pointer-events-none absolute inset-3 border border-(--border) bg-[linear-gradient(to_right,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.035)_1px,transparent_1px)] bg-size-[32px_32px] sm:inset-x-[max(5vw,1.5rem)] sm:inset-y-[12%] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)]"
 			aria-hidden="true"
 		></div>
 
-		<div class="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-6">
-			<h2 class="text-3xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl">
+		<div class="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-5 sm:gap-6">
+			<h2 class="text-2xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl">
 				Stop Guessing.<br /><em class="font-bold text-(--accent) not-italic">Start Backtesting.</em>
 			</h2>
-			<p class="text-base text-(--fg-muted)">
+			<p class="text-sm text-(--fg-muted) sm:text-base">
 				Build your strategy. Test your edge. Trade with confidence.
 			</p>
-			<div class="flex flex-wrap items-center justify-center gap-3.5">
+			<div
+				class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3.5"
+			>
 				{#if isLoggedIn}
 					<a
 						href="/dashboard"
-						class="btn-interactive group inline-flex items-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
 					>
 						<span>Open Dashboard</span>
 						<Icon
@@ -737,7 +746,7 @@
 				{:else}
 					<a
 						href="/register"
-						class="btn-interactive group inline-flex items-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
+						class="btn-interactive group inline-flex items-center justify-center gap-2 rounded-md bg-(--accent) px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) hover:shadow-md active:scale-97"
 					>
 						<span>Create Free Account</span>
 						<Icon
@@ -747,7 +756,7 @@
 					</a>
 					<a
 						href="/login"
-						class="btn-interactive inline-flex items-center rounded-md border border-(--border) bg-transparent px-6 py-3.5 text-base font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97"
+						class="btn-interactive inline-flex items-center justify-center rounded-md border border-(--border) bg-transparent px-6 py-3.5 text-base font-medium text-(--fg) transition-all hover:border-(--accent)/50 hover:bg-(--accent-soft) active:scale-97"
 					>
 						Sign In
 					</a>
