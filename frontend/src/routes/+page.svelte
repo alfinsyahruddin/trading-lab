@@ -642,7 +642,15 @@
 				<h2
 					class="mt-2 text-2xl font-extrabold tracking-tight text-(--fg) sm:mt-2.5 sm:text-4xl lg:text-5xl"
 				>
-					From hypothesis to evidence.
+					From hypothesis to <span class="relative inline-block whitespace-nowrap">
+						<span class="relative z-10">evidence</span>
+						<img
+							src="/paint-underline.png"
+							alt=""
+							aria-hidden="true"
+							class="pointer-events-none absolute -bottom-1.5 left-0 z-0 h-2.5 w-[104%] max-w-none object-fill select-none sm:-bottom-2.5 sm:h-3.5 lg:-bottom-3.5 lg:h-4.5"
+						/>
+					</span>.
 				</h2>
 			</div>
 
