@@ -21,6 +21,7 @@ describe('LoginPage', () => {
 	beforeEach(() => {
 		localStorage.clear();
 		vi.clearAllMocks();
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'false';
 	});
 
 	it('renders login form and Remember me checkbox', () => {
@@ -110,5 +111,42 @@ describe('LoginPage', () => {
 		expect(screen.queryByText('joe@example.com')).not.toBeInTheDocument();
 		expect(screen.queryByText('Quick Login')).not.toBeInTheDocument();
 		expect(session.getRememberedAccounts()).toEqual([]);
+	});
+
+	it('shows coming soon modal and prevents login when PUBLIC_IS_COMING_SOON is true on form submit', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'true';
+
+		render(LoginPage);
+		const emailInput = screen.getByLabelText(/^Email/i);
+		const passwordInput = screen.getByLabelText(/^Password/i);
+		const submitBtn = screen.getByRole('button', { name: /sign in/i });
+
+		await fireEvent.input(emailInput, { target: { value: 'tokyo@mail.com' } });
+		await fireEvent.input(passwordInput, { target: { value: 'password123' } });
+		await fireEvent.click(submitBtn);
+
+		expect(api.login).not.toHaveBeenCalled();
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /we're launching soon!/i })).toBeInTheDocument();
+		expect(screen.getByText(/stay tuned for public release!/i)).toBeInTheDocument();
+	});
+
+	it('shows coming soon modal on quick login when PUBLIC_IS_COMING_SOON is true', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'true';
+
+		session.saveRememberedAccount({
+			name: 'Trader Joe',
+			email: 'joe@example.com',
+			role: 'MEMBER',
+			password: 'securepassword123'
+		});
+
+		render(LoginPage);
+		const accountItem = screen.getByText('joe@example.com');
+		await fireEvent.click(accountItem);
+
+		expect(api.login).not.toHaveBeenCalled();
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: /we're launching soon!/i })).toBeInTheDocument();
 	});
 });

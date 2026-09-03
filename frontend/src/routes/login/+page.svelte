@@ -4,6 +4,7 @@
 	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
 	import RoleBadge from '$lib/components/RoleBadge.svelte';
+	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
 	import { login, ApiError } from '$lib/api';
 	import {
 		persistSession,
@@ -12,6 +13,7 @@
 		removeRememberedAccount
 	} from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
+	import { isComingSoon } from '$lib/helpers/config';
 	import type { RememberedAccount } from '$lib/types';
 
 	let email = $state('');
@@ -21,6 +23,7 @@
 	let error = $state('');
 	let loggingInEmail = $state('');
 	let rememberedAccounts = $state<RememberedAccount[]>([]);
+	let showComingSoonModal = $state(false);
 
 	onMount(() => {
 		rememberedAccounts = getRememberedAccounts();
@@ -38,6 +41,12 @@
 		}
 
 		password = acc.password;
+
+		if (isComingSoon()) {
+			showComingSoonModal = true;
+			return;
+		}
+
 		loading = true;
 		loggingInEmail = acc.email;
 
@@ -64,8 +73,28 @@
 		rememberedAccounts = getRememberedAccounts();
 	}
 
+	function validate(): boolean {
+		error = '';
+		if (!email.trim() || !email.includes('@')) {
+			error = 'A valid email is required.';
+			return false;
+		}
+		if (!password) {
+			error = 'Password is required.';
+			return false;
+		}
+		return true;
+	}
+
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
+		if (!validate()) return;
+
+		if (isComingSoon()) {
+			showComingSoonModal = true;
+			return;
+		}
+
 		error = '';
 		loading = true;
 
@@ -261,4 +290,6 @@
 			</a>
 		</p>
 	</div>
+
+	<ComingSoonModal bind:open={showComingSoonModal} />
 </div>

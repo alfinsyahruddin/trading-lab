@@ -2,9 +2,11 @@
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
+	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
 	import { register } from '$lib/api';
 	import { ApiError } from '$lib/api';
 	import { toast } from '$lib/helpers/toast.svelte';
+	import { isComingSoon } from '$lib/helpers/config';
 
 	let name = $state('');
 	let email = $state('');
@@ -12,6 +14,7 @@
 	let confirmPassword = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let showComingSoonModal = $state(false);
 
 	// Field-level validation errors
 	let nameError = $state('');
@@ -50,6 +53,11 @@
 		error = '';
 
 		if (!validate()) return;
+
+		if (isComingSoon()) {
+			showComingSoonModal = true;
+			return;
+		}
 
 		loading = true;
 		try {
@@ -180,4 +188,6 @@
 			</a>
 		</p>
 	</div>
+
+	<ComingSoonModal bind:open={showComingSoonModal} />
 </div>
