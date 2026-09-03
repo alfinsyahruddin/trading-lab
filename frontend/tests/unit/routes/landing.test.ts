@@ -13,10 +13,14 @@ Object.defineProperty(globalThis, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
+const mockObserve = vi.fn();
+const mockUnobserve = vi.fn();
+const mockDisconnect = vi.fn();
+
 class MockIntersectionObserver {
-	observe = vi.fn();
-	unobserve = vi.fn();
-	disconnect = vi.fn();
+	observe = mockObserve;
+	unobserve = mockUnobserve;
+	disconnect = mockDisconnect;
 }
 Object.defineProperty(globalThis, 'IntersectionObserver', {
 	value: MockIntersectionObserver,
@@ -26,6 +30,9 @@ Object.defineProperty(globalThis, 'IntersectionObserver', {
 describe('Landing Page (+page.svelte)', () => {
 	beforeEach(() => {
 		session.clearSession();
+		mockObserve.mockClear();
+		mockUnobserve.mockClear();
+		mockDisconnect.mockClear();
 	});
 
 	it('renders theme toggle switch in top header row alongside logo', () => {
@@ -108,5 +115,23 @@ describe('Landing Page (+page.svelte)', () => {
 
 		const pulseCircles = pulseDotGroup?.querySelectorAll('circle');
 		expect(pulseCircles && pulseCircles.length).toBeGreaterThanOrEqual(4);
+	});
+
+	it('attaches scroll appear intersection observers to all landing page sections', () => {
+		const { container } = render(LandingPage);
+
+		expect(container.querySelector('#features-section')).toBeInTheDocument();
+		expect(container.querySelector('#screenshot-section')).toBeInTheDocument();
+		expect(container.querySelector('#how-section')).toBeInTheDocument();
+		expect(container.querySelector('#cta-section')).toBeInTheDocument();
+		expect(container.querySelector('#footer-section')).toBeInTheDocument();
+
+		expect(mockObserve).toHaveBeenCalled();
+		const observedElements = mockObserve.mock.calls.map((call) => (call[0] as HTMLElement)?.id);
+		expect(observedElements).toContain('features-section');
+		expect(observedElements).toContain('screenshot-section');
+		expect(observedElements).toContain('how-section');
+		expect(observedElements).toContain('cta-section');
+		expect(observedElements).toContain('footer-section');
 	});
 });

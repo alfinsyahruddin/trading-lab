@@ -1,24 +1,110 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import Icon from '@iconify/svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { getToken } from '$lib/helpers/session';
 
 	let isLoggedIn = $state(false);
 	let heroVisible = $state(false);
-	let featuresVisible = $state(false);
-	let screenshotVisible = $state(false);
-	let howVisible = $state(false);
 
 	const typewriterWords = ['trading strategy', 'methodology', 'stock screener'];
 	let displayedWord = $state(typewriterWords[0]);
 
+	// ─── SCROLL REVEAL ENGINE ─────────────────────────────
+	let revealObserver: IntersectionObserver | null = null;
+	const revealNodes = new SvelteSet<HTMLElement>();
+	let scrollListenerAttached = false;
+	let rafId: number | null = null;
+
+	function checkReveals() {
+		if (typeof window === 'undefined') return;
+		const vh = window.innerHeight || document.documentElement.clientHeight;
+		const triggerBottom = vh * 0.94;
+
+		revealNodes.forEach((node) => {
+			if (!node.classList.contains('is-revealed')) {
+				const rect = node.getBoundingClientRect();
+				if (rect.top <= triggerBottom && rect.bottom >= 0) {
+					node.classList.add('is-revealed');
+					revealNodes.delete(node);
+					revealObserver?.unobserve(node);
+				}
+			}
+		});
+
+		if (revealNodes.size === 0 && scrollListenerAttached && typeof window !== 'undefined') {
+			window.removeEventListener('scroll', onScrollRaf);
+			scrollListenerAttached = false;
+		}
+	}
+
+	function onScrollRaf() {
+		if (rafId !== null) return;
+		rafId = requestAnimationFrame(() => {
+			rafId = null;
+			checkReveals();
+		});
+	}
+
+	function getRevealObserver() {
+		if (!revealObserver && typeof IntersectionObserver !== 'undefined') {
+			revealObserver = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							(entry.target as HTMLElement).classList.add('is-revealed');
+							revealNodes.delete(entry.target as HTMLElement);
+							revealObserver?.unobserve(entry.target);
+						}
+					});
+				},
+				{
+					threshold: 0.05,
+					rootMargin: '0px 0px -30px 0px'
+				}
+			);
+		}
+		return revealObserver;
+	}
+
+	function reveal(node: HTMLElement, options: { delay?: number; y?: number } = {}) {
+		const delay = options.delay ?? 0;
+		const y = options.y ?? 28;
+
+		node.classList.add('reveal-on-scroll');
+		node.style.setProperty('--reveal-y', `${y}px`);
+		if (delay > 0) {
+			node.style.transitionDelay = `${delay}ms`;
+		}
+
+		revealNodes.add(node);
+
+		if (typeof window !== 'undefined') {
+			const obs = getRevealObserver();
+			obs?.observe(node);
+
+			if (!scrollListenerAttached) {
+				window.addEventListener('scroll', onScrollRaf, { passive: true });
+				scrollListenerAttached = true;
+			}
+
+			requestAnimationFrame(() => checkReveals());
+		}
+
+		return {
+			destroy() {
+				revealNodes.delete(node);
+				revealObserver?.unobserve(node);
+			}
+		};
+	}
+
 	onMount(() => {
 		isLoggedIn = !!getToken();
 
-		// Stagger reveal
+		// Hero reveal shortly after mount
 		setTimeout(() => (heroVisible = true), 100);
-		setTimeout(() => (featuresVisible = true), 600);
 
 		// Typewriter animation loop
 		let typewriterTimer: ReturnType<typeof setTimeout> | null = null;
@@ -56,32 +142,15 @@
 			runTypewriter();
 		}, 3000);
 
-		// Intersection observer for sections
-		let io: IntersectionObserver | null = null;
-		if (typeof IntersectionObserver !== 'undefined') {
-			io = new IntersectionObserver(
-				(entries) => {
-					entries.forEach((e) => {
-						if (e.isIntersecting) {
-							if (e.target.id === 'features-section') featuresVisible = true;
-							if (e.target.id === 'screenshot-section') screenshotVisible = true;
-							if (e.target.id === 'how-section') howVisible = true;
-						}
-					});
-				},
-				{ threshold: 0.15 }
-			);
-
-			const featureEl = document.getElementById('features-section');
-			const screenshotEl = document.getElementById('screenshot-section');
-			const howEl = document.getElementById('how-section');
-			if (featureEl) io.observe(featureEl);
-			if (screenshotEl) io.observe(screenshotEl);
-			if (howEl) io.observe(howEl);
-		}
-
 		return () => {
-			io?.disconnect();
+			revealObserver?.disconnect();
+			revealObserver = null;
+			revealNodes.clear();
+			if (scrollListenerAttached && typeof window !== 'undefined') {
+				window.removeEventListener('scroll', onScrollRaf);
+				scrollListenerAttached = false;
+			}
+			if (rafId !== null) cancelAnimationFrame(rafId);
 			if (typewriterTimer) clearTimeout(typewriterTimer);
 		};
 	});
@@ -98,7 +167,7 @@
 
 <!-- ─── PAGE WRAPPER ─────────────────────────────────────── -->
 <div
-	class="min-h-screen overflow-x-hidden bg-(--bg) font-sans text-(--fg) selection:bg-(--accent)/20 selection:text-(--fg)"
+	class="min-h-screen overflow-x-clip bg-(--bg) font-sans text-(--fg) selection:bg-(--accent)/20 selection:text-(--fg)"
 >
 	<!-- ─── HERO ─────────────────────────────────────────── -->
 	<section
@@ -383,15 +452,13 @@
 	</section>
 
 	<!-- ─── FEATURES ──────────────────────────────────────── -->
-	<section id="features-section" class="relative bg-(--bg) px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
+	<section
+		id="features-section"
+		use:reveal
+		class="relative bg-(--bg) px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
+	>
 		<div class="mx-auto max-w-6xl">
-			<div
-				class="mb-10 text-center transition-all duration-700 sm:mb-14"
-				class:opacity-100={featuresVisible}
-				class:translate-y-0={featuresVisible}
-				class:opacity-0={!featuresVisible}
-				class:translate-y-6={!featuresVisible}
-			>
+			<div class="mb-10 text-center sm:mb-14" use:reveal>
 				<p class="font-mono text-xs font-semibold tracking-widest text-(--accent) uppercase">
 					The Platform
 				</p>
@@ -406,15 +473,10 @@
 				</p>
 			</div>
 
-			<div
-				class="grid grid-cols-1 gap-6 transition-all duration-700 sm:grid-cols-2 lg:grid-cols-4"
-				class:opacity-100={featuresVisible}
-				class:translate-y-0={featuresVisible}
-				class:opacity-0={!featuresVisible}
-				class:translate-y-6={!featuresVisible}
-			>
+			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<!-- Feature 1: Strategy Builder -->
 				<article
+					use:reveal={{ delay: 50 }}
 					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
@@ -459,6 +521,7 @@
 
 				<!-- Feature 2: Backtesting Engine -->
 				<article
+					use:reveal={{ delay: 150 }}
 					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
@@ -510,6 +573,7 @@
 
 				<!-- Feature 3: AI Intelligence -->
 				<article
+					use:reveal={{ delay: 250 }}
 					class="group rounded-2xl bg-[linear-gradient(135deg,#fbaf33_0%,#fe426b_33%,#de98fe_66%,#38c1fb_100%)] p-px transition-all duration-200"
 				>
 					<div
@@ -566,6 +630,7 @@
 
 				<!-- Feature 4: Analytics -->
 				<article
+					use:reveal={{ delay: 350 }}
 					class="group flex flex-col gap-3 rounded-2xl border border-(--border) bg-(--bg-card) p-5 shadow-xs transition-all duration-200 hover:border-(--accent)/40 sm:p-6.5"
 				>
 					<div
@@ -616,16 +681,11 @@
 	<!-- ─── SCREENSHOT PROOF ──────────────────────────────── -->
 	<section
 		id="screenshot-section"
+		use:reveal
 		class="border-t border-(--border) bg-(--bg-card)/40 px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
 	>
 		<div class="mx-auto max-w-6xl">
-			<div
-				class="mb-10 text-center transition-all duration-700 sm:mb-14"
-				class:opacity-100={screenshotVisible}
-				class:translate-y-0={screenshotVisible}
-				class:opacity-0={!screenshotVisible}
-				class:translate-y-6={!screenshotVisible}
-			>
+			<div class="mb-10 text-center sm:mb-14" use:reveal>
 				<p class="font-mono text-xs font-semibold tracking-widest text-(--accent) uppercase">
 					Inside the Platform
 				</p>
@@ -639,15 +699,9 @@
 				</p>
 			</div>
 
-			<div
-				class="grid grid-cols-1 gap-6 transition-all duration-700 md:grid-cols-2"
-				class:opacity-100={screenshotVisible}
-				class:translate-y-0={screenshotVisible}
-				class:opacity-0={!screenshotVisible}
-				class:translate-y-6={!screenshotVisible}
-			>
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 				<!-- Main screenshot -->
-				<div class="max-md:mb-0 md:col-span-2 md:mb-6">
+				<div use:reveal={{ delay: 50 }} class="max-md:mb-0 md:col-span-2 md:mb-6">
 					<div
 						class="overflow-hidden rounded-xl border border-(--border) bg-(--bg-card) shadow-none dark:shadow-2xl"
 					>
@@ -675,7 +729,10 @@
 				</div>
 
 				<!-- Secondary screenshot -->
-				<div class="flex flex-col md:col-span-1 md:col-start-1 md:row-span-2 md:row-start-2">
+				<div
+					use:reveal={{ delay: 100 }}
+					class="flex flex-col md:col-span-1 md:col-start-1 md:row-span-2 md:row-start-2"
+				>
 					<div
 						class="overflow-hidden rounded-xl border border-(--border) bg-(--bg-card) shadow-none dark:shadow-xl"
 					>
@@ -703,7 +760,10 @@
 				</div>
 
 				<!-- AI screenshot -->
-				<div class="flex flex-col md:col-span-1 md:col-start-2 md:row-start-2">
+				<div
+					use:reveal={{ delay: 200 }}
+					class="flex flex-col md:col-span-1 md:col-start-2 md:row-start-2"
+				>
 					<div
 						class="overflow-hidden rounded-xl border border-[rgba(245,200,66,0.2)] bg-(--bg-card) shadow-none dark:shadow-xl"
 					>
@@ -731,7 +791,10 @@
 				</div>
 
 				<!-- AI Summary screenshot -->
-				<div class="flex flex-col md:col-span-1 md:col-start-2 md:row-start-3">
+				<div
+					use:reveal={{ delay: 300 }}
+					class="flex flex-col md:col-span-1 md:col-start-2 md:row-start-3"
+				>
 					<div
 						class="overflow-hidden rounded-xl border border-[rgba(222,152,254,0.25)] bg-(--bg-card) shadow-none dark:shadow-xl"
 					>
@@ -766,16 +829,11 @@
 	<!-- ─── HOW IT WORKS ─────────────────────────────────── -->
 	<section
 		id="how-section"
+		use:reveal
 		class="border-t border-(--border) bg-(--bg) px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
 	>
 		<div class="mx-auto max-w-4xl">
-			<div
-				class="mb-10 text-center transition-all duration-700 sm:mb-14"
-				class:opacity-100={howVisible}
-				class:translate-y-0={howVisible}
-				class:opacity-0={!howVisible}
-				class:translate-y-6={!howVisible}
-			>
+			<div class="mb-10 text-center sm:mb-14" use:reveal>
 				<p class="font-mono text-xs font-semibold tracking-widest text-(--accent) uppercase">
 					The Workflow
 				</p>
@@ -795,7 +853,7 @@
 			</div>
 
 			<ol class="flex flex-col gap-8 sm:gap-10" aria-label="How Trading Lab works">
-				<li class="flex items-start gap-4 sm:gap-8">
+				<li use:reveal={{ delay: 100 }} class="flex items-start gap-4 sm:gap-8">
 					<div
 						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
@@ -812,7 +870,7 @@
 						</p>
 					</div>
 				</li>
-				<li class="flex items-start gap-4 sm:gap-8">
+				<li use:reveal={{ delay: 200 }} class="flex items-start gap-4 sm:gap-8">
 					<div
 						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
@@ -829,7 +887,7 @@
 						</p>
 					</div>
 				</li>
-				<li class="flex items-start gap-4 sm:gap-8">
+				<li use:reveal={{ delay: 300 }} class="flex items-start gap-4 sm:gap-8">
 					<div
 						class="min-w-10 font-mono text-3xl font-extrabold text-(--accent)/35 sm:min-w-14 sm:text-5xl"
 						aria-hidden="true"
@@ -852,15 +910,21 @@
 
 	<!-- ─── CTA FOOTER ───────────────────────────────────── -->
 	<section
+		id="cta-section"
+		use:reveal
 		class="relative flex min-h-[45vh] flex-col items-center justify-center overflow-hidden border-t border-(--border) bg-(--bg-card) px-4 py-16 text-center sm:min-h-[52vh] sm:px-6 sm:py-24"
 	>
 		<!-- Inner Blueprint / Grid Box Frame Pattern -->
 		<div
-			class="pointer-events-none absolute inset-3 border border-(--border) bg-[linear-gradient(to_right,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.035)_1px,transparent_1px)] bg-size-[32px_32px] sm:inset-x-[max(5vw,1.5rem)] sm:inset-y-[12%] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)]"
+			use:reveal
+			class="pointer-events-none absolute inset-3 border border-(--border) bg-[linear-gradient(to_right,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.035)_1px,transparent_1px)] bg-size-[32px_32px] transition-opacity duration-1000 ease-out sm:inset-x-[max(5vw,1.5rem)] sm:inset-y-[12%] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)]"
 			aria-hidden="true"
 		></div>
 
-		<div class="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-5 sm:gap-6">
+		<div
+			use:reveal={{ delay: 100 }}
+			class="relative z-10 mx-auto flex max-w-xl flex-col items-center gap-5 sm:gap-6"
+		>
 			<h2 class="text-2xl font-extrabold tracking-tight text-(--fg) sm:text-4xl lg:text-5xl">
 				Stop Guessing.<br /><em class="font-bold text-(--accent) not-italic">Start Backtesting.</em>
 			</h2>
@@ -904,8 +968,15 @@
 	</section>
 
 	<!-- ─── FOOTER ───────────────────────────────────────── -->
-	<footer class="border-t border-(--border) bg-(--bg) px-4 py-8 sm:px-6">
-		<div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+	<footer
+		id="footer-section"
+		use:reveal
+		class="border-t border-(--border) bg-(--bg) px-4 py-8 sm:px-6"
+	>
+		<div
+			use:reveal={{ delay: 50 }}
+			class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"
+		>
 			<div class="flex items-center">
 				<img
 					src="/logo-dark.svg"
@@ -996,6 +1067,20 @@
 		}
 	}
 
+	:global(.reveal-on-scroll) {
+		opacity: 0;
+		transform: translateY(var(--reveal-y, 28px));
+		transition-property: opacity, transform !important;
+		transition-duration: 0.65s !important;
+		transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+		will-change: opacity, transform;
+	}
+
+	:global(.reveal-on-scroll.is-revealed) {
+		opacity: 1 !important;
+		transform: translateY(0) !important;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.chart-line {
 			stroke-dashoffset: 0 !important;
@@ -1012,6 +1097,11 @@
 		.chart-tracker-line {
 			opacity: 0.35 !important;
 			animation: none !important;
+		}
+		:global(.reveal-on-scroll) {
+			opacity: 1 !important;
+			transform: none !important;
+			transition: none !important;
 		}
 	}
 </style>
