@@ -92,4 +92,21 @@ describe('Landing Page (+page.svelte)', () => {
 		expect(images).toContain('/ai-summary-light.png');
 		expect(images).toContain('/ai-summary-dark.png');
 	});
+
+	it('renders hero chart widget with animated paths and pulse dots at end of chart data', () => {
+		const { container } = render(LandingPage);
+		const chartLine = container.querySelector('.chart-line');
+		expect(chartLine).toBeInTheDocument();
+		expect(chartLine).toHaveAttribute('pathLength', '1000');
+
+		const chartArea = container.querySelector('.chart-area');
+		expect(chartArea).toBeInTheDocument();
+
+		const pulseDotGroup = container.querySelector('.chart-pulse-dot');
+		expect(pulseDotGroup).toBeInTheDocument();
+		expect(pulseDotGroup).toHaveAttribute('transform', 'translate(580, 42)');
+
+		const pulseCircles = pulseDotGroup?.querySelectorAll('circle');
+		expect(pulseCircles && pulseCircles.length).toBeGreaterThanOrEqual(4);
+	});
 });
