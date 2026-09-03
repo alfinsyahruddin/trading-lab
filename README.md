@@ -1,27 +1,10 @@
 # Trading Lab
 
-> Everyone built a trading strategy, but no one ever backtested it!
+> Preview: [https://trading-lab-alphabyte.vercel.app](https://trading-lab-alphabyte.vercel.app)
 
-Trading Lab is a full-stack platform built with a high-performance **Rust backend** (Actix-web, SQLx, Redis) and a modern **SvelteKit 5 single-page application** (CSR, Bun, Tailwind CSS v4, TradingView lightweight-charts). It enables Indonesia Stock Exchange (IDX) traders to define complex multi-condition trading strategies, backtest them against Indonesian historical market data, analyze detailed risk and performance metrics, and share winning strategies with the community.
+![Trading Lab](./frontend/static/backtest-dark.png)
 
----
-
-## Landing Page
-
-The public landing page (`/`) is a cinematic, parallax-enabled marketing surface with:
-
-- **Visual world**: Deep-space financial observatory — cosmic void background, luminous orbital arc illustration with IDX ticker constellations, WebGL-like CSS shader starfield canvas, and nebula atmosphere.
-- **Typography**: [Barlow Condensed](https://fonts.google.com/specimen/Barlow+Condensed) (display / headlines) + [Figtree](https://fonts.google.com/specimen/Figtree) (body / UI copy). Neither is Montserrat, preserving a distinct landing identity from the app's dashboard.
-- **Sections**: Hero → Feature highlights (4 cards) → App screenshots → 3-step workflow → Community leaderboard preview → CTA → Footer.
-- **Themes**: Dark mode only — immersing visitors in the deep cosmic void aesthetic without distractions.
-- **Motion**: Parallax scroll layers on hero orbital image, twinkling starfield canvas animation, staggered section reveals via IntersectionObserver, animated orbital rings on the CTA section, and reduced-motion fallback.
-- **Static assets** (in `frontend/static/`):
-  - `landing-hero.jpg` — IDX orbital arc constellation illustration
-  - `landing-nebula.jpg` — Deep space nebula background
-  - `landing-ai.jpg` — AI neural network illustration
-  - `backtest-dark.png`, `backtest-light.png`, `dashboard-dark.png`, `dashboard-light.png`, `ai-suggestions-dark.png`, `ai-suggestions-light.png`, `ai-summary-dark.png`, `ai-summary-light.png` — Theme-adaptive app UI screenshots
-
----
+Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX) traders. It enables traders to easily build custom multi-condition strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
 
 ## Features
 
@@ -31,7 +14,7 @@ The public landing page (`/`) is a cinematic, parallax-enabled marketing surface
 - **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
 - **One-Click Strategy Duplication**: Easily duplicate existing strategies with automated unique naming (`{Name} (Copy)`) to rapidly iterate on rule variations.
 
-### 🤖 AI-Powered Trading Intelligence (Google Gemini)
+### 🤖 AI-Powered Trading Intelligence
 - **AI Strategy Refinement**: Intercepts strategy creation and modification to analyze Take-Profit, Stop-Loss, holding duration, and conditional screening rules against IDX market dynamics, offering one-click "Accept" or "Ignore" suggestions to optimize risk-reward parameters and rule conditions (adding variables, modifying thresholds).
 - **AI Executive Summary**: Generates a structured, 5-point qualitative breakdown on completed backtests (Market Alignment, Risk-Adjusted Efficiency, Profit Drivers, Drawdown Exposure, and Iteration Advice).
 - **Persistent AI Caching**: AI summaries are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
@@ -77,7 +60,7 @@ The public landing page (`/`) is a cinematic, parallax-enabled marketing surface
 - **Security**: Argon2id (`argon2`), JWT (`jsonwebtoken`)
 - **Validation**: `validator` crate
 
-### Frontend (SvelteKit & Svelte 5)
+### Frontend (Svelte)
 - **Framework**: [SvelteKit 2](https://kit.svelte.dev/) with **Svelte 5 Runes** (`$state`, `$derived`, `$props`, `$effect`)
 - **Mode**: Pure Client-Side Rendering (CSR / SPA)
 - **Runtime & Package Manager**: [Bun](https://bun.sh/)
@@ -235,7 +218,7 @@ A default administrator account is seeded upon initial database migration:
 
 ## Development & Verification Commands
 
-### Backend (Rust)
+### Backend
 ```sh
 cd backend
 
@@ -249,7 +232,7 @@ cargo test
 cargo clippy --all-targets --all-features --locked -- -D warnings
 ```
 
-### Frontend (SvelteKit / Bun)
+### Frontend
 ```sh
 cd frontend
 
