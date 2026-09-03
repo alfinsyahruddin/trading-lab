@@ -209,6 +209,16 @@ textarea:disabled {
 	}
 }
 
+@keyframes cursorBlink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+}
+
 /* Micro-animation utility classes */
 .animate-fade-in {
 	animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -229,6 +239,10 @@ textarea:disabled {
 
 .animate-float {
 	animation: floatGentle 3s ease-in-out infinite;
+}
+
+.animate-cursor-blink {
+	animation: cursorBlink 0.9s ease-in-out infinite;
 }
 
 .btn-interactive {

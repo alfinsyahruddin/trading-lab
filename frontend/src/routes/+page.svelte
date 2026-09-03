@@ -10,12 +10,51 @@
 	let screenshotVisible = $state(false);
 	let howVisible = $state(false);
 
+	const typewriterWords = ['trading strategy', 'methodology', 'stock screener'];
+	let displayedWord = $state(typewriterWords[0]);
+
 	onMount(() => {
 		isLoggedIn = !!getToken();
 
 		// Stagger reveal
 		setTimeout(() => (heroVisible = true), 100);
 		setTimeout(() => (featuresVisible = true), 600);
+
+		// Typewriter animation loop
+		let typewriterTimer: ReturnType<typeof setTimeout> | null = null;
+		let wordIdx = 0;
+		let charIdx = typewriterWords[0].length;
+		let deleting = false;
+
+		function runTypewriter() {
+			const currentTarget = typewriterWords[wordIdx];
+
+			if (deleting) {
+				charIdx--;
+				displayedWord = currentTarget.slice(0, charIdx);
+				if (charIdx <= 0) {
+					deleting = false;
+					wordIdx = (wordIdx + 1) % typewriterWords.length;
+					typewriterTimer = setTimeout(runTypewriter, 250);
+				} else {
+					typewriterTimer = setTimeout(runTypewriter, 35);
+				}
+			} else {
+				charIdx++;
+				displayedWord = currentTarget.slice(0, charIdx);
+				if (charIdx >= currentTarget.length) {
+					deleting = true;
+					typewriterTimer = setTimeout(runTypewriter, 3000);
+				} else {
+					typewriterTimer = setTimeout(runTypewriter, 65);
+				}
+			}
+		}
+
+		typewriterTimer = setTimeout(() => {
+			deleting = true;
+			runTypewriter();
+		}, 3000);
 
 		// Intersection observer for sections
 		let io: IntersectionObserver | null = null;
@@ -43,6 +82,7 @@
 
 		return () => {
 			io?.disconnect();
+			if (typewriterTimer) clearTimeout(typewriterTimer);
 		};
 	});
 </script>
@@ -150,8 +190,11 @@
 
 			<!-- Slogan -->
 			<h1 class="text-3xl font-extrabold tracking-tight text-(--fg) sm:text-5xl lg:text-6xl">
-				Everyone built a<br />trading strategy, but<br /><em
-					class="font-bold text-(--accent) not-italic">no one ever<br />backtested it.</em
+				Everyone built a<br /><span>{displayedWord}</span><span
+					class="animate-cursor-blink ml-1 inline-block h-[0.82em] w-[2.5px] bg-(--accent) align-baseline sm:w-[3.5px]"
+					aria-hidden="true"
+				></span>, but<br /><em class="font-bold text-(--accent) not-italic"
+					>no one ever<br />backtested it.</em
 				>
 			</h1>
 
