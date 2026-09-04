@@ -23,6 +23,7 @@ pub struct BacktestJobRecord {
     pub year: i32,
     pub initial_cash: f64,
     pub max_holding_stocks: i32,
+    pub max_stocks: i32,
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
@@ -106,6 +107,7 @@ pub struct BacktestJobResponse {
     pub year: i32,
     pub initial_cash: f64,
     pub max_holding_stocks: i32,
+    pub max_stocks: i32,
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
@@ -192,6 +194,10 @@ pub struct TradeHistoryResponse {
     pub sell_date: NaiveDate,
 }
 
+const fn default_max_stocks() -> i32 {
+    12
+}
+
 #[derive(Clone, Debug, Deserialize, Validate)]
 pub struct CreateBacktestJobRequest {
     pub strategy_id: Uuid,
@@ -204,6 +210,9 @@ pub struct CreateBacktestJobRequest {
     pub initial_cash: f64,
     #[validate(range(min = 1, max = 50))]
     pub max_holding_stocks: i32,
+    #[serde(default = "default_max_stocks")]
+    #[validate(range(min = 1, max = 100))]
+    pub max_stocks: i32,
     pub backtest_duration_months: i32,
     #[validate(range(min = 0.0, max = 10.0))]
     pub buy_fee_percentage: f64,
@@ -298,6 +307,7 @@ mod tests {
             year: 2024,
             initial_cash: 100_000_000.0,
             max_holding_stocks: 3,
+            max_stocks: 12,
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,
@@ -327,6 +337,12 @@ mod tests {
             ..valid.clone()
         };
         assert!(invalid_holding.validate().is_err());
+
+        let invalid_max_stocks = CreateBacktestJobRequest {
+            max_stocks: 0,
+            ..valid.clone()
+        };
+        assert!(invalid_max_stocks.validate().is_err());
 
         let invalid_fees = CreateBacktestJobRequest {
             buy_fee_percentage: -1.0,
@@ -385,6 +401,7 @@ mod tests {
             year: 2024,
             initial_cash: 100_000_000.0,
             max_holding_stocks: 3,
+            max_stocks: 12,
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,

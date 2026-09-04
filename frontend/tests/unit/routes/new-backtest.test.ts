@@ -59,8 +59,9 @@ describe('NewBacktestPage', () => {
 		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
 
 		// Change duration to 1 Month
-		const durationSelect = screen.getByLabelText(/^Backtest Duration/i);
-		await fireEvent.change(durationSelect, { target: { value: '1' } });
+		const durationTrigger = screen.getByLabelText(/^Backtest Duration/i);
+		await fireEvent.click(durationTrigger);
+		await fireEvent.click(screen.getByRole('option', { name: /1 Month/i }));
 
 		expect(screen.getByText('1 Jan 2026 - 31 Jan 2026')).toBeInTheDocument();
 
@@ -69,5 +70,27 @@ describe('NewBacktestPage', () => {
 		await fireEvent.click(year2023Btn);
 
 		expect(screen.getByText('1 Jan 2024 - 31 Jan 2024')).toBeInTheDocument();
+	});
+
+	it('renders Max Stocks input with default value 12 and submits max_stocks in payload', async () => {
+		render(NewBacktestPage);
+
+		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
+
+		const maxStocksInput = screen.getByLabelText(/^Max Stocks/i) as HTMLInputElement;
+		expect(maxStocksInput).toBeInTheDocument();
+		expect(maxStocksInput.value).toBe('12');
+
+		await fireEvent.input(maxStocksInput, { target: { value: '20' } });
+		expect(maxStocksInput.value).toBe('20');
+
+		await fireEvent.click(screen.getByRole('button', { name: /run backtest/i }));
+
+		expect(api.createBacktest).toHaveBeenCalledWith(
+			'valid-token',
+			expect.objectContaining({
+				max_stocks: 20
+			})
+		);
 	});
 });

@@ -83,14 +83,17 @@
 		background: conic-gradient(
 			from 0deg at 50% 50%,
 			transparent 0deg,
-			transparent 220deg,
-			#fbaf33 260deg,
-			#fe426b 295deg,
-			#de98fe 330deg,
-			#38c1fb 360deg
+			transparent 210deg,
+			rgba(251, 175, 51, 0) 220deg,
+			#fbaf33 255deg,
+			#fe426b 285deg,
+			#de98fe 315deg,
+			#38c1fb 340deg,
+			rgba(56, 193, 251, 0) 360deg
 		);
 		animation: spinBeam 6s linear infinite;
 		opacity: 0.85;
+		filter: blur(1.5px);
 	}
 
 	.ai-summary-inner {

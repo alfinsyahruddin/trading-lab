@@ -1,0 +1,1 @@
+ALTER TABLE backtest_jobs ADD COLUMN max_stocks INTEGER NOT NULL DEFAULT 12;

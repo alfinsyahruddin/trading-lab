@@ -27,7 +27,11 @@ pub struct DailyTransaction {
 
 #[async_trait]
 pub trait SectorsClientTrait: Send + Sync {
-    async fn screener(&self, where_query: &str) -> Result<Vec<ScreenerCompany>, AppError>;
+    async fn screener(
+        &self,
+        where_query: &str,
+        limit: i32,
+    ) -> Result<Vec<ScreenerCompany>, AppError>;
     async fn daily_transactions(
         &self,
         symbol: &str,
@@ -54,8 +58,12 @@ impl SectorsClient {
 
 #[async_trait]
 impl SectorsClientTrait for SectorsClient {
-    async fn screener(&self, where_query: &str) -> Result<Vec<ScreenerCompany>, AppError> {
-        let key = format!("sectors:screener:{}", where_query);
+    async fn screener(
+        &self,
+        where_query: &str,
+        limit: i32,
+    ) -> Result<Vec<ScreenerCompany>, AppError> {
+        let key = format!("sectors:screener:{}:{}", where_query, limit);
         let mut redis = self.redis.clone();
 
         let cached: Option<String> = redis::cmd("GET").arg(&key).query_async(&mut redis).await?;
@@ -64,9 +72,10 @@ impl SectorsClientTrait for SectorsClient {
         }
 
         let url = "https://api.sectors.app/v2/companies/";
+        let limit_str = limit.to_string();
         eprintln!(
-            "[SectorsClient] Cache miss, hitting Sectors API: {}?where={}&limit=12&order_by=symbol",
-            url, where_query
+            "[SectorsClient] Cache miss, hitting Sectors API: {}?where={}&limit={}&order_by=symbol",
+            url, where_query, limit_str
         );
 
         let mut retries = 0;
@@ -76,7 +85,7 @@ impl SectorsClientTrait for SectorsClient {
                 .get(url)
                 .query(&[
                     ("where", where_query),
-                    ("limit", "12"),
+                    ("limit", &limit_str),
                     ("order_by", "symbol"),
                 ])
                 .header("Authorization", &self.api_key)

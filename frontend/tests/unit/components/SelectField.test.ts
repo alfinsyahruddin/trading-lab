@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import SelectField from '$lib/components/SelectField.svelte';
 
 describe('SelectField', () => {
@@ -19,10 +19,20 @@ describe('SelectField', () => {
 		expect(screen.getByText('Choose Strategy')).toBeInTheDocument();
 	});
 
-	it('renders all options', () => {
+	it('opens dropdown and displays searchable options when clicked', async () => {
 		render(SelectField, { props: { options: sampleOptions } });
-		expect(screen.getByRole('combobox')).toBeInTheDocument();
+		const trigger = screen.getByRole('combobox');
+		expect(trigger).toBeInTheDocument();
+
+		await fireEvent.click(trigger);
+		expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
 		expect(screen.getByText('Option 1')).toBeInTheDocument();
+		expect(screen.getByText('Option 2')).toBeInTheDocument();
+
+		// Search filtering
+		const searchInput = screen.getByPlaceholderText('Search...');
+		await fireEvent.input(searchInput, { target: { value: 'Option 2' } });
+		expect(screen.queryByText('Option 1')).not.toBeInTheDocument();
 		expect(screen.getByText('Option 2')).toBeInTheDocument();
 	});
 
@@ -33,7 +43,7 @@ describe('SelectField', () => {
 
 	it('renders as disabled when disabled prop is true', () => {
 		render(SelectField, { props: { disabled: true, options: sampleOptions } });
-		const select = screen.getByRole('combobox') as HTMLSelectElement;
+		const select = screen.getByRole('combobox') as HTMLButtonElement;
 		expect(select).toBeDisabled();
 		expect(select.style.backgroundColor).toContain('var(--bg-input-disabled');
 	});
@@ -42,5 +52,31 @@ describe('SelectField', () => {
 		render(SelectField, { props: { label: 'Category', required: true, options: sampleOptions } });
 		const label = screen.getByText('Category', { exact: false }).closest('label');
 		expect(label?.textContent).toContain('*');
+	});
+
+	it('applies z-50 elevation when open and triggers onchange callback', async () => {
+		let selected = '';
+		const { container } = render(SelectField, {
+			props: {
+				options: sampleOptions,
+				onchange: (val) => {
+					selected = val;
+				}
+			}
+		});
+
+		const wrapper = container.firstElementChild as HTMLElement;
+		expect(wrapper.className).toContain('z-0');
+
+		const trigger = screen.getByRole('combobox');
+		await fireEvent.click(trigger);
+
+		expect(wrapper.className).toContain('z-50');
+
+		const option2 = screen.getByRole('option', { name: 'Option 2' });
+		await fireEvent.click(option2);
+
+		expect(selected).toBe('opt2');
+		expect(wrapper.className).toContain('z-0');
 	});
 });

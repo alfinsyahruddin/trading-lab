@@ -48,6 +48,15 @@ pub struct RegisterRequest {
     pub email: String,
     #[validate(length(min = 8, max = 128))]
     pub password: String,
+    pub captcha_id: Uuid,
+    #[validate(length(min = 1, max = 32))]
+    pub captcha_code: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CaptchaResponse {
+    pub id: Uuid,
+    pub image: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]

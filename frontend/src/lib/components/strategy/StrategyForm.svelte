@@ -386,10 +386,10 @@
 		/>
 	{/if}
 
-	<!-- Form Action Bar -->
+	<!-- Form Action Bar (Not floating) -->
 	<div
-		class="sticky bottom-0 z-30 -mx-4 -mb-6 flex flex-col-reverse gap-2.5 border-t p-4 backdrop-blur-md sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:rounded-2xl"
-		style="background-color: var(--bg-card); border-color: var(--border);"
+		class="flex flex-col-reverse gap-2.5 border-t pt-5 sm:flex-row sm:items-center sm:justify-end sm:gap-3"
+		style="border-color: var(--border);"
 	>
 		<button
 			type="button"

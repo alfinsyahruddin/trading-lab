@@ -6,6 +6,7 @@
 		type StrategyVariableOption
 	} from '$lib/constants';
 	import type { StrategyRuleCondition, StrategyRuleGroup } from '$lib/types';
+	import SelectField from '$lib/components/SelectField.svelte';
 	import VariablePickerModal from './VariablePickerModal.svelte';
 
 	let {
@@ -13,6 +14,18 @@
 	}: {
 		groups?: StrategyRuleGroup[];
 	} = $props();
+
+	const operatorOptions = STRATEGY_OPERATORS.map((op) => ({
+		value: op.value,
+		label: op.display
+	}));
+
+	const isValueOptions = [
+		{ value: 'null', label: 'null' },
+		{ value: 'not null', label: 'not null' },
+		{ value: 'true', label: 'true' },
+		{ value: 'false', label: 'false' }
+	];
 
 	// Modal state for variable picker
 	let modalOpen = $state(false);
@@ -228,55 +241,40 @@
 							<!-- Operator + Value Input + Remove Button Row on Mobile (Inline on Desktop) -->
 							<div class="flex w-full min-w-0 flex-1 items-center gap-2 sm:w-auto">
 								<!-- 2. Operator Selector Dropdown -->
-								<div class="relative min-w-0 flex-1 sm:w-48 sm:flex-initial lg:w-56">
-									<select
+								<div class="min-w-0 flex-1 sm:w-48 sm:flex-initial lg:w-56">
+									<SelectField
 										value={condition.operator}
-										onchange={(e) => (condition.operator = e.currentTarget.value)}
-										class="font-500 h-10 w-full appearance-none truncate rounded-xl border pr-8 pl-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
-										style="
-											background-color: var(--bg-card);
-											border-color: var(--border-strong);
-											color: var(--fg);
-										"
-									>
-										{#each STRATEGY_OPERATORS as op}
-											<option value={op.value}>{op.display}</option>
-										{/each}
-									</select>
-									<div
-										class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5"
-										style="color: var(--fg-muted);"
-									>
-										<Icon icon="lucide:chevron-down" width="16" height="16" />
-									</div>
+										options={operatorOptions}
+										placeholder="Operator"
+										buttonClass="h-10 text-xs sm:text-sm rounded-xl"
+										buttonStyle="background-color: var(--bg-card);"
+										onchange={(val) => {
+											condition.operator = val;
+											if (
+												val === 'is' &&
+												!['null', 'not null', 'true', 'false'].includes(condition.value)
+											) {
+												condition.value = 'null';
+											}
+										}}
+									/>
 								</div>
 
 								<!-- 3. Value Input (Adapts based on operator) -->
 								<div class="flex min-w-0 flex-1 items-center">
 									{#if condition.operator === 'is'}
 										<!-- Selector for null / true / false -->
-										<div class="relative w-full min-w-0">
-											<select
+										<div class="w-full min-w-0">
+											<SelectField
 												value={condition.value}
-												onchange={(e) => (condition.value = e.currentTarget.value)}
-												class="font-500 h-10 w-full appearance-none rounded-xl border pr-8 pl-3 text-xs transition-colors duration-150 outline-none sm:text-sm"
-												style="
-													background-color: var(--bg-card);
-													border-color: var(--border-strong);
-													color: var(--fg);
-												"
-											>
-												<option value="null">null</option>
-												<option value="not null">not null</option>
-												<option value="true">true</option>
-												<option value="false">false</option>
-											</select>
-											<div
-												class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5"
-												style="color: var(--fg-muted);"
-											>
-												<Icon icon="lucide:chevron-down" width="16" height="16" />
-											</div>
+												options={isValueOptions}
+												placeholder="Select value"
+												buttonClass="h-10 text-xs sm:text-sm rounded-xl"
+												buttonStyle="background-color: var(--bg-card);"
+												onchange={(val) => {
+													condition.value = val;
+												}}
+											/>
 										</div>
 									{:else if condition.operator === 'in'}
 										<input

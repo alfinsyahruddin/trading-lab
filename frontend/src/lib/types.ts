@@ -105,6 +105,7 @@ export interface BacktestJob {
 	year: number;
 	initial_cash: number;
 	max_holding_stocks: number;
+	max_stocks?: number;
 	backtest_duration_months: number;
 	buy_fee_percentage: number;
 	sell_fee_percentage: number;
@@ -191,10 +192,16 @@ export interface CreateBacktestPayload {
 	year: number;
 	initial_cash: number;
 	max_holding_stocks: number;
+	max_stocks?: number;
 	backtest_duration_months: number;
 	buy_fee_percentage: number;
 	sell_fee_percentage: number;
 	is_public?: boolean;
+}
+
+export interface CaptchaResponse {
+	id: string;
+	image: string;
 }
 
 export interface UpdateBacktestPayload {

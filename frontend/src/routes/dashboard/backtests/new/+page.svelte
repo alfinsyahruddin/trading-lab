@@ -21,6 +21,7 @@
 	let namePristine = $state(true);
 	let formInitialCash = $state('100000000');
 	let formMaxHoldingStocks = $state('4');
+	let formMaxStocks = $state('12');
 	let formDuration = $state('12');
 	let formBuyFee = $state('0.15');
 	let formSellFee = $state('0.25');
@@ -99,6 +100,12 @@
 			return;
 		}
 
+		const maxStocksNum = Number(formMaxStocks);
+		if (isNaN(maxStocksNum) || maxStocksNum < 1 || maxStocksNum > 100) {
+			toast.error('Max stocks must be between 1 and 100.');
+			return;
+		}
+
 		const buyFeeNum = Number(formBuyFee);
 		if (isNaN(buyFeeNum) || buyFeeNum < 0 || buyFeeNum > 10) {
 			toast.error('Buy fee must be between 0% and 10%.');
@@ -122,6 +129,7 @@
 				year: formYear,
 				initial_cash: initialCashNum,
 				max_holding_stocks: maxHoldingNum,
+				max_stocks: maxStocksNum,
 				backtest_duration_months: Number(formDuration),
 				buy_fee_percentage: buyFeeNum,
 				sell_fee_percentage: sellFeeNum,
@@ -167,12 +175,28 @@
 		style="background-color: var(--bg-card); border-color: var(--border);"
 	>
 		<form onsubmit={handleSubmit} class="flex flex-col gap-5">
-			<SelectField
-				label="Trading Strategy"
-				bind:value={formStrategyId}
-				options={strategies.map((s) => ({ value: s.id, label: s.name }))}
-				required
-			/>
+			<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+				<SelectField
+					label="Trading Strategy"
+					bind:value={formStrategyId}
+					options={strategies.map((s) => ({ value: s.id, label: s.name }))}
+					required
+				/>
+
+				<div class="flex flex-col gap-1">
+					<TextField
+						label="Max Stocks"
+						type="number"
+						bind:value={formMaxStocks}
+						min="1"
+						max="100"
+						required
+					/>
+					<span class="font-500 text-xs" style="color: var(--fg-muted)">
+						Screener candidate limit (default: 12)
+					</span>
+				</div>
+			</div>
 
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
 				<div class="flex flex-1 flex-col gap-1.5">

@@ -68,6 +68,7 @@ impl BacktestService {
                 year: job.year,
                 initial_cash: job.initial_cash,
                 max_holding_stocks: job.max_holding_stocks,
+                max_stocks: job.max_stocks,
                 backtest_duration_months: job.backtest_duration_months,
                 buy_fee_percentage: job.buy_fee_percentage,
                 sell_fee_percentage: job.sell_fee_percentage,
@@ -144,6 +145,7 @@ impl BacktestService {
             year: job.year,
             initial_cash: job.initial_cash,
             max_holding_stocks: job.max_holding_stocks,
+            max_stocks: job.max_stocks,
             backtest_duration_months: job.backtest_duration_months,
             buy_fee_percentage: job.buy_fee_percentage,
             sell_fee_percentage: job.sell_fee_percentage,
@@ -243,6 +245,7 @@ impl BacktestService {
             year: req.year,
             initial_cash: req.initial_cash,
             max_holding_stocks: req.max_holding_stocks,
+            max_stocks: req.max_stocks,
             backtest_duration_months: req.backtest_duration_months,
             buy_fee_percentage: req.buy_fee_percentage,
             sell_fee_percentage: req.sell_fee_percentage,
@@ -289,6 +292,7 @@ impl BacktestService {
             year: job.year,
             initial_cash: job.initial_cash,
             max_holding_stocks: job.max_holding_stocks,
+            max_stocks: job.max_stocks,
             backtest_duration_months: job.backtest_duration_months,
             buy_fee_percentage: job.buy_fee_percentage,
             sell_fee_percentage: job.sell_fee_percentage,
@@ -333,7 +337,7 @@ async fn run_backtest(
     let stocks = if where_query.is_empty() {
         return Err(AppError::bad_request("Screener query is empty"));
     } else {
-        sectors.screener(&where_query).await?
+        sectors.screener(&where_query, req.max_stocks).await?
     };
 
     if stocks.is_empty() {
@@ -620,16 +624,21 @@ fn simulate_backtest(
                 let sl_price = pos.buy_price * (1.0 - sl_percentage / 100.0);
 
                 let mut exit_reason = None;
+                let mut sell_price = current_close;
+
                 if current_close >= tp_price {
                     exit_reason = Some("TAKE_PROFIT");
+                    sell_price = tp_price;
                 } else if current_close <= sl_price {
                     exit_reason = Some("STOP_LOSS");
+                    sell_price = sl_price;
                 } else if hold_days >= (max_holding_period_days as i64) {
                     exit_reason = Some("MAX_HOLDING_TIME");
+                    sell_price = current_close;
                 }
 
                 if let Some(reason) = exit_reason {
-                    let sell_value = (pos.lots as f64) * 100.0 * current_close;
+                    let sell_value = (pos.lots as f64) * 100.0 * sell_price;
                     let sell_fee_amount = sell_value * sell_fee_percentage / 100.0;
                     let net_sell = sell_value - sell_fee_amount;
                     let pnl = net_sell - (pos.buy_value + pos.buy_fee);
@@ -648,7 +657,7 @@ fn simulate_backtest(
                         lot: pos.lots,
                         buy_price: pos.buy_price,
                         buy_value: pos.buy_value,
-                        sell_price: current_close,
+                        sell_price,
                         sell_value,
                         buy_fee: pos.buy_fee,
                         sell_fee: sell_fee_amount,
@@ -1102,6 +1111,65 @@ mod tests {
                 .abs()
                 < 1e-6
         );
+    }
+
+    #[test]
+    fn should_strictly_use_sl_and_tp_percentages_for_exit_price() {
+        let job_id = Uuid::new_v4();
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+
+        // 1. Test Stop Loss strictly at -5% when day dropped -6% (to 940)
+        let stock_sl = StockData {
+            code: "BBCA".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000), // Buy at 1000
+                (date2, 940.0, 10000),  // Close at 940 (-6%), triggers SL (-5% = 950)
+            ],
+        };
+
+        let (_, _, trades_sl) = simulate_backtest(
+            job_id,
+            &[stock_sl],
+            10_000_000.0,
+            1,
+            10.0, // 10% TP
+            5.0,  // 5% SL
+            10,
+            0.0, // 0 fee for exact math test
+            0.0,
+        );
+
+        assert_eq!(trades_sl.len(), 1);
+        assert_eq!(trades_sl[0].exit_reason, "STOP_LOSS");
+        assert_eq!(trades_sl[0].sell_price, 950.0);
+        assert_eq!(trades_sl[0].pnl_percentage, -5.0);
+
+        // 2. Test Take Profit strictly at +10% when day rose +12% (to 1120)
+        let stock_tp = StockData {
+            code: "BBRI".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000), // Buy at 1000
+                (date2, 1120.0, 10000), // Close at 1120 (+12%), triggers TP (+10% = 1100)
+            ],
+        };
+
+        let (_, _, trades_tp) = simulate_backtest(
+            job_id,
+            &[stock_tp],
+            10_000_000.0,
+            1,
+            10.0, // 10% TP
+            5.0,  // 5% SL
+            10,
+            0.0,
+            0.0,
+        );
+
+        assert_eq!(trades_tp.len(), 1);
+        assert_eq!(trades_tp[0].exit_reason, "TAKE_PROFIT");
+        assert_eq!(trades_tp[0].sell_price, 1100.0);
+        assert_eq!(trades_tp[0].pnl_percentage, 10.0);
     }
 
     struct MockLLM;

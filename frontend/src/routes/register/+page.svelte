@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import TextField from '$lib/components/TextField.svelte';
 	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
-	import { register } from '$lib/api';
+	import { register, getCaptcha } from '$lib/api';
 	import { ApiError } from '$lib/api';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import { isComingSoon } from '$lib/helpers/config';
@@ -12,6 +13,10 @@
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
+	let captchaId = $state('');
+	let captchaImage = $state('');
+	let captchaCode = $state('');
+	let captchaLoading = $state(false);
 	let loading = $state(false);
 	let error = $state('');
 	let showComingSoonModal = $state(false);
@@ -21,12 +26,33 @@
 	let emailError = $state('');
 	let passwordError = $state('');
 	let confirmError = $state('');
+	let captchaError = $state('');
+
+	async function loadCaptcha() {
+		captchaLoading = true;
+		try {
+			const res = await getCaptcha();
+			captchaId = res.id;
+			captchaImage = res.image;
+			captchaCode = '';
+			captchaError = '';
+		} catch {
+			toast.error('Failed to load captcha. Please refresh.');
+		} finally {
+			captchaLoading = false;
+		}
+	}
+
+	onMount(() => {
+		loadCaptcha();
+	});
 
 	function validate(): boolean {
 		nameError = '';
 		emailError = '';
 		passwordError = '';
 		confirmError = '';
+		captchaError = '';
 		let valid = true;
 
 		if (!name.trim()) {
@@ -45,6 +71,10 @@
 			confirmError = 'Passwords do not match.';
 			valid = false;
 		}
+		if (!captchaCode.trim()) {
+			captchaError = 'Captcha code is required.';
+			valid = false;
+		}
 		return valid;
 	}
 
@@ -61,7 +91,13 @@
 
 		loading = true;
 		try {
-			await register(name.trim(), email.trim().toLowerCase(), password);
+			await register(
+				name.trim(),
+				email.trim().toLowerCase(),
+				password,
+				captchaId,
+				captchaCode.trim()
+			);
 			toast.success('Account created! Please sign in.');
 			await goto('/login');
 		} catch (err) {
@@ -70,6 +106,7 @@
 			} else {
 				error = 'An unexpected error occurred. Please try again.';
 			}
+			await loadCaptcha();
 		} finally {
 			loading = false;
 		}
@@ -148,6 +185,58 @@
 					error={confirmError}
 					required
 				/>
+
+				<!-- Captcha Verification -->
+				<div class="flex flex-col gap-1.5">
+					<span class="font-500 text-sm" style="color: var(--fg-muted)">
+						Security Check <span style="color: var(--danger)">*</span>
+					</span>
+					<div class="flex items-center gap-2">
+						<div
+							class="flex h-12 flex-1 items-center justify-center overflow-hidden rounded-lg border bg-white/5"
+							style="border-color: var(--border);"
+						>
+							{#if captchaLoading}
+								<Icon
+									icon="lucide:loader-2"
+									class="text-accent animate-spin"
+									width="20"
+									height="20"
+								/>
+							{:else if captchaImage}
+								<img
+									src={captchaImage}
+									alt="Security Captcha"
+									class="size-full object-contain select-none"
+								/>
+							{:else}
+								<span class="text-xs" style="color: var(--fg-muted)">Captcha unavailable</span>
+							{/if}
+						</div>
+						<button
+							type="button"
+							onclick={loadCaptcha}
+							disabled={captchaLoading}
+							class="btn-interactive flex size-12 shrink-0 items-center justify-center rounded-lg border transition-colors hover:border-(--accent) hover:text-(--accent)"
+							style="border-color: var(--border); color: var(--fg-muted);"
+							title="Refresh Captcha"
+							aria-label="Refresh Captcha"
+						>
+							<Icon
+								icon="lucide:refresh-cw"
+								class={captchaLoading ? 'animate-spin' : ''}
+								width="18"
+								height="18"
+							/>
+						</button>
+					</div>
+					<TextField
+						placeholder="Enter code above"
+						bind:value={captchaCode}
+						error={captchaError}
+						required
+					/>
+				</div>
 
 				{#if error}
 					<div

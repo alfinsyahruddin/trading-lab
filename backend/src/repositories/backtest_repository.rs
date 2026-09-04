@@ -25,6 +25,7 @@ pub struct CreateBacktestParams {
     pub year: i32,
     pub initial_cash: f64,
     pub max_holding_stocks: i32,
+    pub max_stocks: i32,
     pub backtest_duration_months: i32,
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
@@ -59,8 +60,8 @@ impl BacktestRepository {
             r#"
             INSERT INTO backtest_jobs (
                 user_id, strategy_id, strategy_name, name, year, initial_cash, max_holding_stocks,
-                backtest_duration_months, buy_fee_percentage, sell_fee_percentage, is_public, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                max_stocks, backtest_duration_months, buy_fee_percentage, sell_fee_percentage, is_public, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *
             "#,
         )
@@ -71,6 +72,7 @@ impl BacktestRepository {
         .bind(params.year)
         .bind(params.initial_cash)
         .bind(params.max_holding_stocks)
+        .bind(params.max_stocks)
         .bind(params.backtest_duration_months)
         .bind(params.buy_fee_percentage)
         .bind(params.sell_fee_percentage)
@@ -134,6 +136,7 @@ impl BacktestRepository {
                 b.year,
                 b.initial_cash,
                 b.max_holding_stocks,
+                b.max_stocks,
                 b.backtest_duration_months,
                 b.buy_fee_percentage,
                 b.sell_fee_percentage,

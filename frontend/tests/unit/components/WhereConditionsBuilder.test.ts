@@ -78,4 +78,37 @@ describe('WhereConditionsBuilder', () => {
 
 		expect(groups).toHaveLength(2);
 	});
+
+	it('updates operator when selecting from SelectField dropdown', async () => {
+		const user = userEvent.setup();
+		const groups: StrategyRuleGroup[] = [
+			{
+				id: 'g-1',
+				connector_to_next: null,
+				conditions: [
+					{
+						id: 'c-1',
+						variable: 'price',
+						operator: '>',
+						value: '50',
+						connector_to_next: null
+					}
+				]
+			}
+		];
+
+		render(WhereConditionsBuilder, { props: { groups } });
+		const comboboxes = screen.getAllByRole('combobox');
+		expect(comboboxes.length).toBeGreaterThan(0);
+		expect(comboboxes[0].style.backgroundColor).toBe('var(--bg-card)');
+
+		// Click the operator combobox
+		await user.click(comboboxes[0]);
+
+		// Select the "<= less than or equals" option
+		const option = screen.getByRole('option', { name: /less than or equals/i });
+		await user.click(option);
+
+		expect(groups[0].conditions[0].operator).toBe('<=');
+	});
 });

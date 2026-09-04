@@ -12,7 +12,8 @@ vi.mock('$lib/api', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$lib/api')>();
 	return {
 		...actual,
-		register: vi.fn()
+		register: vi.fn(),
+		getCaptcha: vi.fn().mockResolvedValue({ id: 'c-1', image: 'data:image/png;base64,mock' })
 	};
 });
 
@@ -28,6 +29,7 @@ describe('RegisterPage', () => {
 		expect(screen.getByLabelText(/^Email/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/^Password/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/^Confirm Password/i)).toBeInTheDocument();
+		expect(screen.getByPlaceholderText(/enter code above/i)).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
 	});
 
@@ -63,10 +65,19 @@ describe('RegisterPage', () => {
 		await fireEvent.input(screen.getByLabelText(/^Confirm Password/i), {
 			target: { value: 'securepassword123' }
 		});
+		await fireEvent.input(screen.getByPlaceholderText(/enter code above/i), {
+			target: { value: 'abcde' }
+		});
 
 		await fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
-		expect(api.register).toHaveBeenCalledWith('Trader Joe', 'joe@example.com', 'securepassword123');
+		expect(api.register).toHaveBeenCalledWith(
+			'Trader Joe',
+			'joe@example.com',
+			'securepassword123',
+			'c-1',
+			'abcde'
+		);
 		expect(goto).toHaveBeenCalledWith('/login');
 	});
 
@@ -85,6 +96,9 @@ describe('RegisterPage', () => {
 		});
 		await fireEvent.input(screen.getByLabelText(/^Confirm Password/i), {
 			target: { value: 'securepassword123' }
+		});
+		await fireEvent.input(screen.getByPlaceholderText(/enter code above/i), {
+			target: { value: 'abcde' }
 		});
 
 		await fireEvent.click(screen.getByRole('button', { name: /create account/i }));

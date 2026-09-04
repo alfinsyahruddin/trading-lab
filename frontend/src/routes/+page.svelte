@@ -21,11 +21,18 @@
 		if (typeof window === 'undefined') return;
 		const vh = window.innerHeight || document.documentElement.clientHeight;
 		const triggerBottom = vh * 0.94;
+		const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+		const scrollHeight = Math.max(
+			document.documentElement.scrollHeight,
+			document.body.scrollHeight,
+			document.documentElement.offsetHeight
+		);
+		const isAtPageBottom = vh + scrollY >= scrollHeight - 80;
 
 		revealNodes.forEach((node) => {
 			if (!node.classList.contains('is-revealed')) {
 				const rect = node.getBoundingClientRect();
-				if (rect.top <= triggerBottom && rect.bottom >= 0) {
+				if (isAtPageBottom || (rect.top <= triggerBottom && rect.bottom >= 0)) {
 					node.classList.add('is-revealed');
 					revealNodes.delete(node);
 					revealObserver?.unobserve(node);
@@ -60,8 +67,8 @@
 					});
 				},
 				{
-					threshold: 0.05,
-					rootMargin: '0px 0px -30px 0px'
+					threshold: 0,
+					rootMargin: '0px 0px -10px 0px'
 				}
 			);
 		}
@@ -366,7 +373,7 @@
 
 			<!-- Sub-copy -->
 			<p
-				class="max-w-lg text-sm leading-relaxed text-(--fg-muted) sm:text-base sm:leading-relaxed lg:text-lg"
+				class="max-w-lg text-sm leading-relaxed font-light text-(--fg-muted) sm:text-base sm:leading-relaxed lg:text-lg"
 			>
 				Build your strategy. Test it on real IDX history.<br class="hidden sm:inline" />Discover
 				what actually works.
@@ -502,7 +509,7 @@
 						</svg>
 					</div>
 					<h3 class="text-lg font-bold tracking-tight text-(--fg)">Visual Strategy Builder</h3>
-					<p class="text-sm leading-relaxed text-(--fg-muted)">
+					<p class="text-sm leading-relaxed font-light text-(--fg-muted)">
 						Compose multi-group screening rules with AND/OR logic across valuation, profitability,
 						solvency, dividend, and technical indicators. No code, no Python.
 					</p>
@@ -554,7 +561,7 @@
 						</svg>
 					</div>
 					<h3 class="text-lg font-bold tracking-tight text-(--fg)">Reliable Backtest Engine</h3>
-					<p class="text-sm leading-relaxed text-(--fg-muted)">
+					<p class="text-sm leading-relaxed font-light text-(--fg-muted)">
 						Run asynchronous backtests against real IDX daily data. Configure capital, fees,
 						portfolio size, and duration. Get results in seconds.
 					</p>
@@ -610,7 +617,7 @@
 						>
 							AI-Powered
 						</h3>
-						<p class="text-sm leading-relaxed text-(--fg-muted)">
+						<p class="text-sm leading-relaxed font-light text-(--fg-muted)">
 							AI reviews your strategies, offering one-click refinements. After each backtest, get a
 							structured 5-point executive summary.
 						</p>
@@ -657,7 +664,7 @@
 						</svg>
 					</div>
 					<h3 class="text-lg font-bold tracking-tight text-(--fg)">Deep Analytics</h3>
-					<p class="text-sm leading-relaxed text-(--fg-muted)">
+					<p class="text-sm leading-relaxed font-light text-(--fg-muted)">
 						Interactive equity charts (TradingView-powered), win/loss doughnut charts, trade
 						telemetry logs, top gainers/losers, and sparkline previews on every card.
 					</p>
@@ -1020,88 +1027,3 @@
 		</div>
 	</footer>
 </div>
-
-<style>
-	.chart-line {
-		stroke-dasharray: 1000;
-		stroke-dashoffset: 1000;
-		animation: chartDraw 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-	}
-
-	.chart-area {
-		opacity: 0;
-		animation: chartAreaFadeIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-	}
-
-	.chart-pulse-dot {
-		opacity: 0;
-		animation: chartDotFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.8s forwards;
-	}
-
-	.chart-tracker-line {
-		opacity: 0;
-		animation: chartTrackerFadeIn 0.5s ease-out 1.8s forwards;
-	}
-
-	@keyframes chartDraw {
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-
-	@keyframes chartAreaFadeIn {
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes chartDotFadeIn {
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes chartTrackerFadeIn {
-		to {
-			opacity: 0.35;
-		}
-	}
-
-	:global(.reveal-on-scroll) {
-		opacity: 0;
-		transform: translateY(var(--reveal-y, 28px));
-		transition-property: opacity, transform !important;
-		transition-duration: 0.65s !important;
-		transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
-		will-change: opacity, transform;
-	}
-
-	:global(.reveal-on-scroll.is-revealed) {
-		opacity: 1 !important;
-		transform: translateY(0) !important;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.chart-line {
-			stroke-dashoffset: 0 !important;
-			animation: none !important;
-		}
-		.chart-area {
-			opacity: 1 !important;
-			animation: none !important;
-		}
-		.chart-pulse-dot {
-			opacity: 1 !important;
-			animation: none !important;
-		}
-		.chart-tracker-line {
-			opacity: 0.35 !important;
-			animation: none !important;
-		}
-		:global(.reveal-on-scroll) {
-			opacity: 1 !important;
-			transform: none !important;
-			transition: none !important;
-		}
-	}
-</style>

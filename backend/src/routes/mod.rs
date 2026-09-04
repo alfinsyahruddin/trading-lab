@@ -15,6 +15,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(index)
         .service(health)
+        .service(user_route::get_captcha)
         .service(user_route::register)
         .service(user_route::login)
         .service(user_route::refresh)

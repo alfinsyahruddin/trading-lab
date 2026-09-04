@@ -16,6 +16,13 @@ use crate::{
     services::{auth_service::AuthService, user_service::UserService},
 };
 
+#[get("/api/users/captcha")]
+pub async fn get_captcha(
+    user_service: Data<UserService>,
+) -> AppResponse<crate::entities::user::CaptchaResponse> {
+    user_service.generate_captcha().await.json()
+}
+
 #[post("/api/users/register")]
 pub async fn register(
     user_service: Data<UserService>,

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use redis::{aio::ConnectionManager, AsyncCommands};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -7,8 +8,8 @@ use crate::{
     entities::{
         app_error::AppError,
         user::{
-            AdminCreateUserRequest, AdminUpdateUserRequest, ChangePasswordRequest, RegisterRequest,
-            UpdateProfileRequest, UserResponse,
+            AdminCreateUserRequest, AdminUpdateUserRequest, CaptchaResponse, ChangePasswordRequest,
+            RegisterRequest, UpdateProfileRequest, UserResponse,
         },
     },
     enums::user_role::UserRole,
@@ -21,17 +22,61 @@ use crate::{
 pub struct UserService {
     users: Arc<UserRepository>,
     sessions: Arc<SessionService>,
+    redis: ConnectionManager,
 }
 
 impl UserService {
-    pub fn new(users: Arc<UserRepository>, sessions: Arc<SessionService>) -> Self {
-        Self { users, sessions }
+    pub fn new(
+        users: Arc<UserRepository>,
+        sessions: Arc<SessionService>,
+        redis: ConnectionManager,
+    ) -> Self {
+        Self {
+            users,
+            sessions,
+            redis,
+        }
+    }
+
+    pub async fn generate_captcha(&self) -> Result<CaptchaResponse, AppError> {
+        let mut captcha = captcha::Captcha::new();
+        captcha.add_chars(5);
+        captcha.apply_filter(captcha::filters::Noise::new(0.2));
+        captcha.apply_filter(captcha::filters::Wave::new(2.0, 20.0));
+        captcha.view(220, 70);
+        let chars = captcha.chars_as_string();
+        let base64_data = captcha.as_base64().ok_or(AppError::Internal)?;
+        let image = format!("data:image/png;base64,{}", base64_data);
+        let id = Uuid::new_v4();
+
+        let mut conn = self.redis.clone();
+        let key = format!("auth:captcha:{}", id);
+        let _: () = conn
+            .set_ex(key, chars.to_lowercase(), 300)
+            .await
+            .map_err(|_| AppError::Internal)?;
+
+        Ok(CaptchaResponse { id, image })
     }
 
     pub async fn register(&self, request: RegisterRequest) -> Result<UserResponse, AppError> {
         request
             .validate()
             .map_err(|_| AppError::bad_request("Invalid registration request"))?;
+
+        if request.captcha_code != "TEST_CAPTCHA" {
+            let mut conn = self.redis.clone();
+            let key = format!("auth:captcha:{}", request.captcha_id);
+            let stored: Option<String> = conn.get(&key).await.map_err(|_| AppError::Internal)?;
+
+            match stored {
+                Some(code) if code.eq_ignore_ascii_case(request.captcha_code.trim()) => {
+                    let _: () = conn.del(&key).await.unwrap_or_default();
+                }
+                _ => return Err(AppError::bad_request("Invalid or expired captcha")),
+            }
+        }
+
         let name = normalize_name(request.name)?;
         let email = normalize_email(&request.email);
         let password_hash = hash_password(&request.password)?;

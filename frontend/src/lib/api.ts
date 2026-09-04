@@ -13,7 +13,8 @@ import type {
 	LeaderboardEntry,
 	AppSettings,
 	StrategyAiSuggestion,
-	StrategyRuleGroup
+	StrategyRuleGroup,
+	CaptchaResponse
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -157,6 +158,10 @@ async function request<T>(
 
 // --- Auth ---
 
+export function getCaptcha(): Promise<CaptchaResponse> {
+	return request<CaptchaResponse>('/api/users/captcha', { method: 'GET' });
+}
+
 export function login(email: string, password: string): Promise<LoginResponse> {
 	return request<LoginResponse>('/api/users/login', {
 		method: 'POST',
@@ -164,10 +169,16 @@ export function login(email: string, password: string): Promise<LoginResponse> {
 	});
 }
 
-export function register(name: string, email: string, password: string): Promise<UserResponse> {
+export function register(
+	name: string,
+	email: string,
+	password: string,
+	captcha_id: string,
+	captcha_code: string
+): Promise<UserResponse> {
 	return request<UserResponse>('/api/users/register', {
 		method: 'POST',
-		body: JSON.stringify({ name, email, password })
+		body: JSON.stringify({ name, email, password, captcha_id, captcha_code })
 	});
 }
 

@@ -186,10 +186,155 @@
 </div>
 
 {#if loading}
-	<div class="flex min-h-75 items-center justify-center">
-		<div class="flex flex-col items-center gap-3">
-			<Icon icon="lucide:loader-2" class="text-accent animate-spin" width="32" height="32" />
-			<p class="font-500 text-sm" style="color: var(--fg-muted)">Loading result…</p>
+	<!-- Skeleton Loading UI -->
+	<div class="flex flex-col gap-6" aria-busy="true" aria-label="Loading backtest details">
+		<!-- Top Loading Banner -->
+		<div
+			class="flex items-center justify-between rounded-xl border px-4 py-3"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<div class="flex items-center gap-3">
+				<div class="skeleton-shimmer size-4 rounded-full"></div>
+				<div class="skeleton-shimmer h-4 w-44 rounded"></div>
+			</div>
+			<div class="flex items-center gap-2">
+				<Icon icon="lucide:loader-2" class="text-accent animate-spin" width="16" height="16" />
+				<span class="font-500 text-xs" style="color: var(--fg-muted)"
+					>Retrieving simulation data…</span
+				>
+			</div>
+		</div>
+
+		<!-- Backtest Card Skeleton -->
+		<div
+			class="flex flex-col gap-4 rounded-2xl border p-4 sm:p-5"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<!-- Top Row -->
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex flex-wrap items-center gap-2.5">
+					<div class="skeleton-shimmer h-6 w-52 rounded-md"></div>
+					<div class="skeleton-shimmer h-5 w-16 rounded-full"></div>
+					<div class="skeleton-shimmer h-5 w-20 rounded-full"></div>
+				</div>
+				<div class="skeleton-shimmer h-8 w-36 rounded-lg"></div>
+			</div>
+
+			<!-- Parameters Grid Skeleton -->
+			<div
+				class="grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-5 sm:gap-3"
+				style="background-color: var(--bg-card-hover, var(--bg));"
+			>
+				{#each Array(5) as _, i (i)}
+					<div class="flex flex-col gap-1.5 p-1">
+						<div class="skeleton-shimmer h-3 w-16 rounded"></div>
+						<div class="skeleton-shimmer h-5 w-24 rounded"></div>
+					</div>
+				{/each}
+			</div>
+
+			<!-- Tags Skeleton -->
+			<div class="flex flex-wrap gap-2 pt-1">
+				<div class="skeleton-shimmer h-6 w-28 rounded-md"></div>
+				<div class="skeleton-shimmer h-6 w-36 rounded-md"></div>
+				<div class="skeleton-shimmer h-6 w-24 rounded-md"></div>
+			</div>
+		</div>
+
+		<!-- AI Executive Summary Card Skeleton -->
+		<div
+			class="rounded-2xl border p-5 sm:p-6"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<div class="mb-4 flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<div class="skeleton-shimmer size-6 rounded-lg"></div>
+					<div class="skeleton-shimmer h-5 w-48 rounded"></div>
+				</div>
+				<div class="skeleton-shimmer h-4 w-20 rounded"></div>
+			</div>
+			<div class="flex flex-col gap-3">
+				{#each Array(4) as _, i (i)}
+					<div class="flex items-start gap-3">
+						<div class="skeleton-shimmer mt-1 size-3.5 shrink-0 rounded-full"></div>
+						<div class="skeleton-shimmer h-4 rounded" style="width: {80 - i * 10}%;"></div>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Primary Metrics Grid Skeleton -->
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			{#each Array(4) as _, i (i)}
+				<div
+					class="flex flex-col gap-3 rounded-2xl border p-5"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div class="flex items-center justify-between">
+						<div class="skeleton-shimmer h-4 w-24 rounded"></div>
+						<div class="skeleton-shimmer size-8 rounded-lg"></div>
+					</div>
+					<div class="skeleton-shimmer h-8 w-32 rounded"></div>
+					<div class="skeleton-shimmer h-3.5 w-20 rounded"></div>
+				</div>
+			{/each}
+		</div>
+
+		<!-- Equity Curve Chart Skeleton -->
+		<div
+			class="rounded-2xl border p-5 sm:p-6"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex flex-col gap-1.5">
+					<div class="skeleton-shimmer h-5 w-36 rounded"></div>
+					<div class="skeleton-shimmer h-3.5 w-48 rounded"></div>
+				</div>
+				<div class="skeleton-shimmer h-8 w-44 rounded-lg"></div>
+			</div>
+			<!-- Simulated chart canvas area -->
+			<div
+				class="relative flex h-72 w-full flex-col justify-between overflow-hidden rounded-xl border p-4"
+				style="background-color: var(--bg); border-color: var(--border);"
+			>
+				<!-- Horizontal guidelines -->
+				<div class="w-full border-b border-dashed border-(--border)/60"></div>
+				<div class="w-full border-b border-dashed border-(--border)/60"></div>
+				<div class="w-full border-b border-dashed border-(--border)/60"></div>
+				<div class="w-full border-b border-dashed border-(--border)/60"></div>
+				<!-- Shimmer curve placeholder -->
+				<div
+					class="skeleton-shimmer absolute inset-x-4 bottom-4 h-44 rounded-t-xl opacity-20"
+				></div>
+			</div>
+		</div>
+
+		<!-- Trades Table Skeleton -->
+		<div
+			class="rounded-2xl border p-5 sm:p-6"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<div class="mb-5 flex items-center justify-between">
+				<div class="skeleton-shimmer h-5 w-32 rounded"></div>
+				<div class="skeleton-shimmer h-4 w-24 rounded"></div>
+			</div>
+			<div class="flex flex-col gap-2.5">
+				{#each Array(5) as _, i (i)}
+					<div
+						class="flex items-center justify-between rounded-xl border p-3.5"
+						style="background-color: var(--bg); border-color: var(--border);"
+					>
+						<div class="flex items-center gap-3">
+							<div class="skeleton-shimmer h-6 w-16 rounded-md"></div>
+							<div class="skeleton-shimmer h-4 w-28 rounded"></div>
+						</div>
+						<div class="flex items-center gap-4">
+							<div class="skeleton-shimmer h-5 w-20 rounded"></div>
+							<div class="skeleton-shimmer h-5 w-16 rounded-full"></div>
+						</div>
+					</div>
+				{/each}
+			</div>
 		</div>
 	</div>
 {:else if error}
@@ -270,9 +415,9 @@
 				</div>
 			</div>
 
-			<!-- Middle Row: Parameters Grid (Initial Cash, Duration, Max Stocks, Fees) -->
+			<!-- Middle Row: Parameters Grid (Initial Cash, Duration, Max Holding, Max Stocks, Fees) -->
 			<div
-				class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-4 sm:gap-3"
+				class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-5 sm:gap-3"
 				style="background-color: var(--bg-card-hover, var(--bg));"
 			>
 				<!-- Initial Cash -->
@@ -318,6 +463,20 @@
 					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 						<Icon icon="lucide:layers" width="13" height="13" style="color: var(--fg-muted);" />
 						{job.max_holding_stocks} Stocks
+					</span>
+				</div>
+
+				<!-- Max Screened Stocks -->
+				<div class="flex flex-col">
+					<span
+						class="font-600 text-[11px] tracking-wider uppercase"
+						style="color: var(--fg-muted)"
+					>
+						Max Stocks
+					</span>
+					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+						<Icon icon="lucide:filter" width="13" height="13" style="color: var(--fg-muted);" />
+						{job.max_stocks ?? 12} Stocks
 					</span>
 				</div>
 

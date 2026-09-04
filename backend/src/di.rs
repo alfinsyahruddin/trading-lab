@@ -65,11 +65,11 @@ impl AppDependencies {
             config.refresh_token_expiration_seconds,
         ));
 
-        let settings_service = Arc::new(SettingsService::new(settings_repo, redis));
+        let settings_service = Arc::new(SettingsService::new(settings_repo, redis.clone()));
 
         let auth_service =
             AuthService::new(Arc::clone(&users), Arc::clone(&sessions), config.clone());
-        let user_service = UserService::new(users.clone(), Arc::clone(&sessions));
+        let user_service = UserService::new(users.clone(), Arc::clone(&sessions), redis.clone());
         let trading_strategy_service = TradingStrategyService::new(
             Arc::clone(&strategies),
             Arc::clone(&llm),
