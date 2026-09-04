@@ -9,9 +9,10 @@
 
 	interface Props {
 		isLoggedIn: boolean;
+		oncomingsoon?: () => void;
 	}
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, oncomingsoon }: Props = $props();
 
 	let heroVisible = $state(false);
 	let displayedWord = $state<string>(LANDING_TYPEWRITER_WORDS[0]);
@@ -141,9 +142,10 @@
 		<LandingCtaButtons
 			{isLoggedIn}
 			primaryAuthText="Go to Dashboard"
-			primaryUnauthText="Start Backtesting"
+			primaryUnauthText="Join Trading Lab"
 			secondaryText="Sign In"
 			size="md"
+			{oncomingsoon}
 		/>
 	</div>
 

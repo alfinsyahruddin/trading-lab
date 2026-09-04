@@ -4,9 +4,10 @@
 
 	interface Props {
 		isLoggedIn: boolean;
+		oncomingsoon?: () => void;
 	}
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, oncomingsoon }: Props = $props();
 </script>
 
 <section
@@ -37,6 +38,7 @@
 			primaryUnauthText="Create Free Account"
 			secondaryText="Sign In"
 			size="lg"
+			{oncomingsoon}
 		/>
 	</div>
 </section>

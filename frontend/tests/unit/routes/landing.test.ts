@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import LandingPage from '../../../src/routes/+page.svelte';
 import * as session from '$lib/helpers/session';
 
@@ -47,7 +47,7 @@ describe('Landing Page (+page.svelte)', () => {
 	it('renders unauthenticated CTAs (Start Backtesting and Sign In) when user is not logged in', () => {
 		render(LandingPage);
 		const startBacktestingBtns = screen.getAllByRole('link', {
-			name: /start backtesting|create free account/i
+			name: /start backtesting|join trading lab|create free account/i
 		});
 		expect(startBacktestingBtns.length).toBeGreaterThanOrEqual(2);
 
@@ -133,5 +133,52 @@ describe('Landing Page (+page.svelte)', () => {
 		expect(observedElements).toContain('how-section');
 		expect(observedElements).toContain('cta-section');
 		expect(observedElements).toContain('footer-section');
+	});
+
+	it('shows coming soon modal when user clicks register or login CTA if PUBLIC_IS_COMING_SOON is true', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'true';
+		render(LandingPage);
+
+		expect(screen.queryByText(/we're launching soon!/i)).not.toBeInTheDocument();
+
+		const registerBtn = screen.getAllByRole('link', {
+			name: /start backtesting|join trading lab|create free account/i
+		})[0];
+		await fireEvent.click(registerBtn);
+
+		expect(screen.getByText(/we're launching soon!/i)).toBeInTheDocument();
+
+		// Close modal
+		const gotItBtn = screen.getByRole('button', { name: /got it/i });
+		await fireEvent.click(gotItBtn);
+
+		expect(screen.queryByText(/we're launching soon!/i)).not.toBeInTheDocument();
+
+		// Test sign in CTA
+		const signInBtn = screen.getAllByRole('link', { name: /sign in/i })[0];
+		await fireEvent.click(signInBtn);
+		expect(screen.getByText(/we're launching soon!/i)).toBeInTheDocument();
+	});
+
+	it('shows coming soon modal when user clicks footer auth links if PUBLIC_IS_COMING_SOON is true', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'true';
+		render(LandingPage);
+
+		const footerGetStarted = screen.getByRole('link', { name: /get started/i });
+		await fireEvent.click(footerGetStarted);
+
+		expect(screen.getByText(/we're launching soon!/i)).toBeInTheDocument();
+	});
+
+	it('does not show coming soon modal on click if PUBLIC_IS_COMING_SOON is false', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'false';
+		render(LandingPage);
+
+		const registerBtn = screen.getAllByRole('link', {
+			name: /start backtesting|join trading lab|create free account/i
+		})[0];
+		await fireEvent.click(registerBtn);
+
+		expect(screen.queryByText(/we're launching soon!/i)).not.toBeInTheDocument();
 	});
 });

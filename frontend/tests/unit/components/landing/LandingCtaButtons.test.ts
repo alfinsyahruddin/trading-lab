@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import LandingCtaButtons from '../../../../src/lib/components/landing/LandingCtaButtons.svelte';
 
 describe('LandingCtaButtons', () => {
@@ -37,5 +37,30 @@ describe('LandingCtaButtons', () => {
 		expect(primary).toBeInTheDocument();
 		expect(secondary).toBeInTheDocument();
 		expect(primary).toHaveClass('sm:text-base');
+	});
+
+	it('triggers oncomingsoon callback and prevents navigation when PUBLIC_IS_COMING_SOON is true', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'true';
+		const oncomingsoon = vi.fn();
+		render(LandingCtaButtons, { isLoggedIn: false, oncomingsoon });
+
+		const registerBtn = screen.getByRole('link', { name: /start backtesting/i });
+		const signInBtn = screen.getByRole('link', { name: /sign in/i });
+
+		await fireEvent.click(registerBtn);
+		expect(oncomingsoon).toHaveBeenCalledTimes(1);
+
+		await fireEvent.click(signInBtn);
+		expect(oncomingsoon).toHaveBeenCalledTimes(2);
+	});
+
+	it('does not trigger oncomingsoon when PUBLIC_IS_COMING_SOON is false', async () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = 'false';
+		const oncomingsoon = vi.fn();
+		render(LandingCtaButtons, { isLoggedIn: false, oncomingsoon });
+
+		const registerBtn = screen.getByRole('link', { name: /start backtesting/i });
+		await fireEvent.click(registerBtn);
+		expect(oncomingsoon).not.toHaveBeenCalled();
 	});
 });

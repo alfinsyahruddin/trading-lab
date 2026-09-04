@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { reveal } from '$lib/helpers/reveal';
+	import { isComingSoon } from '$lib/helpers/config';
 	import LandingLogo from './LandingLogo.svelte';
 
 	interface Props {
 		isLoggedIn: boolean;
+		oncomingsoon?: () => void;
 	}
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, oncomingsoon }: Props = $props();
+
+	function handleAuthClick(e: MouseEvent) {
+		if (isComingSoon()) {
+			e.preventDefault();
+			oncomingsoon?.();
+		}
+	}
 </script>
 
 <footer
@@ -33,11 +42,16 @@
 					Dashboard
 				</a>
 			{:else}
-				<a href="/login" class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)">
+				<a
+					href="/login"
+					onclick={handleAuthClick}
+					class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
+				>
 					Sign In
 				</a>
 				<a
 					href="/register"
+					onclick={handleAuthClick}
 					class="text-xs text-(--fg-muted) transition-colors hover:text-(--accent)"
 				>
 					Get Started

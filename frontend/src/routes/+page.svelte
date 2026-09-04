@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getToken } from '$lib/helpers/session';
 	import { cleanupRevealEngine } from '$lib/helpers/reveal';
+	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
 	import HeroSection from '$lib/components/landing/HeroSection.svelte';
 	import FeaturesSection from '$lib/components/landing/FeaturesSection.svelte';
 	import ScreenshotsSection from '$lib/components/landing/ScreenshotsSection.svelte';
@@ -10,6 +11,11 @@
 	import LandingFooter from '$lib/components/landing/LandingFooter.svelte';
 
 	let isLoggedIn = $state(false);
+	let showComingSoonModal = $state(false);
+
+	function openComingSoon() {
+		showComingSoonModal = true;
+	}
 
 	onMount(() => {
 		isLoggedIn = !!getToken();
@@ -33,10 +39,12 @@
 <div
 	class="min-h-screen overflow-x-clip bg-(--bg) font-sans text-(--fg) selection:bg-(--accent)/20 selection:text-(--fg)"
 >
-	<HeroSection {isLoggedIn} />
+	<HeroSection {isLoggedIn} oncomingsoon={openComingSoon} />
 	<FeaturesSection />
 	<ScreenshotsSection />
 	<HowItWorksSection />
-	<CtaSection {isLoggedIn} />
-	<LandingFooter {isLoggedIn} />
+	<CtaSection {isLoggedIn} oncomingsoon={openComingSoon} />
+	<LandingFooter {isLoggedIn} oncomingsoon={openComingSoon} />
 </div>
+
+<ComingSoonModal bind:open={showComingSoonModal} />

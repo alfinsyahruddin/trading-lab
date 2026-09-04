@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
+	import { isComingSoon } from '$lib/helpers/config';
 
 	interface Props {
 		isLoggedIn: boolean;
@@ -7,6 +8,7 @@
 		primaryUnauthText?: string;
 		secondaryText?: string;
 		size?: 'md' | 'lg';
+		oncomingsoon?: () => void;
 	}
 
 	let {
@@ -14,8 +16,16 @@
 		primaryAuthText = 'Go to Dashboard',
 		primaryUnauthText = 'Start Backtesting',
 		secondaryText = 'Sign In',
-		size = 'md'
+		size = 'md',
+		oncomingsoon
 	}: Props = $props();
+
+	function handleAuthClick(e: MouseEvent) {
+		if (isComingSoon()) {
+			e.preventDefault();
+			oncomingsoon?.();
+		}
+	}
 
 	const isLg = $derived(size === 'lg');
 
@@ -51,11 +61,11 @@
 			<Icon icon="lucide:arrow-right" class={arrowIconClass} />
 		</a>
 	{:else}
-		<a href="/register" class={primaryBtnClass}>
+		<a href="/register" onclick={handleAuthClick} class={primaryBtnClass}>
 			<span>{primaryUnauthText}</span>
 			<Icon icon="lucide:arrow-right" class={arrowIconClass} />
 		</a>
-		<a href="/login" class={secondaryBtnClass}>
+		<a href="/login" onclick={handleAuthClick} class={secondaryBtnClass}>
 			{secondaryText}
 		</a>
 	{/if}
