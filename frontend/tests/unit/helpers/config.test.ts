@@ -19,4 +19,9 @@ describe('isComingSoon helper', () => {
 		import.meta.env.PUBLIC_IS_COMING_SOON = 'false';
 		expect(isComingSoon()).toBe(false);
 	});
+
+	it('returns false when PUBLIC_IS_COMING_SOON is "0"', () => {
+		import.meta.env.PUBLIC_IS_COMING_SOON = '0';
+		expect(isComingSoon()).toBe(false);
+	});
 });
