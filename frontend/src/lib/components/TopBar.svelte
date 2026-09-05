@@ -115,12 +115,14 @@
 		return $page.url.pathname.startsWith(href);
 	}
 
-	function toggleMobileMenu() {
+	function toggleMobileMenu(e?: MouseEvent) {
+		e?.stopPropagation();
 		mobileMenuOpen = !mobileMenuOpen;
 		if (mobileMenuOpen) userMenuOpen = false;
 	}
 
-	function toggleUserMenu() {
+	function toggleUserMenu(e?: MouseEvent) {
+		e?.stopPropagation();
 		userMenuOpen = !userMenuOpen;
 		if (userMenuOpen) mobileMenuOpen = false;
 	}
@@ -154,11 +156,33 @@
 
 	// Close menus when clicking outside or pressing Escape
 	function handleWindowClick(e: MouseEvent) {
-		const target = e.target as HTMLElement;
-		if (!target.closest('[data-mobile-menu]') && !target.closest('[data-mobile-menu-btn]')) {
+		const target = e.target as HTMLElement | null;
+		if (!target) return;
+
+		const path = e.composedPath ? e.composedPath() : [];
+		const isMobileClick =
+			path.some(
+				(el) =>
+					el instanceof HTMLElement &&
+					(el.hasAttribute('data-mobile-menu') || el.hasAttribute('data-mobile-menu-btn'))
+			) ||
+			Boolean(target.closest('[data-mobile-menu]')) ||
+			Boolean(target.closest('[data-mobile-menu-btn]'));
+
+		if (!isMobileClick) {
 			mobileMenuOpen = false;
 		}
-		if (!target.closest('[data-user-menu]') && !target.closest('[data-user-menu-btn]')) {
+
+		const isUserClick =
+			path.some(
+				(el) =>
+					el instanceof HTMLElement &&
+					(el.hasAttribute('data-user-menu') || el.hasAttribute('data-user-menu-btn'))
+			) ||
+			Boolean(target.closest('[data-user-menu]')) ||
+			Boolean(target.closest('[data-user-menu-btn]'));
+
+		if (!isUserClick) {
 			userMenuOpen = false;
 		}
 	}
@@ -169,9 +193,15 @@
 			userMenuOpen = false;
 		}
 	}
+	function handleResize() {
+		updateIndicator();
+		if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+			mobileMenuOpen = false;
+		}
+	}
 </script>
 
-<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onresize={updateIndicator} />
+<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onresize={handleResize} />
 
 <header
 	class="sticky top-0 z-40 border-b backdrop-blur-md"
@@ -203,13 +233,13 @@
 		<!-- Center: Desktop Nav with Sliding Rounded Bottom Indicator -->
 		<nav
 			bind:this={navElement}
-			class="desktop-nav relative hidden h-full items-stretch gap-1 self-stretch sm:flex md:gap-1.5"
+			class="desktop-nav relative hidden h-full items-stretch gap-1 self-stretch lg:flex lg:gap-1.5"
 			aria-label="Main Navigation"
 		>
 			{#each navItems as item (item.href)}
 				<a
 					href={item.href}
-					class="desktop-nav-link flex items-center gap-2 px-3 text-sm font-semibold transition-colors duration-150 sm:px-3.5"
+					class="desktop-nav-link flex items-center gap-2 px-3 text-sm font-semibold transition-colors duration-150 lg:px-3.5"
 					class:active={isActive(item.href)}
 					aria-current={isActive(item.href) ? 'page' : undefined}
 				>
@@ -229,26 +259,26 @@
 		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- User info: Name + compact RoleBadge below (desktop only) -->
 			{#if user}
-				<div class="hidden flex-col items-end gap-1 text-right sm:flex">
+				<div class="hidden flex-col items-end gap-1 text-right lg:flex">
 					<p class="font-600 text-sm leading-none" style="color: var(--fg)">{user.name}</p>
 					<RoleBadge role={user.role} size="sm" />
 				</div>
 			{/if}
 
-			<!-- Avatar Popover Wrapper -->
-			<div class="relative">
+			<!-- Avatar Popover Wrapper (Desktop only) -->
+			<div class="relative hidden lg:block">
 				<!-- Avatar Button (Neutral Glass Style) -->
 				<button
 					type="button"
 					onclick={toggleUserMenu}
 					data-user-menu-btn
-					class="avatar-glass btn-interactive flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 active:scale-95 sm:size-9"
+					class="avatar-glass btn-interactive flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-xs transition-all duration-150 active:scale-95"
 					title={user ? `${user.name} (${user.email})` : 'User menu'}
 					aria-label={user ? `User menu for ${user.name}` : 'User menu'}
 					aria-haspopup="menu"
 					aria-expanded={userMenuOpen}
 				>
-					<Icon icon="lucide:user" width="16" height="16" />
+					<Icon icon="lucide:user" width="16" height="16" class="pointer-events-none" />
 				</button>
 
 				<!-- User Popover Menu -->
@@ -337,12 +367,17 @@
 				type="button"
 				onclick={toggleMobileMenu}
 				data-mobile-menu-btn
-				class="btn-interactive flex size-8 items-center justify-center rounded-lg border transition-all duration-150 hover:bg-(--bg-card-hover) active:scale-90 sm:hidden sm:size-9"
+				class="btn-interactive flex size-9 items-center justify-center rounded-lg border transition-all duration-150 hover:bg-(--bg-card-hover) active:scale-90 lg:hidden"
 				style="border-color: var(--border); color: var(--fg);"
 				aria-label="Toggle navigation menu"
 				aria-expanded={mobileMenuOpen}
 			>
-				<Icon icon={mobileMenuOpen ? 'lucide:x' : 'lucide:menu'} width="18" height="18" />
+				<Icon
+					icon={mobileMenuOpen ? 'lucide:x' : 'lucide:menu'}
+					width="18"
+					height="18"
+					class="pointer-events-none"
+				/>
 			</button>
 		</div>
 	</div>
@@ -351,7 +386,7 @@
 	{#if mobileMenuOpen}
 		<div
 			data-mobile-menu
-			class="animate-dropdown border-b px-4 py-3 shadow-lg sm:hidden"
+			class="animate-dropdown border-t px-4 py-3 shadow-lg lg:hidden"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
 			<nav class="mobile-nav flex flex-col gap-1">
@@ -470,12 +505,6 @@
 	}
 
 	/* Desktop Nav - Clean sliding rounded bottom accent sticking to the bottom of the topbar */
-	.desktop-nav {
-		display: flex;
-		height: 4rem;
-		align-self: stretch;
-		align-items: stretch;
-	}
 
 	.desktop-nav-link {
 		position: relative;

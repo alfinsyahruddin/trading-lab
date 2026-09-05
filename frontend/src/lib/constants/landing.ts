@@ -41,7 +41,7 @@ export const LANDING_FEATURES: LandingFeature[] = [
 		id: 'backtest-engine',
 		title: 'Reliable Backtest Engine',
 		description:
-			'Run asynchronous backtests against real IDX daily data. Configure capital, fees, portfolio size, and duration. Get results in seconds.',
+			'Run reliable backtests against real IDX daily data. Configure capital, fees, portfolio size, and duration. Get results in seconds.',
 		bullets: [
 			'Take-profit, stop-loss, holding limits',
 			'Realistic broker fee modeling',

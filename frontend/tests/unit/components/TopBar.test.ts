@@ -114,4 +114,40 @@ describe('TopBar', () => {
 		expect(usersLink).toBeInTheDocument();
 		expect(settingsLink).toBeInTheDocument();
 	});
+
+	it('renders mobile hamburger menu button with accessible label and collapsed state', () => {
+		render(TopBar);
+		const hamburgerBtn = screen.getByRole('button', { name: /toggle navigation menu/i });
+		expect(hamburgerBtn).toBeInTheDocument();
+		expect(hamburgerBtn).toHaveAttribute('aria-expanded', 'false');
+		expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
+	});
+
+	it('toggles mobile navigation drawer and shows user actions on hamburger click', async () => {
+		render(TopBar);
+		const hamburgerBtn = screen.getByRole('button', { name: /toggle navigation menu/i });
+
+		await fireEvent.click(hamburgerBtn);
+		expect(hamburgerBtn).toHaveAttribute('aria-expanded', 'true');
+
+		// Inside open mobile drawer, Edit Profile, Change Password, and Logout are accessible
+		expect(screen.getByRole('button', { name: /edit profile/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /change password/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
+
+		// Clicking hamburger again closes drawer
+		await fireEvent.click(hamburgerBtn);
+		expect(hamburgerBtn).toHaveAttribute('aria-expanded', 'false');
+		expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
+	});
+
+	it('closes mobile drawer when pressing Escape', async () => {
+		render(TopBar);
+		const hamburgerBtn = screen.getByRole('button', { name: /toggle navigation menu/i });
+		await fireEvent.click(hamburgerBtn);
+		expect(hamburgerBtn).toHaveAttribute('aria-expanded', 'true');
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+		expect(hamburgerBtn).toHaveAttribute('aria-expanded', 'false');
+	});
 });
