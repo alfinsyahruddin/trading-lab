@@ -13,7 +13,7 @@
 		unstarBacktest,
 		ApiError
 	} from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
+	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import type { DashboardStats, LeaderboardEntry } from '$lib/types';
 
@@ -57,6 +57,30 @@
 		}
 	}
 
+	function sortTopStars(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+		return [...entries].sort((a, b) => {
+			if (b.star_count !== a.star_count) {
+				return b.star_count - a.star_count;
+			}
+			if (b.net_pnl_percentage !== a.net_pnl_percentage) {
+				return b.net_pnl_percentage - a.net_pnl_percentage;
+			}
+			return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+		});
+	}
+
+	function sortLeaderboard(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+		return [...entries].sort((a, b) => {
+			if (b.net_pnl_percentage !== a.net_pnl_percentage) {
+				return b.net_pnl_percentage - a.net_pnl_percentage;
+			}
+			if (b.star_count !== a.star_count) {
+				return b.star_count - a.star_count;
+			}
+			return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+		});
+	}
+
 	async function handleStarToggle(id: string, starred: boolean) {
 		const token = getToken();
 		if (!token) return;
@@ -71,11 +95,21 @@
 			};
 		};
 
-		// Apply optimistic update
+		// Apply optimistic update with re-sorting
 		const prevLeaderboard = [...leaderboard];
 		const prevTopStars = [...topStars];
-		leaderboard = leaderboard.map(updateEntry);
-		topStars = topStars.map(updateEntry);
+		const prevStats = stats ? { ...stats } : null;
+
+		leaderboard = sortLeaderboard(leaderboard.map(updateEntry));
+		topStars = sortTopStars(topStars.map(updateEntry));
+
+		const currentUser = getUser();
+		const isMyBacktest =
+			prevLeaderboard.some((b) => b.id === id && b.owner_name === currentUser?.name) ||
+			prevTopStars.some((b) => b.id === id && b.owner_name === currentUser?.name);
+		if (isMyBacktest && stats) {
+			stats.total_stars_received = Math.max(0, stats.total_stars_received + (starred ? 1 : -1));
+		}
 
 		try {
 			if (starred) {
@@ -83,10 +117,21 @@
 			} else {
 				await unstarBacktest(token, id);
 			}
+
+			// Re-fetch in background to synchronize ordering, ranks, and aggregates
+			const [statsRes, leaderboardRes, topStarsRes] = await Promise.all([
+				getDashboardStats(token),
+				getLeaderboard(token),
+				getTopStars(token)
+			]);
+			stats = statsRes;
+			leaderboard = leaderboardRes;
+			topStars = topStarsRes;
 		} catch {
 			// Revert optimistic update
 			leaderboard = prevLeaderboard;
 			topStars = prevTopStars;
+			stats = prevStats;
 			toast.error('Failed to update star rating');
 		}
 	}

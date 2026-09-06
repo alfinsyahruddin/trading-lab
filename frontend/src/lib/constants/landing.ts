@@ -1,7 +1,7 @@
 export const LANDING_TYPEWRITER_WORDS = [
 	'trading strategy',
-	'methodology',
-	'stock screener'
+	'stock screener',
+	'methodology'
 ] as const;
 
 export interface LandingHeroStat {

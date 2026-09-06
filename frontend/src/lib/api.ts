@@ -349,6 +349,10 @@ export function deleteBacktest(token: string | undefined, id: string): Promise<v
 	return request<void>(`/api/backtests/${id}`, { method: 'DELETE' }, token);
 }
 
+export function rerunBacktest(token: string | undefined, id: string): Promise<BacktestJob> {
+	return request<BacktestJob>(`/api/backtests/${id}/rerun`, { method: 'POST' }, token);
+}
+
 // --- Dashboard ---
 
 export function getDashboardStats(token?: string): Promise<DashboardStats> {

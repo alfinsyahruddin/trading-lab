@@ -310,6 +310,92 @@ impl BacktestService {
             updated_at: job.updated_at,
         })
     }
+
+    pub async fn rerun(
+        &self,
+        job_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<BacktestJobResponse, AppError> {
+        let job = self.repo.find_by_id_and_user(job_id, user_id).await?;
+
+        if job.status != BacktestStatus::Failed {
+            return Err(AppError::bad_request("Only failed backtests can be rerun"));
+        }
+
+        let strategy = self
+            .strategy_repo
+            .find_by_id_for_user_or_public(job.strategy_id, user_id)
+            .await?;
+
+        self.repo.reset_for_rerun(job_id).await?;
+
+        let strategy_id = strategy.id;
+        let repo = self.repo.clone();
+        let strategy_repo = self.strategy_repo.clone();
+        let sectors = self.sectors.clone();
+        let llm = self.llm.clone();
+        let settings = self.settings.clone();
+        let req = CreateBacktestJobRequest {
+            strategy_id: strategy.id,
+            name: job.name.clone(),
+            is_public: Some(job.is_public),
+            year: job.year,
+            initial_cash: job.initial_cash,
+            max_holding_stocks: job.max_holding_stocks,
+            max_stocks: job.max_stocks,
+            backtest_duration_months: job.backtest_duration_months,
+            buy_fee_percentage: job.buy_fee_percentage,
+            sell_fee_percentage: job.sell_fee_percentage,
+        };
+
+        tokio::spawn(async move {
+            if let Err(e) = run_backtest(
+                repo.clone(),
+                strategy_repo,
+                sectors,
+                llm,
+                settings,
+                job_id,
+                strategy_id,
+                user_id,
+                req,
+            )
+            .await
+            {
+                eprintln!("Backtest {} failed: {:?}", job_id, e);
+                let _ = repo
+                    .update_status(job_id, BacktestStatus::Failed, Some(&e.to_string()))
+                    .await;
+            }
+        });
+
+        Ok(BacktestJobResponse {
+            id: job.id,
+            user_id: job.user_id,
+            strategy_id: job.strategy_id,
+            strategy_name: job.strategy_name,
+            name: job.name,
+            year: job.year,
+            initial_cash: job.initial_cash,
+            max_holding_stocks: job.max_holding_stocks,
+            max_stocks: job.max_stocks,
+            backtest_duration_months: job.backtest_duration_months,
+            buy_fee_percentage: job.buy_fee_percentage,
+            sell_fee_percentage: job.sell_fee_percentage,
+            is_public: job.is_public,
+            status: BacktestStatus::Pending,
+            error_message: None,
+            owner: None,
+            result: None,
+            portfolio_history: None,
+            most_traded: None,
+            top_gainers: None,
+            top_losers: None,
+            trade_history: None,
+            created_at: job.created_at,
+            updated_at: chrono::Utc::now(),
+        })
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -964,6 +1050,8 @@ pub fn build_where_query(
 
             let variable = if cond.variable.eq_ignore_ascii_case("price") {
                 "last_close_price".to_string()
+            } else if cond.variable.eq_ignore_ascii_case("market_cap") {
+                "market_cap".to_string()
             } else {
                 format!("{}[{}]", cond.variable, year)
             };
@@ -1067,6 +1155,33 @@ mod tests {
         );
         assert_eq!(volume_filters.len(), 1);
         assert_eq!(volume_filters[0].variable, "volume");
+    }
+
+    #[test]
+    fn should_format_market_cap_without_year_in_screener_query() {
+        let groups = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "market_cap".to_string(),
+                    operator: ">=".to_string(),
+                    value: "1000000000000".to_string(),
+                    connector_to_next: Some("AND".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "pe".to_string(),
+                    operator: "<".to_string(),
+                    value: "15".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+
+        let (where_query, _) = build_where_query(&groups, 2025);
+        assert_eq!(where_query, "(market_cap>=1000000000000 and pe[2025]<15)");
     }
 
     #[test]

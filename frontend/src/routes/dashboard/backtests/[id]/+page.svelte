@@ -8,7 +8,13 @@
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
 	import BacktestAiSummary from '$lib/components/backtest/BacktestAiSummary.svelte';
-	import { getBacktest, getTradingStrategy, updateBacktest, ApiError } from '$lib/api';
+	import {
+		getBacktest,
+		getTradingStrategy,
+		updateBacktest,
+		rerunBacktest,
+		ApiError
+	} from '$lib/api';
 	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
@@ -20,6 +26,7 @@
 	let error = $state('');
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let updatingVisibility = $state(false);
+	let rerunLoading = $state(false);
 
 	const id = $derived($page.params.id);
 	const currentUser = $derived(getUser());
@@ -103,6 +110,26 @@
 			toast.error(err instanceof ApiError ? err.message : 'Failed to update visibility.');
 		} finally {
 			updatingVisibility = false;
+		}
+	}
+
+	async function handleRerun() {
+		if (!job || rerunLoading) return;
+		rerunLoading = true;
+		try {
+			const token = getToken();
+			if (!token) {
+				goto('/login');
+				return;
+			}
+			const updated = await rerunBacktest(token, job.id);
+			job = { ...job, ...updated };
+			toast.success(`Backtest "${job.name}" restarted.`);
+			startPolling();
+		} catch (err) {
+			toast.error(err instanceof ApiError ? err.message : 'Failed to rerun backtest.');
+		} finally {
+			rerunLoading = false;
 		}
 	}
 
@@ -390,7 +417,26 @@
 				</div>
 
 				<!-- Small Public/Private Toggle for owner, badge for viewer -->
-				<div class="self-start sm:self-auto">
+				<div class="flex items-center gap-2.5 self-start sm:self-auto">
+					{#if isOwner && job.status === 'FAILED'}
+						<button
+							type="button"
+							onclick={handleRerun}
+							disabled={rerunLoading}
+							class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs text-white shadow-2xs transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+							style="background-color: var(--accent);"
+							title="Run backtest again"
+						>
+							<Icon
+								icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
+								class={rerunLoading ? 'animate-spin' : ''}
+								width="13"
+								height="13"
+							/>
+							<span>Run Again</span>
+						</button>
+					{/if}
+
 					{#if isOwner}
 						<div class="w-38">
 							<SegmentedControl
@@ -519,19 +565,40 @@
 			class="rounded-xl border p-6"
 			style="background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3);"
 		>
-			<div class="flex items-start gap-3">
-				<Icon
-					icon="lucide:alert-circle"
-					width="24"
-					height="24"
-					style="color: var(--danger); margin-top: 2px;"
-				/>
-				<div>
-					<h3 class="font-600 text-base" style="color: var(--danger)">Backtest Failed</h3>
-					<p class="font-500 mt-1 text-sm" style="color: var(--danger); opacity: 0.9;">
-						{job.error_message}
-					</p>
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex items-start gap-3">
+					<Icon
+						icon="lucide:alert-circle"
+						width="24"
+						height="24"
+						style="color: var(--danger); margin-top: 2px;"
+					/>
+					<div>
+						<h3 class="font-600 text-base" style="color: var(--danger)">Backtest Failed</h3>
+						<p class="font-500 mt-1 text-sm" style="color: var(--danger); opacity: 0.9;">
+							{job.error_message}
+						</p>
+					</div>
 				</div>
+
+				{#if isOwner}
+					<button
+						type="button"
+						onclick={handleRerun}
+						disabled={rerunLoading}
+						class="btn-interactive font-600 inline-flex shrink-0 items-center gap-2 self-start rounded-xl px-4 py-2.5 text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
+						style="background-color: var(--accent);"
+						title="Run backtest again"
+					>
+						<Icon
+							icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
+							class={rerunLoading ? 'animate-spin' : ''}
+							width="16"
+							height="16"
+						/>
+						<span>Run Again</span>
+					</button>
+				{/if}
 			</div>
 		</div>
 	{:else if job.status === 'DONE' && job.result}

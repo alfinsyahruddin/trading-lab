@@ -5,7 +5,7 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
 	import BacktestResultPreview from '$lib/components/backtest/BacktestResultPreview.svelte';
-	import { listBacktests, deleteBacktest, ApiError } from '$lib/api';
+	import { listBacktests, deleteBacktest, rerunBacktest, ApiError } from '$lib/api';
 	import { getToken } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import { formatTimeAgo } from '$lib/constants';
@@ -14,6 +14,7 @@
 	let backtests = $state<BacktestJob[]>([]);
 	let loading = $state(true);
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
+	let rerunLoadingId = $state<string | null>(null);
 
 	let deleteOpen = $state(false);
 	let deleteLoading = $state(false);
@@ -107,6 +108,25 @@
 			deleteOpen = false;
 		} finally {
 			deleteLoading = false;
+		}
+	}
+
+	async function handleRerun(bt: BacktestJob) {
+		if (rerunLoadingId) return;
+		rerunLoadingId = bt.id;
+		try {
+			const token = getToken();
+			if (!token) {
+				goto('/login');
+				return;
+			}
+			const updated = await rerunBacktest(token, bt.id);
+			backtests = backtests.map((b) => (b.id === bt.id ? { ...b, ...updated } : b));
+			toast.success(`Backtest "${bt.name}" restarted.`);
+		} catch (err) {
+			toast.error(err instanceof ApiError ? err.message : 'Failed to rerun backtest.');
+		} finally {
+			rerunLoadingId = null;
 		}
 	}
 
@@ -440,22 +460,45 @@
 								</div>
 							{:else if job.status === 'FAILED'}
 								<div
-									class="mt-4 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
+									class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between"
 									style="border-color: var(--border);"
 								>
 									<p
-										class="font-500 flex items-center gap-1.5 text-sm"
+										class="font-500 flex min-w-0 items-center gap-1.5 text-sm"
 										style="color: var(--danger)"
 									>
-										<Icon icon="lucide:alert-circle" width="14" height="14" />
-										<span>{job.error_message || 'Unknown error occurred.'}</span>
+										<Icon icon="lucide:alert-circle" width="14" height="14" class="shrink-0" />
+										<span class="wrap-break-word"
+											>{job.error_message || 'Unknown error occurred.'}</span
+										>
 									</p>
-									<div
-										class="font-500 flex shrink-0 items-center gap-1 self-end text-[11px]"
-										style="color: var(--fg-muted);"
-									>
-										<Icon icon="lucide:clock" width="11" height="11" />
-										<span>Created {formatTimeAgo(job.created_at)}</span>
+									<div class="flex shrink-0 items-center gap-3 self-end sm:self-center">
+										<button
+											type="button"
+											onclick={(e) => {
+												e.stopPropagation();
+												handleRerun(job);
+											}}
+											disabled={rerunLoadingId === job.id}
+											class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-white shadow-2xs transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+											style="background-color: var(--accent);"
+											title="Run backtest again"
+										>
+											<Icon
+												icon={rerunLoadingId === job.id ? 'lucide:loader-2' : 'lucide:rotate-cw'}
+												class={rerunLoadingId === job.id ? 'animate-spin' : ''}
+												width="13"
+												height="13"
+											/>
+											<span>Run Again</span>
+										</button>
+										<div
+											class="font-500 flex shrink-0 items-center gap-1 text-[11px]"
+											style="color: var(--fg-muted);"
+										>
+											<Icon icon="lucide:clock" width="11" height="11" />
+											<span>Created {formatTimeAgo(job.created_at)}</span>
+										</div>
 									</div>
 								</div>
 							{:else}

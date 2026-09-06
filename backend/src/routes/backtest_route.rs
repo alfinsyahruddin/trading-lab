@@ -65,3 +65,12 @@ pub async fn delete_backtest(
     service.delete(id.into_inner(), user.claims.sub).await?;
     String::from("Backtest deleted successfully").json()
 }
+
+#[post("/api/backtests/{id}/rerun")]
+pub async fn rerun_backtest(
+    service: Data<BacktestService>,
+    user: AuthenticatedUser,
+    id: Path<Uuid>,
+) -> AppResponse<BacktestJobResponse> {
+    service.rerun(id.into_inner(), user.claims.sub).await.json()
+}

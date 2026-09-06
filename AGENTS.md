@@ -150,6 +150,7 @@ All responses must strictly adhere to the unified JSON envelope:
   - `GET /api/backtests`: List all backtests owned by the authenticated user with sparkline history.
   - `GET /api/backtests/{id}`: Retrieve full backtest details, metrics, portfolio history, top gainers/losers, most traded, and trade history.
   - `POST /api/backtests`: Create and trigger background backtest simulation.
+  - `POST /api/backtests/{id}/rerun`: Re-run an existing failed backtest simulation.
   - `PATCH /api/backtests/{id}`: Update backtest metadata (e.g. toggle `is_public` visibility).
   - `DELETE /api/backtests/{id}`: Delete a backtest job and its cascade data.
 

@@ -180,6 +180,30 @@ impl BacktestRepository {
         Ok(())
     }
 
+    pub async fn reset_for_rerun(&self, id: Uuid) -> Result<(), AppError> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("DELETE FROM backtest_trades WHERE backtest_job_id = $1")
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+        sqlx::query("DELETE FROM backtest_portfolio_history WHERE backtest_job_id = $1")
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+        sqlx::query("DELETE FROM backtest_results WHERE backtest_job_id = $1")
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+        sqlx::query("UPDATE backtest_jobs SET status = $1, error_message = NULL, updated_at = $2 WHERE id = $3")
+            .bind(BacktestStatus::Pending)
+            .bind(Utc::now())
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
     pub async fn save_result(
         &self,
         job_id: Uuid,
