@@ -2,6 +2,10 @@
 
 > Preview: [https://trading-lab-alphabyte.vercel.app](https://trading-lab-alphabyte.vercel.app)
 
+### Video Links
+- 1-min Teaser: [https://youtu.be/lYqQeRFIpz4](https://youtu.be/lYqQeRFIpz4)
+- 3-min Demo: [https://youtu.be/UUKFV3u80GM](https://youtu.be/UUKFV3u80GM)
+
 ![Trading Lab](./frontend/static/backtest-dark.png)
 
 Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX) traders. It enables traders to easily build custom multi-condition strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
