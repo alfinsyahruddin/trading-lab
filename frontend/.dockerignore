@@ -4,5 +4,6 @@ build
 .git
 .env
 .env.*
+!.env.docker
 !.env.docker.example
 tests
