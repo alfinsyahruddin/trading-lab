@@ -1547,4 +1547,144 @@ mod tests {
         assert_eq!(summary.len(), 5);
         assert_eq!(summary[0], "Point 1: Strong performance.");
     }
+
+    #[test]
+    fn simulate_backtest_with_zero_trades_edge_case() {
+        let job_id = Uuid::new_v4();
+        let (result, portfolio, trades) =
+            simulate_backtest(job_id, &[], 10_000_000.0, 1, 10.0, 5.0, 10, 0.15, 0.25);
+
+        assert_eq!(result.trades_processed, 0);
+        assert_eq!(result.wins, 0);
+        assert_eq!(result.losses, 0);
+        assert_eq!(result.win_rate, 0.0);
+        assert_eq!(result.profit_factor, 0.0);
+        assert_eq!(result.sharpe_ratio, 0.0);
+        assert_eq!(result.portfolio_volatility, 0.0);
+        assert_eq!(result.total_fees, 0.0);
+        assert_eq!(result.available_cash, 10_000_000.0);
+        assert!(trades.is_empty());
+        assert!(portfolio.is_empty());
+    }
+
+    #[test]
+    fn simulate_backtest_with_100_percent_wins_and_zero_losses() {
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let job_id = Uuid::new_v4();
+
+        let stock = StockData {
+            code: "BBCA".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000),
+                (date2, 1150.0, 10000), // +15% > 10% TP
+            ],
+        };
+
+        let (result, _, trades) = simulate_backtest(
+            job_id,
+            &[stock],
+            10_000_000.0,
+            1,
+            10.0, // 10% TP
+            5.0,  // 5% SL
+            10,
+            0.0, // 0 fee for pure win test
+            0.0,
+        );
+
+        assert_eq!(result.trades_processed, 1);
+        assert_eq!(result.wins, 1);
+        assert_eq!(result.losses, 0);
+        assert_eq!(result.win_rate, 100.0);
+        assert!(result.profit_factor > 0.0);
+        assert_eq!(result.profit_factor, result.net_pnl);
+        assert_eq!(trades[0].exit_reason, "TAKE_PROFIT");
+    }
+
+    #[test]
+    fn simulate_backtest_with_zero_variance_equity_curve_sharpe() {
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let date3 = NaiveDate::from_ymd_opt(2024, 1, 3).unwrap();
+        let job_id = Uuid::new_v4();
+
+        // Stock with completely flat close price (no price changes)
+        let stock = StockData {
+            code: "FLAT".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000),
+                (date2, 1000.0, 10000),
+                (date3, 1000.0, 10000),
+            ],
+        };
+
+        let (result, portfolio, _) = simulate_backtest(
+            job_id,
+            &[stock],
+            10_000_000.0,
+            1,
+            10.0,
+            5.0,
+            10,
+            0.0, // 0 fees to keep net portfolio perfectly identical
+            0.0,
+        );
+
+        assert_eq!(portfolio.len(), 3);
+        // All net portfolio values are identical: 10_000_000.0
+        assert_eq!(portfolio[0].net_value, portfolio[1].net_value);
+        assert_eq!(portfolio[1].net_value, portfolio[2].net_value);
+        // Sharpe ratio with zero variance must be 0.0
+        assert_eq!(result.sharpe_ratio, 0.0);
+        assert_eq!(result.portfolio_volatility, 0.0);
+    }
+
+    #[test]
+    fn simulate_backtest_trading_fee_deductions() {
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let job_id = Uuid::new_v4();
+
+        // 1 lot = 100 shares. Initial cash = 100,000 -> max 1 holding stock -> entry_capital = 100,000
+        // Price = 1000 -> 1 lot costs 100,000.
+        // Buy fee 0.15% = 150. Total cost = 100,150.
+        // With initial cash 200,000, lots = floor(200,000 / (100 * 1000)) = 2 lots = 200,000.
+        let stock = StockData {
+            code: "FEE1".to_string(),
+            daily_data: vec![
+                (date1, 1000.0, 10000),
+                (date2, 1000.0, 10000), // triggers max holding time exit at same price 1000.0
+            ],
+        };
+
+        let (result, _, trades) = simulate_backtest(
+            job_id,
+            &[stock],
+            250_000.0,
+            2,
+            10.0,
+            5.0,
+            1, // max holding period 1 day -> exits on date2
+            0.15,
+            0.25,
+        );
+
+        assert_eq!(trades.len(), 1);
+        let trade = &trades[0];
+        assert_eq!(trade.lot, 1); // 1 lot fits in 200k with fees (cost: 100_150 <= 200_000)
+        let expected_buy_val = 1.0 * 100.0 * 1000.0; // 100_000
+        let expected_buy_fee = expected_buy_val * 0.0015; // 150
+        let expected_sell_val = 1.0 * 100.0 * 1000.0; // 100_000
+        let expected_sell_fee = expected_sell_val * 0.0025; // 250
+        let expected_total_fees = expected_buy_fee + expected_sell_fee; // 400
+
+        assert_eq!(trade.buy_fee, expected_buy_fee);
+        assert_eq!(trade.sell_fee, expected_sell_fee);
+        assert_eq!(result.total_fees, expected_total_fees);
+
+        // PnL must be strictly negative by the amount of total fees
+        assert_eq!(trade.pnl, -expected_total_fees);
+        assert_eq!(result.net_pnl, -expected_total_fees);
+    }
 }
