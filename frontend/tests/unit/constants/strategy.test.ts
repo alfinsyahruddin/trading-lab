@@ -14,10 +14,19 @@ describe('Strategy Constants', () => {
 		expect(values).toEqual(['=', '!=', '>', '<', '>=', '<=', '~~', 'in', 'is']);
 	});
 
-	it('strictly contains only price and volume in Price & Market category', () => {
+	it('strictly contains only price, volume, and value in Price & Market category', () => {
 		const priceMarketVars = STRATEGY_VARIABLES.filter((v) => v.category === 'Price & Market');
-		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'volume']);
+		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'volume', 'value']);
 		expect(priceMarketVars.every((v) => !v.isHistorical)).toBe(true);
+
+		const valueVar = priceMarketVars.find((v) => v.code === 'value');
+		expect(valueVar).toEqual({
+			code: 'value',
+			name: 'Value',
+			description: 'Daily transaction value in IDR.',
+			category: 'Price & Market',
+			isHistorical: false
+		});
 	});
 
 	it('includes insurance metrics in Income Statement category', () => {

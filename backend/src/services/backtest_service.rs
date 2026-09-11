@@ -417,7 +417,7 @@ async fn run_backtest(
         .find_by_id_for_user_or_public(strategy_id, user_id)
         .await?;
 
-    let (where_query, volume_filters) = build_where_query(&strategy.rules.0, req.year);
+    let (where_query, manual_filter_groups) = build_where_query(&strategy.rules.0, req.year);
     eprintln!("[Backtest] Built screener query: {}", where_query);
 
     let stocks = if where_query.is_empty() {
@@ -472,48 +472,9 @@ async fn run_backtest(
             for d in data {
                 let date = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").unwrap();
                 let vol = d.volume as f64;
+                let val = d.close * vol * 100.0;
 
-                // apply volume filters
-                let mut pass = true;
-                for f in &volume_filters {
-                    let val: f64 = f.value.parse().unwrap_or(0.0);
-                    #[allow(clippy::collapsible_match)]
-                    match f.operator.as_str() {
-                        ">" => {
-                            if vol <= val {
-                                pass = false
-                            }
-                        }
-                        "<" => {
-                            if vol >= val {
-                                pass = false
-                            }
-                        }
-                        ">=" => {
-                            if vol < val {
-                                pass = false
-                            }
-                        }
-                        "<=" => {
-                            if vol > val {
-                                pass = false
-                            }
-                        }
-                        "=" => {
-                            if vol != val {
-                                pass = false
-                            }
-                        }
-                        "!=" => {
-                            if vol == val {
-                                pass = false
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
-                if pass {
+                if evaluate_manual_rules(&manual_filter_groups, d.close, vol, val) {
                     valid_data.push((date, d.close, d.volume));
                 }
             }
@@ -1035,16 +996,19 @@ fn simulate_backtest(
 pub fn build_where_query(
     groups: &[StrategyRuleGroup],
     year: i32,
-) -> (String, Vec<StrategyRuleCondition>) {
+) -> (String, Vec<StrategyRuleGroup>) {
     let mut valid_group_clauses = Vec::new();
-    let mut volume_filters = Vec::new();
+    let mut manual_filter_groups = Vec::new();
 
     for group in groups {
         let mut condition_parts: Vec<(String, Option<String>)> = Vec::new();
+        let mut manual_conditions = Vec::new();
 
         for cond in &group.conditions {
-            if cond.variable.eq_ignore_ascii_case("volume") {
-                volume_filters.push(cond.clone());
+            if cond.variable.eq_ignore_ascii_case("volume")
+                || cond.variable.eq_ignore_ascii_case("value")
+            {
+                manual_conditions.push(cond.clone());
                 continue;
             }
 
@@ -1059,6 +1023,14 @@ pub fn build_where_query(
             let cond_str = format!("{}{}{}", variable, cond.operator, cond.value);
             let conn = cond.connector_to_next.as_deref().map(|c| c.to_lowercase());
             condition_parts.push((cond_str, conn));
+        }
+
+        if !manual_conditions.is_empty() {
+            manual_filter_groups.push(StrategyRuleGroup {
+                id: group.id.clone(),
+                connector_to_next: group.connector_to_next.clone(),
+                conditions: manual_conditions,
+            });
         }
 
         if condition_parts.is_empty() {
@@ -1085,7 +1057,10 @@ pub fn build_where_query(
     }
 
     if valid_group_clauses.is_empty() {
-        return (String::new(), volume_filters);
+        if !manual_filter_groups.is_empty() {
+            return ("last_close_price>0".to_string(), manual_filter_groups);
+        }
+        return (String::new(), manual_filter_groups);
     }
 
     let mut full_query = String::new();
@@ -1098,7 +1073,93 @@ pub fn build_where_query(
         }
     }
 
-    (full_query, volume_filters)
+    (full_query, manual_filter_groups)
+}
+
+fn evaluate_single_manual_condition(
+    cond: &StrategyRuleCondition,
+    price: f64,
+    volume: f64,
+    value: f64,
+) -> bool {
+    let target = if cond.variable.eq_ignore_ascii_case("volume") {
+        volume
+    } else if cond.variable.eq_ignore_ascii_case("value") {
+        value
+    } else if cond.variable.eq_ignore_ascii_case("price") {
+        price
+    } else {
+        return true;
+    };
+
+    let filter_val: f64 = match cond.value.trim().parse() {
+        Ok(v) => v,
+        Err(_) => return true,
+    };
+
+    match cond.operator.as_str() {
+        ">" => target > filter_val,
+        "<" => target < filter_val,
+        ">=" => target >= filter_val,
+        "<=" => target <= filter_val,
+        "=" => (target - filter_val).abs() < 1e-6,
+        "!=" => (target - filter_val).abs() >= 1e-6,
+        _ => true,
+    }
+}
+
+pub fn evaluate_manual_rules(
+    groups: &[StrategyRuleGroup],
+    price: f64,
+    volume: f64,
+    value: f64,
+) -> bool {
+    if groups.is_empty() {
+        return true;
+    }
+
+    let mut group_results: Vec<(bool, Option<String>)> = Vec::new();
+
+    for group in groups {
+        if group.conditions.is_empty() {
+            continue;
+        }
+
+        let mut group_res =
+            evaluate_single_manual_condition(&group.conditions[0], price, volume, value);
+        for i in 1..group.conditions.len() {
+            let prev_conn = group.conditions[i - 1]
+                .connector_to_next
+                .as_deref()
+                .unwrap_or("AND");
+            let curr_res =
+                evaluate_single_manual_condition(&group.conditions[i], price, volume, value);
+            if prev_conn.eq_ignore_ascii_case("OR") {
+                group_res = group_res || curr_res;
+            } else {
+                group_res = group_res && curr_res;
+            }
+        }
+
+        group_results.push((group_res, group.connector_to_next.clone()));
+    }
+
+    if group_results.is_empty() {
+        return true;
+    }
+
+    let mut overall_res = group_results[0].0;
+    for i in 1..group_results.len() {
+        let prev_conn = group_results[i - 1].1.as_deref().unwrap_or("AND");
+        let curr_res = group_results[i].0;
+        if prev_conn.eq_ignore_ascii_case("OR") {
+            overall_res = overall_res || curr_res;
+        } else {
+            overall_res = overall_res && curr_res;
+        }
+    }
+
+    overall_res
 }
 
 #[cfg(test)]
@@ -1148,13 +1209,156 @@ mod tests {
             },
         ];
 
-        let (where_query, volume_filters) = build_where_query(&groups, 2025);
+        let (where_query, manual_filters) = build_where_query(&groups, 2025);
         assert_eq!(
             where_query,
             "(pb[2025]<1.0) and (last_close_price>50 and last_close_price<=1000)"
         );
-        assert_eq!(volume_filters.len(), 1);
-        assert_eq!(volume_filters[0].variable, "volume");
+        assert_eq!(manual_filters.len(), 1);
+        assert_eq!(manual_filters[0].conditions.len(), 1);
+        assert_eq!(manual_filters[0].conditions[0].variable, "volume");
+    }
+
+    #[test]
+    fn should_fallback_to_last_close_price_when_only_manual_filters() {
+        let groups = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "value".to_string(),
+                    operator: ">=".to_string(),
+                    value: "1000000000".to_string(),
+                    connector_to_next: Some("OR".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "volume".to_string(),
+                    operator: ">=".to_string(),
+                    value: "500000".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+
+        let (where_query, manual_filters) = build_where_query(&groups, 2025);
+        assert_eq!(where_query, "last_close_price>0");
+        assert_eq!(manual_filters.len(), 1);
+        assert_eq!(manual_filters[0].conditions.len(), 2);
+        assert_eq!(manual_filters[0].conditions[0].variable, "value");
+        assert_eq!(manual_filters[0].conditions[1].variable, "volume");
+    }
+
+    #[test]
+    fn should_evaluate_manual_rules_with_value_formula_and_connectors() {
+        // formula: price * volume * 100
+        // e.g. price = 1000.0, volume = 100 -> value = 1000 * 100 * 100 = 10,000,000
+        let price = 1000.0;
+        let volume = 100.0;
+        let value = price * volume * 100.0; // 10_000_000.0
+
+        // Test single value condition: value >= 10,000,000 should be true
+        let groups_single = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![StrategyRuleCondition {
+                id: "c1".to_string(),
+                variable: "value".to_string(),
+                operator: ">=".to_string(),
+                value: "10000000".to_string(),
+                connector_to_next: None,
+            }],
+        }];
+        assert!(evaluate_manual_rules(&groups_single, price, volume, value));
+
+        // Test single value condition: value > 10,000,000 should be false
+        let groups_false = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![StrategyRuleCondition {
+                id: "c1".to_string(),
+                variable: "value".to_string(),
+                operator: ">".to_string(),
+                value: "10000000".to_string(),
+                connector_to_next: None,
+            }],
+        }];
+        assert!(!evaluate_manual_rules(&groups_false, price, volume, value));
+
+        // Test AND connector: volume >= 100 AND value >= 10,000,000 -> true
+        let groups_and = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "volume".to_string(),
+                    operator: ">=".to_string(),
+                    value: "100".to_string(),
+                    connector_to_next: Some("AND".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "value".to_string(),
+                    operator: ">=".to_string(),
+                    value: "10000000".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+        assert!(evaluate_manual_rules(&groups_and, price, volume, value));
+
+        // Test AND connector with failing first condition: volume >= 200 AND value >= 10,000,000 -> false
+        let groups_and_fail = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "volume".to_string(),
+                    operator: ">=".to_string(),
+                    value: "200".to_string(),
+                    connector_to_next: Some("AND".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "value".to_string(),
+                    operator: ">=".to_string(),
+                    value: "10000000".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+        assert!(!evaluate_manual_rules(
+            &groups_and_fail,
+            price,
+            volume,
+            value
+        ));
+
+        // Test OR connector: volume >= 200 OR value >= 10,000,000 -> true (since second is true)
+        let groups_or = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "volume".to_string(),
+                    operator: ">=".to_string(),
+                    value: "200".to_string(),
+                    connector_to_next: Some("OR".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "value".to_string(),
+                    operator: ">=".to_string(),
+                    value: "10000000".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+        assert!(evaluate_manual_rules(&groups_or, price, volume, value));
     }
 
     #[test]

@@ -224,7 +224,7 @@ Current Where Condition Rules:
 {rules_str}
 
 Available Screener Variables for Rules:
-- Price & Market: "price", "volume", "market_cap", "shares_outstanding"
+- Price & Market: "price", "volume", "value", "market_cap", "shares_outstanding"
 - Valuation Ratios: "pe", "pb", "ps", "pcf", "peg", "enterprise_to_ebitda", "enterprise_to_revenue"
 - Profitability & Returns: "net_profit_margin", "gross_profit_margin", "operating_profit_margin", "roe", "roa", "roce"
 - Dividends: "dividend_yield", "dividend_payout_ratio", "dps"
@@ -312,6 +312,7 @@ Return ONLY valid JSON."#,
                 let valid_variables = [
                     "price",
                     "volume",
+                    "value",
                     "market_cap",
                     "shares_outstanding",
                     "pe",
