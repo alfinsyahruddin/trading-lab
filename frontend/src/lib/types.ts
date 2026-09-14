@@ -171,7 +171,9 @@ export interface TopEntry {
 }
 
 export interface TradeHistoryEntry {
+	id?: string;
 	code: string;
+	company_name?: string | null;
 	pnl: number;
 	pnl_percentage: number;
 	exit_reason: ExitReason;
@@ -184,6 +186,7 @@ export interface TradeHistoryEntry {
 	sell_fee: number;
 	buy_date: string;
 	sell_date: string;
+	query_values?: Record<string, unknown> | null;
 }
 
 export interface CreateBacktestPayload {

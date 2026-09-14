@@ -81,6 +81,7 @@ impl AppDependencies {
             sectors_client,
             Arc::clone(&llm),
             Arc::clone(&settings_service),
+            redis.clone(),
         );
         let dashboard_service = DashboardService::new(dashboard, Arc::clone(&users));
 

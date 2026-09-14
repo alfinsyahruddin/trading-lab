@@ -180,6 +180,7 @@ pub struct TopEntryResponse {
 pub struct TradeHistoryResponse {
     pub id: Uuid,
     pub code: String,
+    pub company_name: Option<String>,
     pub pnl: f64,
     pub pnl_percentage: f64,
     pub exit_reason: String,
@@ -192,6 +193,7 @@ pub struct TradeHistoryResponse {
     pub sell_fee: f64,
     pub buy_date: NaiveDate,
     pub sell_date: NaiveDate,
+    pub query_values: Option<serde_json::Value>,
 }
 
 const fn default_max_stocks() -> i32 {
@@ -273,11 +275,16 @@ impl From<BacktestPortfolioHistoryRecord> for PortfolioHistoryResponse {
     }
 }
 
-impl From<BacktestTradeRecord> for TradeHistoryResponse {
-    fn from(record: BacktestTradeRecord) -> Self {
+impl TradeHistoryResponse {
+    pub fn from_record_with_info(
+        record: BacktestTradeRecord,
+        company_name: Option<String>,
+        query_values: Option<serde_json::Value>,
+    ) -> Self {
         Self {
             id: record.id,
             code: record.code,
+            company_name,
             pnl: record.pnl,
             pnl_percentage: record.pnl_percentage,
             exit_reason: record.exit_reason,
@@ -290,7 +297,14 @@ impl From<BacktestTradeRecord> for TradeHistoryResponse {
             sell_fee: record.sell_fee,
             buy_date: record.buy_date,
             sell_date: record.sell_date,
+            query_values,
         }
+    }
+}
+
+impl From<BacktestTradeRecord> for TradeHistoryResponse {
+    fn from(record: BacktestTradeRecord) -> Self {
+        Self::from_record_with_info(record, None, None)
     }
 }
 
@@ -421,5 +435,47 @@ mod tests {
 
         let json = serde_json::to_string(&job).expect("serialize job");
         assert!(json.contains("\"status\":\"PROCESSING\""));
+    }
+
+    #[test]
+    fn should_populate_trade_history_with_company_name_and_query_values() {
+        let record = BacktestTradeRecord {
+            id: Uuid::new_v4(),
+            backtest_job_id: Uuid::new_v4(),
+            code: "BBCA.JK".to_string(),
+            pnl: 500_000.0,
+            pnl_percentage: 5.0,
+            exit_reason: "TAKE_PROFIT".to_string(),
+            lot: 10,
+            buy_price: 9000.0,
+            buy_value: 9_000_000.0,
+            sell_price: 9450.0,
+            sell_value: 9_450_000.0,
+            buy_fee: 13500.0,
+            sell_fee: 23625.0,
+            buy_date: NaiveDate::from_ymd_opt(2024, 1, 10).unwrap(),
+            sell_date: NaiveDate::from_ymd_opt(2024, 1, 25).unwrap(),
+        };
+
+        let qv = serde_json::json!({
+            "sub_sector": "Banks",
+            "market_cap": 753611199412500_i64
+        });
+
+        let resp = TradeHistoryResponse::from_record_with_info(
+            record,
+            Some("PT Bank Central Asia Tbk.".to_string()),
+            Some(qv.clone()),
+        );
+
+        assert_eq!(
+            resp.company_name.as_deref(),
+            Some("PT Bank Central Asia Tbk.")
+        );
+        assert_eq!(resp.query_values, Some(qv));
+
+        let json = serde_json::to_string(&resp).expect("serialize trade response");
+        assert!(json.contains("\"company_name\":\"PT Bank Central Asia Tbk.\""));
+        assert!(json.contains("\"sub_sector\":\"Banks\""));
     }
 }

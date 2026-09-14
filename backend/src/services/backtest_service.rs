@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use futures_util::future::join_all;
+use redis::aio::ConnectionManager;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -13,7 +14,7 @@ use crate::{
         backtest::{
             BacktestJobResponse, BacktestOwnerResponse, BacktestPortfolioHistoryRecord,
             BacktestResultRecord, BacktestResultResponse, BacktestTradeRecord,
-            CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
+            CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse, TradeHistoryResponse,
             UpdateBacktestJobRequest,
         },
         trading_strategy::{StrategyRuleCondition, StrategyRuleGroup},
@@ -33,6 +34,7 @@ pub struct BacktestService {
     sectors: Arc<dyn SectorsClientTrait>,
     llm: Arc<dyn LLMTrait>,
     settings: Arc<SettingsService>,
+    redis: ConnectionManager,
 }
 
 impl BacktestService {
@@ -42,6 +44,7 @@ impl BacktestService {
         sectors: Arc<dyn SectorsClientTrait>,
         llm: Arc<dyn LLMTrait>,
         settings: Arc<SettingsService>,
+        redis: ConnectionManager,
     ) -> Self {
         Self {
             repo,
@@ -49,6 +52,7 @@ impl BacktestService {
             sectors,
             llm,
             settings,
+            redis,
         }
     }
 
@@ -137,6 +141,36 @@ impl BacktestService {
             }
         }
 
+        let trade_info_map = self
+            .get_trade_query_values(
+                job.id,
+                job.strategy_id,
+                job.user_id,
+                job.year,
+                job.max_stocks,
+            )
+            .await;
+
+        let trade_history: Vec<TradeHistoryResponse> = trades
+            .into_iter()
+            .map(|t| {
+                let code_upper = t.code.to_uppercase();
+                let clean_code = t.code.replace(".JK", "").trim().to_uppercase();
+                let info = trade_info_map
+                    .get(&code_upper)
+                    .or_else(|| trade_info_map.get(&clean_code));
+                let company_name = info
+                    .and_then(|v| v.get("company_name"))
+                    .and_then(|c| c.as_str())
+                    .map(String::from);
+                let query_values = info
+                    .and_then(|v| v.get("query_values"))
+                    .cloned()
+                    .filter(|q| !q.is_null());
+                TradeHistoryResponse::from_record_with_info(t, company_name, query_values)
+            })
+            .collect();
+
         Ok(BacktestJobResponse {
             id: job.id,
             user_id: job.user_id,
@@ -187,13 +221,91 @@ impl BacktestService {
                     })
                     .collect(),
             ),
-            trade_history: Some(trades.into_iter().map(Into::into).collect()),
+            trade_history: Some(trade_history),
             created_at: job.created_at,
             updated_at: job.updated_at,
         })
     }
 
+    async fn get_trade_query_values(
+        &self,
+        job_id: Uuid,
+        strategy_id: Uuid,
+        user_id: Uuid,
+        year: i32,
+        max_stocks: i32,
+    ) -> HashMap<String, serde_json::Value> {
+        let key = format!("backtest:trade_query_values:{}", job_id);
+        let mut redis_conn = self.redis.clone();
+        let cached: Option<String> = redis::cmd("GET")
+            .arg(&key)
+            .query_async(&mut redis_conn)
+            .await
+            .unwrap_or(None);
+
+        if let Some(json_str) = cached {
+            if let Ok(map) = serde_json::from_str::<HashMap<String, serde_json::Value>>(&json_str) {
+                if !map.is_empty() {
+                    return map;
+                }
+            }
+        }
+
+        // Fallback: check sectors:screener cache
+        if let Ok(strategy) = self
+            .strategy_repo
+            .find_by_id_for_user_or_public(strategy_id, user_id)
+            .await
+        {
+            let (where_query, _) = build_where_query(&strategy.rules.0, year);
+            if !where_query.is_empty() {
+                let screener_key = format!("sectors:screener:{}:{}", where_query, max_stocks);
+                let screener_cached: Option<String> = redis::cmd("GET")
+                    .arg(&screener_key)
+                    .query_async(&mut redis_conn)
+                    .await
+                    .unwrap_or(None);
+
+                if let Some(s_json) = screener_cached {
+                    if let Ok(companies) = serde_json::from_str::<
+                        Vec<crate::clients::sectors_client::ScreenerCompany>,
+                    >(&s_json)
+                    {
+                        let mut map = HashMap::new();
+                        for stock in companies {
+                            let val = serde_json::json!({
+                                "company_name": stock.company_name,
+                                "query_values": stock.query_values,
+                            });
+                            map.insert(stock.symbol.to_uppercase(), val.clone());
+                            let clean = stock.symbol.replace(".JK", "").trim().to_uppercase();
+                            map.insert(clean, val);
+                        }
+                        if !map.is_empty() {
+                            if let Ok(json_str) = serde_json::to_string(&map) {
+                                let _: Result<(), _> = redis::cmd("SET")
+                                    .arg(&key)
+                                    .arg(&json_str)
+                                    .query_async(&mut redis_conn)
+                                    .await;
+                            }
+                            return map;
+                        }
+                    }
+                }
+            }
+        }
+
+        HashMap::new()
+    }
+
     pub async fn delete(&self, id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let key = format!("backtest:trade_query_values:{}", id);
+        let mut redis_conn = self.redis.clone();
+        let _: Result<(), _> = redis::cmd("DEL")
+            .arg(&key)
+            .query_async(&mut redis_conn)
+            .await;
         self.repo.delete(id, user_id).await
     }
 
@@ -262,6 +374,7 @@ impl BacktestService {
         let sectors = self.sectors.clone();
         let llm = self.llm.clone();
         let settings = self.settings.clone();
+        let redis = self.redis.clone();
 
         tokio::spawn(async move {
             if let Err(e) = run_backtest(
@@ -270,6 +383,7 @@ impl BacktestService {
                 sectors,
                 llm,
                 settings,
+                redis,
                 job_id,
                 strategy_id,
                 user_id,
@@ -336,6 +450,7 @@ impl BacktestService {
         let sectors = self.sectors.clone();
         let llm = self.llm.clone();
         let settings = self.settings.clone();
+        let redis = self.redis.clone();
         let req = CreateBacktestJobRequest {
             strategy_id: strategy.id,
             name: job.name.clone(),
@@ -356,6 +471,7 @@ impl BacktestService {
                 sectors,
                 llm,
                 settings,
+                redis,
                 job_id,
                 strategy_id,
                 user_id,
@@ -406,6 +522,7 @@ async fn run_backtest(
     sectors: Arc<dyn SectorsClientTrait>,
     llm: Arc<dyn LLMTrait>,
     settings: Arc<SettingsService>,
+    redis: ConnectionManager,
     job_id: Uuid,
     strategy_id: Uuid,
     user_id: Uuid,
@@ -437,6 +554,26 @@ async fn run_backtest(
         stocks.len(),
         stocks.iter().map(|s| &s.symbol).collect::<Vec<_>>()
     );
+
+    let mut trade_info_map = HashMap::new();
+    for stock in &stocks {
+        let val = serde_json::json!({
+            "company_name": stock.company_name,
+            "query_values": stock.query_values,
+        });
+        trade_info_map.insert(stock.symbol.to_uppercase(), val.clone());
+        let clean = stock.symbol.replace(".JK", "").trim().to_uppercase();
+        trade_info_map.insert(clean, val);
+    }
+    if let Ok(json_str) = serde_json::to_string(&trade_info_map) {
+        let key = format!("backtest:trade_query_values:{}", job_id);
+        let mut redis_conn = redis.clone();
+        let _: Result<(), _> = redis::cmd("SET")
+            .arg(&key)
+            .arg(&json_str)
+            .query_async(&mut redis_conn)
+            .await;
+    }
 
     let (start_date, end_date) = crate::helpers::date_helper::calculate_backtest_date_range(
         req.year,

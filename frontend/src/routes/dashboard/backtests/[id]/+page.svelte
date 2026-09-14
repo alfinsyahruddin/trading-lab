@@ -8,6 +8,7 @@
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
 	import BacktestAiSummary from '$lib/components/backtest/BacktestAiSummary.svelte';
+	import TradeInfoModal from '$lib/components/backtest/TradeInfoModal.svelte';
 	import {
 		getBacktest,
 		getTradingStrategy,
@@ -18,7 +19,7 @@
 	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
 	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
-	import type { BacktestJob, TradingStrategy } from '$lib/types';
+	import type { BacktestJob, TradingStrategy, TradeHistoryEntry } from '$lib/types';
 
 	let job = $state<BacktestJob | null>(null);
 	let strategy = $state<TradingStrategy | null>(null);
@@ -27,6 +28,8 @@
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let updatingVisibility = $state(false);
 	let rerunLoading = $state(false);
+	let selectedTradeForInfo = $state<TradeHistoryEntry | null>(null);
+	let showTradeInfoModal = $state(false);
 
 	const id = $derived($page.params.id);
 	const currentUser = $derived(getUser());
@@ -1121,9 +1124,16 @@
 					<div class="grid max-h-150 gap-2 overflow-y-auto p-3 sm:grid-cols-2 sm:p-4">
 						{#each job.trade_history || [] as t, idx (t.code + t.buy_date + idx)}
 							{@const badge = getExitReasonBadge(t.exit_reason)}
-							<div
-								class="rounded-xl border p-3 transition-colors hover:bg-(--bg-card-hover)"
+							<button
+								type="button"
+								class="btn-interactive w-full cursor-pointer rounded-xl border p-3 text-left transition-colors hover:bg-(--bg-card-hover)"
 								style="background-color: var(--bg-card-2); border-color: var(--border);"
+								onclick={() => {
+									selectedTradeForInfo = t;
+									showTradeInfoModal = true;
+								}}
+								title="View screening entry details for {stripJK(t.code)}"
+								aria-label="View screening entry details for {stripJK(t.code)}"
 							>
 								<div class="flex items-center justify-between gap-2">
 									<div class="flex items-center gap-2">
@@ -1204,7 +1214,7 @@
 										></span
 									>
 								</div>
-							</div>
+							</button>
 						{/each}
 					</div>
 				{:else}
@@ -1218,5 +1228,14 @@
 				{/if}
 			</div>
 		</div>
+	{/if}
+
+	{#if job}
+		<TradeInfoModal
+			bind:open={showTradeInfoModal}
+			trade={selectedTradeForInfo}
+			{strategy}
+			year={job.year}
+		/>
 	{/if}
 {/if}

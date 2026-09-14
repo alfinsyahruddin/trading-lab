@@ -9,6 +9,8 @@ use crate::entities::app_error::AppError;
 pub struct ScreenerCompany {
     pub symbol: String,
     pub company_name: String,
+    #[serde(default)]
+    pub query_values: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,7 +76,7 @@ impl SectorsClientTrait for SectorsClient {
         let url = "https://api.sectors.app/v2/companies/";
         let limit_str = limit.to_string();
         eprintln!(
-            "[SectorsClient] Cache miss, hitting Sectors API: {}?where={}&limit={}&order_by=symbol",
+            "[SectorsClient] Cache miss, hitting Sectors API: {}?where={}&limit={}&order_by=symbol&include_query_values=true",
             url, where_query, limit_str
         );
 
@@ -87,6 +89,7 @@ impl SectorsClientTrait for SectorsClient {
                     ("where", where_query),
                     ("limit", &limit_str),
                     ("order_by", "symbol"),
+                    ("include_query_values", "true"),
                 ])
                 .header("Authorization", &self.api_key)
                 .send()
@@ -225,4 +228,49 @@ impl SectorsClientTrait for SectorsClient {
 #[derive(Deserialize)]
 struct DefaultScreenerResponse {
     results: Vec<ScreenerCompany>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_deserialize_screener_company_with_query_values() {
+        let json_data = r#"{
+            "results": [
+                {
+                    "symbol": "BBCA.JK",
+                    "company_name": "PT Bank Central Asia Tbk.",
+                    "query_values": {
+                        "sub_sector": "Banks",
+                        "market_cap": 753611199412500
+                    }
+                },
+                {
+                    "symbol": "BMRI.JK",
+                    "company_name": "PT Bank Mandiri (Persero) Tbk."
+                }
+            ]
+        }"#;
+
+        let res: DefaultScreenerResponse = serde_json::from_str(json_data).expect("deserialize");
+        assert_eq!(res.results.len(), 2);
+
+        let bbca = &res.results[0];
+        assert_eq!(bbca.symbol, "BBCA.JK");
+        assert_eq!(bbca.company_name, "PT Bank Central Asia Tbk.");
+        let qv = bbca.query_values.as_ref().expect("has query_values");
+        assert_eq!(qv["sub_sector"], "Banks");
+        assert_eq!(qv["market_cap"], 753611199412500_i64);
+
+        let bmri = &res.results[1];
+        assert_eq!(bmri.symbol, "BMRI.JK");
+        assert!(bmri.query_values.is_none());
+
+        // Test serialization to Redis format and back
+        let serialized = serde_json::to_string(&res.results).expect("serialize results");
+        let deserialized: Vec<ScreenerCompany> =
+            serde_json::from_str(&serialized).expect("deserialize results");
+        assert_eq!(deserialized[0].query_values, bbca.query_values);
+    }
 }
