@@ -19,6 +19,7 @@ use crate::{
         trading_strategy::{StrategyRuleCondition, StrategyRuleGroup},
     },
     enums::backtest_status::BacktestStatus,
+    helpers::prompt_helper,
     repositories::{
         backtest_repository::{BacktestRepository, CreateBacktestParams},
         trading_strategy_repository::TradingStrategyRepository,
@@ -540,60 +541,13 @@ pub async fn generate_backtest_ai_summary(
     initial_cash: f64,
     result: &BacktestResultRecord,
 ) -> Result<Vec<String>, AppError> {
-    let prompt = format!(
-        r#"You are an expert quantitative trading analyst specializing in the Indonesia Stock Exchange (IDX).
-Analyze the following backtest simulation results for strategy "{strategy_name}" (Backtest: "{job_name}", Year: {year}, Duration: {duration_months} months, Initial Cash: Rp{initial_cash:.0}):
-
-Key Backtest Metrics:
-- Net PnL: Rp{net_pnl:.0} ({net_pnl_pct:.2}%)
-- Gross PnL: Rp{gross_pnl:.0} ({gross_pnl_pct:.2}%)
-- Total Fees: Rp{total_fees:.0}
-- Total Trades: {trades_processed} (Wins: {wins}, Losses: {losses}, Win Rate: {win_rate:.2}%)
-- Profit Factor: {profit_factor:.2}
-- Sharpe Ratio: {sharpe_ratio:.2}
-- Portfolio Volatility: {volatility:.2}%
-- Max Profit: Rp{max_profit:.0} ({max_profit_pct:.2}%), Max Loss: Rp{max_loss:.0} ({max_loss_pct:.2}%)
-- Avg Profit: Rp{avg_profit:.0} ({avg_profit_pct:.2}%), Avg Loss: Rp{avg_loss:.0} ({avg_loss_pct:.2}%)
-- Avg Holding Time: {avg_hold:.1} days (Avg Win Hold: {win_hold:.1} days, Avg Loss Hold: {loss_hold:.1} days)
-
-Generate a high-impact executive summary consisting of a JSON array of up to 5 clear, insightful keypoint strings (maximum 5 strings).
-Each keypoint should be 1-2 concise sentences addressing one of the following 5 dimensions:
-1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, and fee drag impact.
-2. Win/Loss Dynamics: Win rate vs profit factor, and average win magnitude compared to average loss.
-3. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
-4. Holding & Execution Efficiency: Win holding duration vs loss holding duration (discipline in cutting losses vs letting winners run).
-5. Strategic Verdict & Actionable Improvement: Concrete recommendation for parameter tuning (e.g. SL, TP, or holding window) under Indonesian market conditions.
-
-Return ONLY a valid JSON array of strings:
-["Keypoint 1...", "Keypoint 2...", "Keypoint 3...", "Keypoint 4...", "Keypoint 5..."]"#,
-        strategy_name = strategy_name,
-        job_name = job_name,
-        year = year,
-        duration_months = duration_months,
-        initial_cash = initial_cash,
-        net_pnl = result.net_pnl,
-        net_pnl_pct = result.net_pnl_percentage,
-        gross_pnl = result.gross_pnl,
-        gross_pnl_pct = result.gross_pnl_percentage,
-        total_fees = result.total_fees,
-        trades_processed = result.trades_processed,
-        wins = result.wins,
-        losses = result.losses,
-        win_rate = result.win_rate,
-        profit_factor = result.profit_factor,
-        sharpe_ratio = result.sharpe_ratio,
-        volatility = result.portfolio_volatility,
-        max_profit = result.max_profit,
-        max_profit_pct = result.max_profit_percentage,
-        max_loss = result.max_loss,
-        max_loss_pct = result.max_loss_percentage,
-        avg_profit = result.avg_profit,
-        avg_profit_pct = result.avg_profit_percentage,
-        avg_loss = result.avg_loss,
-        avg_loss_pct = result.avg_loss_percentage,
-        avg_hold = result.avg_hold_time_days,
-        win_hold = result.avg_win_hold_days,
-        loss_hold = result.avg_loss_hold_days,
+    let prompt = prompt_helper::get_backtest_ai_summary_prompt(
+        job_name,
+        strategy_name,
+        year,
+        duration_months,
+        initial_cash,
+        result,
     );
 
     let summary: Vec<String> =
