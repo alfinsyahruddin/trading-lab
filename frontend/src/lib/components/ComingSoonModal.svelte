@@ -57,8 +57,7 @@
 				<div class="flex flex-col gap-2">
 					<h3 class="text-xl font-bold tracking-tight text-(--fg)">We're Launching Soon!</h3>
 					<p class="max-w-sm text-sm leading-relaxed text-(--fg-muted)">
-						Trading Lab is currently in private preview. We are fine-tuning the platform for the
-						best backtesting experience.
+						Trading Lab is currently in private preview.
 					</p>
 				</div>
 
@@ -75,13 +74,32 @@
 					<span>Stay tuned for public release!</span>
 				</div>
 
-				<!-- Centered Got It Button (no divider) -->
-				<div class="mt-2 flex w-full justify-center">
+				<!-- Open Source Box -->
+				<div
+					class="flex w-full flex-col items-center gap-2 rounded-xl border border-(--border) bg-(--bg-card-hover)/50 p-4 text-center text-xs text-(--fg-muted)"
+				>
+					<div class="flex items-center gap-1.5 font-semibold text-(--fg)">
+						<Icon icon="lucide:github" class="size-4 text-(--accent)" />
+						<span>Open Source</span>
+					</div>
+					<p class="leading-relaxed">This platform is open source. You can run it locally from:</p>
+					<a
+						href="https://github.com/alfinsyahruddin/trading-lab"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-flex items-center gap-1.5 font-semibold break-all text-(--accent) underline-offset-4 transition-colors hover:text-(--accent-hover) hover:underline"
+					>
+						<span>https://github.com/alfinsyahruddin/trading-lab</span>
+						<Icon icon="lucide:external-link" class="size-3.5 shrink-0" />
+					</a>
+				</div>
+
+				<!-- Actions -->
+				<div class="mt-2 flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-center">
 					<button
 						type="button"
 						onclick={close}
-						class="btn-interactive w-full rounded-xl bg-(--accent) px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) active:scale-97 sm:w-auto"
-					>
+						class="btn-interactive inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) active:scale-97 sm:w-auto">
 						Got it
 					</button>
 				</div>

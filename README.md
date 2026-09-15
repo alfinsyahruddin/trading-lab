@@ -12,27 +12,22 @@ Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX
 
 ## Features
 
-### 🛠️ Strategy Builder & Rule Engine
+### 🛠️ Visual Strategy Builder
 - **Visual Condition Builder**: Construct dynamic, multi-group screening rules with customizable intra-group and inter-group logical connectors (`AND` / `OR`).
 - **Comprehensive IDX Indicator Catalog**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
 - **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
 - **One-Click Strategy Duplication**: Easily duplicate existing strategies with automated unique naming (`{Name} (Copy)`) to rapidly iterate on rule variations.
 
-### 🤖 AI-Powered Trading Intelligence
+### ⚡ Reliable Backtest Engine
+- **Asynchronous Simulation**: High-performance historical simulation engine running in non-blocking Tokio background tasks.
+- **Real Market Data Integration**: Powered by Sectors.app IDX market data with permanent Redis caching, cache-miss telemetry, and 429 rate-limit backoff retries.
+- **Customizable Simulation Parameters**: Configure starting capital, maximum simultaneous portfolio holdings, broker commission fees (buy/sell), and historical durations (1, 3, 6, 12 months).
+
+### 🤖 AI-Powered
 - **AI Strategy Refinement**: Intercepts strategy creation and modification to analyze Take-Profit, Stop-Loss, holding duration, and conditional screening rules against IDX market dynamics, offering one-click "Accept" or "Ignore" suggestions to optimize risk-reward parameters and rule conditions (adding variables, modifying thresholds).
 - **AI Executive Summary**: Generates a structured, 5-point qualitative breakdown on completed backtests (Market Alignment, Risk-Adjusted Efficiency, Profit Drivers, Drawdown Exposure, and Iteration Advice).
 - **Persistent AI Caching**: AI summaries are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
 - **Platform-Wide Master Toggle**: Administrators can dynamically enable or disable AI capabilities across the entire platform via app settings.
-
-### 🎯 Risk & Trade Management
-- **Target & Stop Controls**: Configure explicit Take-Profit (%) and Stop-Loss (%) exit thresholds.
-- **Live Risk-to-Reward ($R:R$) Ratio**: Real-time calculated Risk-to-Reward ratio with adaptive visual feedback when risk exceeds reward.
-- **Holding Period Limits**: Enforce maximum holding periods (in days) to automatically liquidate stagnant positions and protect capital velocity.
-
-### ⚡ Historical Backtesting Engine
-- **Asynchronous Simulation**: High-performance historical simulation engine running in non-blocking Tokio background tasks.
-- **Real Market Data Integration**: Powered by Sectors.app IDX market data with permanent Redis caching, cache-miss telemetry, and 429 rate-limit backoff retries.
-- **Customizable Simulation Parameters**: Configure starting capital, maximum simultaneous portfolio holdings, broker commission fees (buy/sell), and historical durations (1, 3, 6, 12 months).
 
 ### 📊 Deep Analytics & Interactive Visualizations
 - **Interactive Equity Curve**: High-performance interactive baseline equity chart powered by **TradingView Lightweight Charts** with Jakarta timezone rendering and Net vs Gross equity toggling.
