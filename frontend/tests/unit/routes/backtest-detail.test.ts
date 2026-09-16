@@ -28,6 +28,33 @@ vi.mock('$lib/api', async (importOriginal) => {
 	};
 });
 
+vi.mock('lightweight-charts', () => ({
+	createChart: vi.fn(() => ({
+		addSeries: vi.fn(() => ({ setData: vi.fn() })),
+		timeScale: vi.fn(() => ({ fitContent: vi.fn() })),
+		applyOptions: vi.fn(),
+		subscribeCrosshairMove: vi.fn(),
+		unsubscribeCrosshairMove: vi.fn(),
+		remove: vi.fn()
+	})),
+	ColorType: { Solid: 'solid' },
+	BaselineSeries: 'Baseline'
+}));
+
+Object.defineProperty(window, 'matchMedia', {
+	writable: true,
+	value: vi.fn().mockImplementation((query) => ({
+		matches: false,
+		media: query,
+		onchange: null,
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn()
+	}))
+});
+
 describe('BacktestDetailPage - Run Again', () => {
 	const mockFailedJob: BacktestJob = {
 		id: 'job-failed-1',
@@ -113,5 +140,72 @@ describe('BacktestDetailPage - Run Again', () => {
 
 		expect(api.rerunBacktest).toHaveBeenCalledWith('valid-token', 'job-failed-1');
 		expect(toastSpy).toHaveBeenCalledWith('Backtest "Failed Test 2025" restarted.');
+	});
+
+	it('renders All-Time High and All-Time Low in winning and losing trades cards', async () => {
+		const mockDoneJob: BacktestJob = {
+			id: 'job-done-1',
+			user_id: 'u-1',
+			strategy_id: 'strat-1',
+			strategy_name: 'Breakout Strategy',
+			name: 'Successful Test 2025',
+			year: 2025,
+			initial_cash: 10_000_000,
+			max_holding_stocks: 5,
+			max_stocks: 12,
+			backtest_duration_months: 12,
+			buy_fee_percentage: 0.15,
+			sell_fee_percentage: 0.25,
+			is_public: false,
+			status: 'DONE',
+			error_message: null,
+			result: {
+				available_cash: 11_000_000,
+				trades_processed: 10,
+				net_pnl: 1_500_000,
+				net_pnl_percentage: 15,
+				gross_pnl: 1_600_000,
+				gross_pnl_percentage: 16,
+				win_rate: 60,
+				profit_factor: 2.1,
+				wins: 6,
+				losses: 4,
+				sharpe_ratio: 1.5,
+				max_profit: 500_000,
+				max_profit_percentage: 12.5,
+				max_loss: -250_000,
+				max_loss_percentage: -6.2,
+				avg_profit: 300_000,
+				avg_profit_percentage: 8.5,
+				avg_loss: -150_000,
+				avg_loss_percentage: -3.8,
+				avg_hold_time_days: 14,
+				total_fees: 100_000,
+				avg_win_hold_days: 12,
+				avg_loss_hold_days: 16,
+				portfolio_volatility: 10.2,
+				ai_summary: null
+			},
+			portfolio_history: [
+				{ date: '2025-01-02', net_value: 9_600_000, gross_value: 9_650_000 },
+				{ date: '2025-02-15', net_value: 12_500_000, gross_value: 12_550_000 },
+				{ date: '2025-03-30', net_value: 11_500_000, gross_value: 11_550_000 }
+			],
+			most_traded: [],
+			top_gainers: [],
+			top_losers: [],
+			trade_history: [],
+			created_at: '2026-08-30T00:00:00Z',
+			updated_at: '2026-08-30T00:00:00Z'
+		};
+
+		vi.mocked(api.getBacktest).mockResolvedValue(mockDoneJob);
+		render(BacktestDetailPage);
+
+		expect(await screen.findByText('All-Time High')).toBeInTheDocument();
+		expect(screen.getByText('Rp2.500.000 (+25.00%)')).toBeInTheDocument();
+
+		expect(screen.getByText('All-Time Low')).toBeInTheDocument();
+		expect(screen.getByText('Rp400.000 (-4.00%)')).toBeInTheDocument();
 	});
 });

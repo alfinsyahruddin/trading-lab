@@ -99,7 +99,8 @@
 					<button
 						type="button"
 						onclick={close}
-						class="btn-interactive inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) active:scale-97 sm:w-auto">
+						class="btn-interactive inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-(--accent-hover) active:scale-97 sm:w-auto"
+					>
 						Got it
 					</button>
 				</div>

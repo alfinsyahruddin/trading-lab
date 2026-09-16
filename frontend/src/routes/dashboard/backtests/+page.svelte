@@ -244,10 +244,16 @@
 										{job.name}
 									</h3>
 									<span
-										class="font-600 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs"
+										class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
 										style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
 									>
-										{job.year}
+										<Icon
+											icon="lucide:calendar"
+											width="12"
+											height="12"
+											style="color: var(--fg-muted);"
+										/>
+										<span>{job.year}</span>
 									</span>
 									<StatusBadge status={job.status} />
 

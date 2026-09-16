@@ -2,9 +2,9 @@
 	import {
 		createChart,
 		ColorType,
-		AreaSeries,
+		BaselineSeries,
 		type IChartApi,
-		type AreaData,
+		type BaselineData,
 		type Time
 	} from 'lightweight-charts';
 	import type { PortfolioHistoryEntry } from '$lib/types';
@@ -14,16 +14,9 @@
 	let container = $state<HTMLElement | null>(null);
 	let chart = $state<IChartApi | null>(null);
 
-	const finalValue = $derived(data.length > 0 ? data[data.length - 1].net_value : initialCash);
-	const isProfit = $derived(finalValue >= initialCash);
-
 	const colors = {
-		upLine: '#10b981', // success
-		upFillTop: 'rgba(16, 185, 129, 0.4)',
-		upFillBottom: 'rgba(16, 185, 129, 0.0)',
-		downLine: '#ef4444', // danger
-		downFillTop: 'rgba(239, 68, 68, 0.4)',
-		downFillBottom: 'rgba(239, 68, 68, 0.0)'
+		upColor: '#10b981', // success
+		downColor: '#ef4444' // danger
 	};
 
 	$effect(() => {
@@ -50,22 +43,29 @@
 				handleScale: false
 			});
 
-			const series = chart.addSeries(AreaSeries, {
-				lineColor: isProfit ? colors.upLine : colors.downLine,
-				topColor: isProfit ? colors.upFillTop : colors.downFillTop,
-				bottomColor: isProfit ? colors.upFillBottom : colors.downFillBottom,
+	
+			const series = chart.addSeries(BaselineSeries, {
+				baseValue: { type: 'price', price: initialCash },
+				topLineColor: colors.upColor,
+				topFillColor1: 'rgba(16, 185, 129, 0.28)',
+				topFillColor2: 'rgba(16, 185, 129, 0.05)',
+				bottomLineColor: colors.downColor,
+				bottomFillColor1: 'rgba(239, 68, 68, 0.05)',
+				bottomFillColor2: 'rgba(239, 68, 68, 0.28)',
 				lineWidth: 2,
 				crosshairMarkerVisible: false,
-				priceLineVisible: false
+				priceLineVisible: false,
+				lastValueVisible: false
 			});
 
-			const chartData: AreaData[] = data.map((entry) => ({
+			const chartData: BaselineData[] = data.map((entry) => ({
 				time: entry.date as Time,
 				value: entry.net_value
 			}));
 
 			series.setData(chartData);
 			chart.timeScale().fitContent();
+
 		}
 	});
 </script>

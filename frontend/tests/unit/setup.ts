@@ -18,6 +18,22 @@ Object.defineProperty(window, 'IntersectionObserver', {
 	value: MockIntersectionObserver
 });
 
+if (typeof Element !== 'undefined' && !Element.prototype.animate) {
+	Element.prototype.animate = vi.fn().mockImplementation(() => {
+		const anim = {
+			onfinish: null as ((this: Animation, ev: AnimationPlaybackEvent) => unknown) | null,
+			cancel: vi.fn(),
+			finish: vi.fn()
+		};
+		queueMicrotask(() => {
+			if (typeof anim.onfinish === 'function') {
+				anim.onfinish.call(anim as unknown as Animation, {} as AnimationPlaybackEvent);
+			}
+		});
+		return anim as unknown as Animation;
+	});
+}
+
 afterEach(() => {
 	cleanup();
 });

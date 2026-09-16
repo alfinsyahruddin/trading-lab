@@ -93,4 +93,19 @@ describe('NewBacktestPage', () => {
 			})
 		);
 	});
+
+	it('sets default backtest name to "Backtest <strategy name> - <year>"', async () => {
+		render(NewBacktestPage);
+
+		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
+
+		const nameInput = screen.getByLabelText(/^Backtest Name/i) as HTMLInputElement;
+		expect(nameInput).toBeInTheDocument();
+		expect(nameInput.value).toBe('Backtest Momentum Breakout - 2025');
+
+		// Changing year should update the default name if pristine
+		const year2024Btn = screen.getByRole('button', { name: '2024' });
+		await fireEvent.click(year2024Btn);
+		expect(nameInput.value).toBe('Backtest Momentum Breakout - 2024');
+	});
 });

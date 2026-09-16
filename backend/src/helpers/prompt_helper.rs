@@ -59,10 +59,16 @@ Key Backtest Metrics:
 Generate a high-impact executive summary consisting of a JSON array of up to 5 clear, insightful keypoint strings (maximum 5 strings).
 Each keypoint should be 1-2 concise sentences addressing one of the following 5 dimensions:
 1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, and fee drag impact.
-2. Win/Loss Dynamics: Win rate vs profit factor, and average win magnitude compared to average loss.
+2. Win/Loss Performance: Win rate vs profit factor, and average win magnitude compared to average loss.
 3. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
 4. Holding & Execution Efficiency: Win holding duration vs loss holding duration (discipline in cutting losses vs letting winners run).
 5. Strategic Verdict & Actionable Improvement: Concrete recommendation for parameter tuning (e.g. SL, TP, or holding window) under Indonesian market conditions.
+
+Formatting and Style Guidelines:
+- Highlight key metrics, numbers, and stats in Markdown bold (e.g. **+31.2%**, **-20.0%**, **0.0%**, **Rp 12.5M**, **64%**, **2.3 PF**, **Sharpe 1.8**, **7.5 days**).
+- For all percentage returns or changes, ALWAYS include the directional sign prefix: use '+' for positive returns (e.g. **+31.2%**), '-' for negative returns (e.g. **-20.0%**), and '0%' or '0.0%' for neutral/flat returns (e.g. **0.0%**).
+- Use Markdown italics for analytical emphasis where appropriate (e.g. *disciplined risk management*, *minimal fee drag*).
+- Keep each point crisp, direct, and actionable for traders.
 
 Return ONLY a valid JSON array of strings:
 ["Keypoint 1...", "Keypoint 2...", "Keypoint 3...", "Keypoint 4...", "Keypoint 5..."]"#,

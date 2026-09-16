@@ -121,7 +121,7 @@
 					labelVisible: false
 				}
 			},
-			height: 300
+			height: 320
 		});
 
 		const localSeries = localChart.addSeries(BaselineSeries, {
@@ -222,6 +222,6 @@
 	</div>
 
 	<div class="p-4 sm:p-5">
-		<div bind:this={container} class="w-full" style="min-height: 300px;"></div>
+		<div bind:this={container} class="w-full" style="min-height: 320px;"></div>
 	</div>
 </div>

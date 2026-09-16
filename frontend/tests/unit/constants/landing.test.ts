@@ -15,7 +15,7 @@ describe('Landing Constants', () => {
 
 	it('has hero stats defined', () => {
 		expect(LANDING_HERO_STATS).toHaveLength(3);
-		expect(LANDING_HERO_STATS[0].value).toBe('50+');
+		expect(LANDING_HERO_STATS[0].value).toBe('100+');
 	});
 
 	it('has 4 landing features with 1 AI feature', () => {

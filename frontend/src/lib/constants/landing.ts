@@ -10,7 +10,7 @@ export interface LandingHeroStat {
 }
 
 export const LANDING_HERO_STATS: LandingHeroStat[] = [
-	{ value: '50+', label: 'IDX Indicators' },
+	{ value: '100+', label: 'IDX Indicators' },
 	{ value: '4 Years', label: 'Historical Data' },
 	{ value: '8+', label: 'Performance Metrics' }
 ];
@@ -132,7 +132,7 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		darkSrc: '/ai-summary-dark.png',
 		alt: 'AI executive summary with qualitative performance breakdown',
 		tag: '✦ AI Summary',
-		description: '5-point qualitative breakdown and key takeaways for every backtest.',
+		description: '5-point qualitative breakdown and actionable insights for every backtest.',
 		delay: 300,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-3',
 		imageBorderClass: 'border-[rgba(222,152,254,0.25)] shadow-none dark:shadow-xl',
@@ -153,7 +153,7 @@ export const LANDING_WORKFLOW_STEPS: LandingWorkflowStep[] = [
 		step: '01',
 		title: 'Build your strategy',
 		description:
-			'Use the visual rule builder to set screening conditions across 50+ IDX financial indicators. Configure take-profit, stop-loss, and holding limits.',
+			'Use the visual rule builder to set screening conditions across 100+ IDX financial indicators. Configure take-profit, stop-loss, and holding limits.',
 		delay: 100
 	},
 	{

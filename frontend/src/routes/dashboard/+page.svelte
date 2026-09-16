@@ -15,7 +15,7 @@
 	} from '$lib/api';
 	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
-	import type { DashboardStats, LeaderboardEntry } from '$lib/types';
+	import type { DashboardStats, LeaderboardEntry, SegmentOption } from '$lib/types';
 
 	let loading = $state(true);
 	let stats = $state<DashboardStats | null>(null);
@@ -24,9 +24,9 @@
 
 	let activeTab = $state<'LEADERBOARD' | 'TOP_STARS'>('LEADERBOARD');
 
-	const tabOptions = [
-		{ value: 'LEADERBOARD', label: 'Leaderboard' },
-		{ value: 'TOP_STARS', label: 'Top Stars' }
+	const tabOptions: SegmentOption<'LEADERBOARD' | 'TOP_STARS'>[] = [
+		{ value: 'LEADERBOARD', label: 'Leaderboard', icon: 'lucide:trophy' },
+		{ value: 'TOP_STARS', label: 'Top Stars', icon: 'lucide:star' }
 	];
 
 	async function loadDashboard() {

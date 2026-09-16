@@ -35,6 +35,36 @@
 	const currentUser = $derived(getUser());
 	const isOwner = $derived(currentUser && job ? currentUser.id === job.user_id : false);
 
+	const allTimeHigh = $derived.by(() => {
+		if (!job?.portfolio_history?.length) return 0;
+		let maxPnl = -Infinity;
+		for (const p of job.portfolio_history) {
+			const pnl = p.net_value - job.initial_cash;
+			if (pnl > maxPnl) maxPnl = pnl;
+		}
+		return maxPnl === -Infinity ? 0 : maxPnl;
+	});
+
+	const allTimeLow = $derived.by(() => {
+		if (!job?.portfolio_history?.length) return 0;
+		let minPnl = Infinity;
+		for (const p of job.portfolio_history) {
+			const pnl = p.net_value - job.initial_cash;
+			if (pnl < minPnl) minPnl = pnl;
+		}
+		return minPnl === Infinity ? 0 : minPnl;
+	});
+
+	const athPercentage = $derived(
+		job?.initial_cash && job.initial_cash > 0 ? (allTimeHigh / job.initial_cash) * 100 : 0
+	);
+	const atlPercentage = $derived(
+		job?.initial_cash && job.initial_cash > 0 ? (allTimeLow / job.initial_cash) * 100 : 0
+	);
+
+	const athFormatted = $derived(formatAthAtl(allTimeHigh, athPercentage));
+	const atlFormatted = $derived(formatAthAtl(allTimeLow, atlPercentage));
+
 	onMount(async () => {
 		await loadData();
 	});
@@ -147,6 +177,28 @@
 		return `${sign}Rp${formatted}`;
 	}
 
+	function formatAthAtl(value: number, percentage: number): { text: string; color: string } {
+		const rounded = Math.round(value);
+		const absVal = Math.abs(rounded);
+		const formattedVal = formatRupiah(absVal);
+		if (rounded > 0) {
+			return {
+				text: `${formattedVal} (+${percentage.toFixed(2)}%)`,
+				color: 'var(--success)'
+			};
+		}
+		if (rounded < 0) {
+			return {
+				text: `${formattedVal} (${percentage.toFixed(2)}%)`,
+				color: 'var(--danger)'
+			};
+		}
+		return {
+			text: `${formattedVal} (0.00%)`,
+			color: 'var(--fg-muted)'
+		};
+	}
+
 	function formatPnl(value: number, percentage: number): string {
 		const sign = value >= 0 ? '+' : '';
 		return `${formatRupiah(value)} (${sign}${percentage.toFixed(2)}%)`;
@@ -235,39 +287,81 @@
 			</div>
 		</div>
 
-		<!-- Backtest Card Skeleton -->
-		<div
-			class="flex flex-col gap-4 rounded-2xl border p-4 sm:p-5"
-			style="background-color: var(--bg-card); border-color: var(--border);"
-		>
-			<!-- Top Row -->
-			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div class="flex flex-wrap items-center gap-2.5">
-					<div class="skeleton-shimmer h-6 w-52 rounded-md"></div>
-					<div class="skeleton-shimmer h-5 w-16 rounded-full"></div>
-					<div class="skeleton-shimmer h-5 w-20 rounded-full"></div>
-				</div>
-				<div class="skeleton-shimmer h-8 w-36 rounded-lg"></div>
-			</div>
-
-			<!-- Parameters Grid Skeleton -->
+		<!-- Backtest & Strategy Skeletons in 1 Row (matching PortfolioChart width) -->
+		<div class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.95fr)]">
+			<!-- Backtest Card Skeleton -->
 			<div
-				class="grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-5 sm:gap-3"
-				style="background-color: var(--bg-card-hover, var(--bg));"
+				class="flex flex-col gap-4 rounded-2xl border p-4 sm:p-5"
+				style="background-color: var(--bg-card); border-color: var(--border);"
 			>
-				{#each Array(5) as _, i (i)}
-					<div class="flex flex-col gap-1.5 p-1">
-						<div class="skeleton-shimmer h-3 w-16 rounded"></div>
-						<div class="skeleton-shimmer h-5 w-24 rounded"></div>
+				<!-- Top Row -->
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div class="flex flex-wrap items-center gap-2.5">
+						<div class="skeleton-shimmer h-6 w-44 rounded-md"></div>
+						<div class="skeleton-shimmer h-5 w-16 rounded-full"></div>
+						<div class="skeleton-shimmer h-5 w-20 rounded-full"></div>
 					</div>
-				{/each}
+					<div class="skeleton-shimmer h-8 w-36 rounded-lg"></div>
+				</div>
+
+				<!-- Parameters Grid Skeleton -->
+				<div
+					class="grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-3 sm:gap-3"
+					style="background-color: var(--bg-card-hover, var(--bg));"
+				>
+					{#each Array(6) as _, i (i)}
+						<div class="flex flex-col gap-1.5 p-1">
+							<div class="skeleton-shimmer h-3 w-16 rounded"></div>
+							<div class="skeleton-shimmer h-5 w-20 rounded"></div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Bottom Skeleton -->
+				<div
+					class="flex items-center justify-between border-t pt-3"
+					style="border-color: var(--border);"
+				>
+					<div class="skeleton-shimmer h-4 w-28 rounded"></div>
+					<div class="skeleton-shimmer h-3.5 w-20 rounded"></div>
+				</div>
 			</div>
 
-			<!-- Tags Skeleton -->
-			<div class="flex flex-wrap gap-2 pt-1">
-				<div class="skeleton-shimmer h-6 w-28 rounded-md"></div>
-				<div class="skeleton-shimmer h-6 w-36 rounded-md"></div>
-				<div class="skeleton-shimmer h-6 w-24 rounded-md"></div>
+			<!-- Strategy Card Skeleton -->
+			<div
+				class="flex flex-col gap-4 rounded-2xl border p-4 sm:p-5"
+				style="background-color: var(--bg-card); border-color: var(--border);"
+			>
+				<!-- Top Row -->
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div class="flex flex-col gap-1.5">
+						<div class="skeleton-shimmer h-5 w-28 rounded-full"></div>
+						<div class="skeleton-shimmer h-6 w-40 rounded-md"></div>
+					</div>
+					<div class="skeleton-shimmer h-8 w-32 rounded-lg"></div>
+				</div>
+
+				<!-- Parameters Grid Skeleton -->
+				<div
+					class="grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-4 sm:gap-3"
+					style="background-color: var(--bg-card-hover, var(--bg));"
+				>
+					{#each Array(4) as _, i (i)}
+						<div class="flex flex-col gap-1.5 p-1">
+							<div class="skeleton-shimmer h-3 w-16 rounded"></div>
+							<div class="skeleton-shimmer h-5 w-16 rounded"></div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Bottom Skeleton -->
+				<div
+					class="flex items-center justify-between border-t pt-3"
+					style="border-color: var(--border);"
+				>
+					<div class="skeleton-shimmer h-4 w-36 rounded"></div>
+					<div class="skeleton-shimmer h-3.5 w-24 rounded"></div>
+				</div>
 			</div>
 		</div>
 
@@ -380,238 +474,226 @@
 		<BacktestAiSummary summary={job.result.ai_summary} />
 	{/if}
 
-	<!-- Backtest Card (like in backtest list, but without bottom section) -->
-	<div class="mb-6">
+	<!-- Backtest & Strategy Overview Row (matching PortfolioChart width) -->
+	<div class="mb-6 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.95fr)]">
+		<!-- Section Backtest -->
 		<div
-			class="flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
+			class="flex flex-col justify-between rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
 			style="background-color: var(--bg-card); border-color: var(--border);"
 		>
-			<!-- Top Row: Title + Year + Status + Visibility Toggle -->
-			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div class="flex flex-col gap-1.5">
-					<div class="flex flex-wrap items-center gap-2">
-						<h1 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
-							{job.name}
-						</h1>
-						<span
-							class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
-							style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
-						>
-							<Icon icon="lucide:calendar" width="12" height="12" style="color: var(--fg-muted);" />
-							<span>{job.year}</span>
-						</span>
-						<StatusBadge status={job.status} />
+			<div>
+				<!-- Top Row: Title + Year + Status + Visibility Toggle -->
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div class="flex flex-col gap-1.5">
+						<div class="flex flex-wrap items-center gap-2">
+							<h1 class="font-700 text-base leading-snug sm:text-lg" style="color: var(--fg)">
+								{job.name}
+							</h1>
+							<span
+								class="font-600 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
+								style="background-color: var(--bg-card-hover, #eee); color: var(--fg)"
+							>
+								<Icon
+									icon="lucide:calendar"
+									width="12"
+									height="12"
+									style="color: var(--fg-muted);"
+								/>
+								<span>{job.year}</span>
+							</span>
+							<StatusBadge status={job.status} />
+						</div>
+
+						{#if !isOwner && job.owner}
+							<div class="flex items-center gap-2 pt-0.5">
+								<div
+									class="avatar-glass flex size-6 shrink-0 items-center justify-center rounded-full border shadow-2xs"
+									style="color: var(--fg);"
+								>
+									<Icon icon="lucide:user" width="13" height="13" />
+								</div>
+								<div class="flex flex-wrap items-center gap-1.5 text-xs">
+									<span class="font-600" style="color: var(--fg)">{job.owner.name}</span>
+									<span class="text-[11px]" style="color: var(--fg-muted)">({job.owner.email})</span
+									>
+								</div>
+							</div>
+						{/if}
 					</div>
 
-					{#if !isOwner && job.owner}
-						<div class="flex items-center gap-2 pt-0.5">
-							<div
-								class="avatar-glass flex size-6 shrink-0 items-center justify-center rounded-full border shadow-2xs"
-								style="color: var(--fg);"
+					<!-- Small Public/Private Toggle for owner, badge for viewer -->
+					<div class="flex items-center gap-2.5 self-start sm:self-auto">
+						{#if isOwner && job.status === 'FAILED'}
+							<button
+								type="button"
+								onclick={handleRerun}
+								disabled={rerunLoading}
+								class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs text-white shadow-2xs transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+								style="background-color: var(--accent);"
+								title="Run backtest again"
 							>
-								<Icon icon="lucide:user" width="13" height="13" />
+								<Icon
+									icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
+									class={rerunLoading ? 'animate-spin' : ''}
+									width="13"
+									height="13"
+								/>
+								<span>Run Again</span>
+							</button>
+						{/if}
+
+						{#if isOwner}
+							<div class="w-38">
+								<SegmentedControl
+									size="sm"
+									options={[
+										{ value: false, label: 'Private', icon: 'lucide:lock' },
+										{ value: true, label: 'Public', icon: 'lucide:globe' }
+									]}
+									value={job.is_public}
+									onchange={handleVisibilityChange}
+								/>
 							</div>
-							<div class="flex flex-wrap items-center gap-1.5 text-xs">
-								<span class="font-600" style="color: var(--fg)">{job.owner.name}</span>
-								<span class="text-[11px]" style="color: var(--fg-muted)">({job.owner.email})</span>
-							</div>
-						</div>
-					{/if}
+						{:else}
+							<span
+								class="font-600 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+								style="background-color: var(--bg-card-hover, #eee); color: var(--fg-muted);"
+							>
+								<Icon
+									icon={job.is_public ? 'lucide:globe' : 'lucide:lock'}
+									width="13"
+									height="13"
+								/>
+								<span>{job.is_public ? 'Public' : 'Private'}</span>
+							</span>
+						{/if}
+					</div>
 				</div>
 
-				<!-- Small Public/Private Toggle for owner, badge for viewer -->
-				<div class="flex items-center gap-2.5 self-start sm:self-auto">
-					{#if isOwner && job.status === 'FAILED'}
-						<button
-							type="button"
-							onclick={handleRerun}
-							disabled={rerunLoading}
-							class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs text-white shadow-2xs transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-							style="background-color: var(--accent);"
-							title="Run backtest again"
+				<!-- Middle Row: Parameters Grid (Initial Cash, Duration, Max Holding, Max Stocks, Buy Fee, Sell Fee) -->
+				<div
+					class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-6 sm:grid-cols-3 sm:gap-6"
+					style="background-color: var(--bg-card-hover, var(--bg));"
+				>
+					<!-- Initial Cash -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
 						>
+							Initial Cash
+						</span>
+						<span class="font-700 text-sm" style="color: var(--fg)">
+							{formatRupiah(job.initial_cash)}
+						</span>
+					</div>
+
+					<!-- Duration -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
+						>
+							Duration
+						</span>
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon
-								icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
-								class={rerunLoading ? 'animate-spin' : ''}
+								icon="lucide:calendar-range"
 								width="13"
 								height="13"
+								style="color: var(--fg-muted);"
 							/>
-							<span>Run Again</span>
-						</button>
-					{/if}
-
-					{#if isOwner}
-						<div class="w-38">
-							<SegmentedControl
-								size="sm"
-								options={[
-									{ value: false, label: 'Private', icon: 'lucide:lock' },
-									{ value: true, label: 'Public', icon: 'lucide:globe' }
-								]}
-								value={job.is_public}
-								onchange={handleVisibilityChange}
-							/>
-						</div>
-					{:else}
-						<span
-							class="font-600 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
-							style="background-color: var(--bg-card-hover, #eee); color: var(--fg-muted);"
-						>
-							<Icon icon={job.is_public ? 'lucide:globe' : 'lucide:lock'} width="13" height="13" />
-							<span>{job.is_public ? 'Public' : 'Private'}</span>
+							{formatDuration(job.backtest_duration_months)}
 						</span>
-					{/if}
-				</div>
-			</div>
+					</div>
 
-			<!-- Middle Row: Parameters Grid (Initial Cash, Duration, Max Holding, Max Stocks, Fees) -->
-			<div
-				class="mt-4 grid grid-cols-2 gap-2 rounded-xl p-3 sm:grid-cols-5 sm:gap-3"
-				style="background-color: var(--bg-card-hover, var(--bg));"
-			>
-				<!-- Initial Cash -->
-				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
-					>
-						Initial Cash
-					</span>
-					<span class="font-700 text-sm" style="color: var(--fg)">
-						{formatRupiah(job.initial_cash)}
-					</span>
-				</div>
+					<!-- Max Holding Stocks -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
+						>
+							Max Holding
+						</span>
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+							<Icon icon="lucide:layers" width="13" height="13" style="color: var(--fg-muted);" />
+							{job.max_holding_stocks} Stocks
+						</span>
+					</div>
 
-				<!-- Duration -->
-				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
-					>
-						Duration
-					</span>
-					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
-						<Icon
-							icon="lucide:calendar-range"
-							width="13"
-							height="13"
-							style="color: var(--fg-muted);"
-						/>
-						{formatDuration(job.backtest_duration_months)}
-					</span>
-				</div>
+					<!-- Max Screened Stocks -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
+						>
+							Max Stocks
+						</span>
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+							<Icon icon="lucide:filter" width="13" height="13" style="color: var(--fg-muted);" />
+							{job.max_stocks ?? 12} Stocks
+						</span>
+					</div>
 
-				<!-- Max Holding Stocks -->
-				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
-					>
-						Max Holding
-					</span>
-					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
-						<Icon icon="lucide:layers" width="13" height="13" style="color: var(--fg-muted);" />
-						{job.max_holding_stocks} Stocks
-					</span>
-				</div>
+					<!-- Buy Fee -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
+						>
+							Buy Fee
+						</span>
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+							<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
+							{job.buy_fee_percentage}%
+						</span>
+					</div>
 
-				<!-- Max Screened Stocks -->
-				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
-					>
-						Max Stocks
-					</span>
-					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
-						<Icon icon="lucide:filter" width="13" height="13" style="color: var(--fg-muted);" />
-						{job.max_stocks ?? 12} Stocks
-					</span>
-				</div>
-
-				<!-- Trading Fees -->
-				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
-					>
-						Fees (Buy / Sell)
-					</span>
-					<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
-						<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
-						{job.buy_fee_percentage}% / {job.sell_fee_percentage}%
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	{#if job.status === 'PENDING' || job.status === 'PROCESSING'}
-		<div
-			class="flex flex-col items-center justify-center rounded-xl border p-12 text-center"
-			style="background-color: var(--bg-card); border-color: var(--border);"
-		>
-			<Icon
-				icon="lucide:loader-2"
-				class="mb-4 animate-spin"
-				style="color: var(--accent)"
-				width="40"
-				height="40"
-			/>
-			<h2 class="font-700 mb-1 text-lg" style="color: var(--fg)">Backtest is running...</h2>
-			<p class="font-500 text-sm" style="color: var(--fg-muted)">
-				This may take a few minutes depending on the duration and data size.
-			</p>
-		</div>
-	{:else if job.status === 'FAILED'}
-		<div
-			class="rounded-xl border p-6"
-			style="background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3);"
-		>
-			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div class="flex items-start gap-3">
-					<Icon
-						icon="lucide:alert-circle"
-						width="24"
-						height="24"
-						style="color: var(--danger); margin-top: 2px;"
-					/>
-					<div>
-						<h3 class="font-600 text-base" style="color: var(--danger)">Backtest Failed</h3>
-						<p class="font-500 mt-1 text-sm" style="color: var(--danger); opacity: 0.9;">
-							{job.error_message}
-						</p>
+					<!-- Sell Fee -->
+					<div class="flex flex-col">
+						<span
+							class="font-600 text-[11px] tracking-wider uppercase"
+							style="color: var(--fg-muted)"
+						>
+							Sell Fee
+						</span>
+						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
+							<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
+							{job.sell_fee_percentage}%
+						</span>
 					</div>
 				</div>
+			</div>
 
-				{#if isOwner}
-					<button
-						type="button"
-						onclick={handleRerun}
-						disabled={rerunLoading}
-						class="btn-interactive font-600 inline-flex shrink-0 items-center gap-2 self-start rounded-xl px-4 py-2.5 text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
-						style="background-color: var(--accent);"
-						title="Run backtest again"
-					>
-						<Icon
-							icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
-							class={rerunLoading ? 'animate-spin' : ''}
-							width="16"
-							height="16"
-						/>
-						<span>Run Again</span>
-					</button>
-				{/if}
+			<!-- Bottom Row: Simulation Info (Left) + Ran Timestamp (Right) -->
+			<div
+				class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
+				style="border-color: var(--border);"
+			>
+				<div class="font-600 flex items-center gap-1.5 text-xs" style="color: var(--fg-muted)">
+					<Icon icon="lucide:flask-conical" width="13" height="13" />
+					<span>Backtest Configuration</span>
+				</div>
+
+				<div
+					class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
+					style="color: var(--fg-muted);"
+				>
+					<div class="inline-flex items-center gap-1">
+						<Icon icon="lucide:clock" width="11" height="11" />
+						<span>Ran {formatTimeAgo(job.created_at)}</span>
+					</div>
+				</div>
 			</div>
 		</div>
-	{:else if job.status === 'DONE' && job.result}
-		<div class="flex flex-col gap-6">
-			<!-- Trading Strategy Card (like in trading strategy list) -->
-			{#if strategy}
-				<div
-					class="group flex flex-col rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
-					style="background-color: var(--bg-card); border-color: var(--border);"
-				>
+
+		<!-- Section Trading Strategy -->
+		{#if strategy}
+			<div
+				class="group flex flex-col justify-between rounded-2xl border p-4 transition-colors duration-200 sm:p-5"
+				style="background-color: var(--bg-card); border-color: var(--border);"
+			>
+				<div>
 					<!-- Top Row: Title + Visibility Badge + Action Buttons -->
 					<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 						<!-- Title & Visibility -->
@@ -641,7 +723,7 @@
 								aria-label="View trading strategy detail for {strategy.name}"
 							>
 								<Icon icon="lucide:external-link" width="13" height="13" />
-								<span>Trading Strategy Detail</span>
+								<span>Strategy Detail</span>
 							</a>
 						</div>
 					</div>
@@ -704,110 +786,166 @@
 							</span>
 						</div>
 					</div>
+				</div>
 
-					<!-- Bottom Row: Rules Tags Preview (Left) + Timestamps (Right) -->
-					<div
-						class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
-						style="border-color: var(--border);"
-					>
-						<!-- Left: Rules & Conditions Tags -->
-						{#if strategy.rules && strategy.rules.length > 0}
-							<div class="flex min-w-0 flex-1 flex-col gap-1.5">
-								<div
-									class="font-600 flex items-center gap-1.5 text-xs"
-									style="color: var(--fg-muted)"
-								>
-									<Icon icon="lucide:code-2" width="13" height="13" />
-									<span>Rules & Conditions:</span>
-								</div>
+				<!-- Bottom Row: Rules Tags Preview (Left) + Timestamps (Right) -->
+				<div
+					class="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-end sm:justify-between"
+					style="border-color: var(--border);"
+				>
+					<!-- Left: Rules & Conditions Tags -->
+					{#if strategy.rules && strategy.rules.length > 0}
+						<div class="flex min-w-0 flex-1 flex-col gap-1.5">
+							<div
+								class="font-600 flex items-center gap-1.5 text-xs"
+								style="color: var(--fg-muted)"
+							>
+								<Icon icon="lucide:code-2" width="13" height="13" />
+								<span>Rules & Conditions:</span>
+							</div>
 
-								<div class="flex flex-wrap items-center gap-1.5">
-									{#each strategy.rules as group, gIdx (gIdx)}
-										{#if gIdx > 0}
-											<span
-												class="font-800 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
-												style="background-color: var(--accent-soft); color: var(--accent);"
-											>
-												{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
-											</span>
-										{/if}
-
-										<div
-											class="inline-flex flex-wrap items-center gap-1 rounded-xl border px-2 py-1"
-											style="border-color: var(--border); background-color: var(--bg-card);"
+							<div class="flex flex-wrap items-center gap-1.5">
+								{#each strategy.rules as group, gIdx (gIdx)}
+									{#if gIdx > 0}
+										<span
+											class="font-800 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase"
+											style="background-color: var(--accent-soft); color: var(--accent);"
 										>
-											{#each group.conditions as condition, cIdx (cIdx)}
-												{#if cIdx > 0}
-													<span
-														class="font-700 font-mono text-[10px]"
-														style="color: var(--accent);"
-													>
-														{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
-													</span>
-												{/if}
+											{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
+										</span>
+									{/if}
 
-												<span
-													class="font-500 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs"
-													style="
-														background-color: var(--bg-card-hover, var(--bg));
-														color: var(--fg);
-													"
-												>
-													<span
-														class="font-600 font-mono text-[11px]"
-														style="color: var(--accent);"
-													>
-														{condition.variable}
-													</span>
-													<span class="font-mono text-[11px]" style="color: var(--fg-muted);">
-														{condition.operator}
-													</span>
-													<span class="font-600 text-[11px]">
-														{condition.value}
-													</span>
+									<div
+										class="inline-flex flex-wrap items-center gap-1 rounded-xl border px-2 py-1"
+										style="border-color: var(--border); background-color: var(--bg-card);"
+									>
+										{#each group.conditions as condition, cIdx (cIdx)}
+											{#if cIdx > 0}
+												<span class="font-700 font-mono text-[10px]" style="color: var(--accent);">
+													{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
 												</span>
-											{/each}
-										</div>
-									{/each}
-								</div>
-							</div>
-						{:else}
-							<div class="flex-1"></div>
-						{/if}
+											{/if}
 
-						<!-- Right: Timestamps (Edited at & Created at) -->
-						<div
-							class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
-							style="color: var(--fg-muted);"
-						>
-							<div class="inline-flex items-center gap-1">
-								<Icon icon="lucide:clock" width="11" height="11" />
-								<span>Edited {formatTimeAgo(strategy.updated_at)}</span>
+											<span
+												class="font-500 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs"
+												style="
+													background-color: var(--bg-card-hover, var(--bg));
+													color: var(--fg);
+												"
+											>
+												<span class="font-600 font-mono text-[11px]" style="color: var(--accent);">
+													{condition.variable}
+												</span>
+												<span class="font-mono text-[11px]" style="color: var(--fg-muted);">
+													{condition.operator}
+												</span>
+												<span class="font-600 text-[11px]">
+													{condition.value}
+												</span>
+											</span>
+										{/each}
+									</div>
+								{/each}
 							</div>
-							<div class="inline-flex items-center gap-1">
-								<Icon icon="lucide:calendar" width="11" height="11" />
-								<span>Created {formatTimeAgo(strategy.created_at)}</span>
-							</div>
+						</div>
+					{:else}
+						<div class="flex-1"></div>
+					{/if}
+
+					<!-- Right: Timestamps (Edited at & Created at) -->
+					<div
+						class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
+						style="color: var(--fg-muted);"
+					>
+						<div class="inline-flex items-center gap-1">
+							<Icon icon="lucide:clock" width="11" height="11" />
+							<span>Edited {formatTimeAgo(strategy.updated_at)}</span>
+						</div>
+						<div class="inline-flex items-center gap-1">
+							<Icon icon="lucide:calendar" width="11" height="11" />
+							<span>Created {formatTimeAgo(strategy.created_at)}</span>
 						</div>
 					</div>
 				</div>
-			{:else if job.strategy_name}
-				<div
-					class="flex items-center justify-between rounded-xl border p-4"
-					style="background-color: var(--bg-card); border-color: var(--border);"
-				>
-					<div class="flex items-center gap-2">
-						<Icon
-							icon="lucide:candlestick-chart"
-							width="16"
-							height="16"
-							style="color: var(--accent);"
-						/>
-						<span class="font-700 text-sm" style="color: var(--fg)">{job.strategy_name}</span>
+			</div>
+		{:else if job.strategy_name}
+			<div
+				class="flex items-center justify-between rounded-2xl border p-5"
+				style="background-color: var(--bg-card); border-color: var(--border);"
+			>
+				<div class="flex items-center gap-2">
+					<Icon
+						icon="lucide:candlestick-chart"
+						width="16"
+						height="16"
+						style="color: var(--accent);"
+					/>
+					<span class="font-700 text-sm" style="color: var(--fg)">{job.strategy_name}</span>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	{#if job.status === 'PENDING' || job.status === 'PROCESSING'}
+		<div
+			class="flex flex-col items-center justify-center rounded-xl border p-12 text-center"
+			style="background-color: var(--bg-card); border-color: var(--border);"
+		>
+			<Icon
+				icon="lucide:loader-2"
+				class="mb-4 animate-spin"
+				style="color: var(--accent)"
+				width="40"
+				height="40"
+			/>
+			<h2 class="font-700 mb-1 text-lg" style="color: var(--fg)">Backtest is running...</h2>
+			<p class="font-500 text-sm" style="color: var(--fg-muted)">
+				This may take a few minutes depending on the duration and data size.
+			</p>
+		</div>
+	{:else if job.status === 'FAILED'}
+		<div
+			class="rounded-xl border p-6"
+			style="background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3);"
+		>
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex items-start gap-3">
+					<Icon
+						icon="lucide:alert-circle"
+						width="24"
+						height="24"
+						style="color: var(--danger); margin-top: 2px;"
+					/>
+					<div>
+						<h3 class="font-600 text-base" style="color: var(--danger)">Backtest Failed</h3>
+						<p class="font-500 mt-1 text-sm" style="color: var(--danger); opacity: 0.9;">
+							{job.error_message}
+						</p>
 					</div>
 				</div>
-			{/if}
 
+				{#if isOwner}
+					<button
+						type="button"
+						onclick={handleRerun}
+						disabled={rerunLoading}
+						class="btn-interactive font-600 inline-flex shrink-0 items-center gap-2 self-start rounded-xl px-4 py-2.5 text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
+						style="background-color: var(--accent);"
+						title="Run backtest again"
+					>
+						<Icon
+							icon={rerunLoading ? 'lucide:loader-2' : 'lucide:rotate-cw'}
+							class={rerunLoading ? 'animate-spin' : ''}
+							width="16"
+							height="16"
+						/>
+						<span>Run Again</span>
+					</button>
+				{/if}
+			</div>
+		</div>
+	{:else if job.status === 'DONE' && job.result}
+		<div class="flex flex-col gap-6">
 			<!-- Performance-first dashboard: chart is the anchor, metrics are grouped by meaning. -->
 			<div class="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.95fr)]">
 				<div class="flex min-w-0 flex-col gap-5">
@@ -816,22 +954,26 @@
 					<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 						{#each [{ label: 'Initial cash', value: formatRupiah(job.initial_cash), icon: 'lucide:wallet-cards' }, { label: 'Available cash', value: formatRupiah(job.result.available_cash), icon: 'lucide:landmark' }, { label: 'Trades processed', value: String(job.result.trades_processed), icon: 'lucide:arrow-left-right' }] as item (item.label)}
 							<div
-								class="rounded-xl border p-3.5"
+								class="flex items-center gap-3 rounded-xl border p-3.5"
 								style="background-color: var(--bg-card); border-color: var(--border);"
 							>
 								<div
-									class="mb-3 flex size-7 items-center justify-center rounded-lg"
+									class="flex size-9 shrink-0 items-center justify-center rounded-lg"
 									style="background-color: var(--accent-soft); color: var(--accent);"
 								>
-									<Icon icon={item.icon} width="14" height="14" />
+									<Icon icon={item.icon} width="16" height="16" />
 								</div>
-								<p
-									class="font-600 text-[10px] tracking-wider uppercase"
-									style="color: var(--fg-muted)"
-								>
-									{item.label}
-								</p>
-								<p class="font-700 mt-0.5 text-sm" style="color: var(--fg)">{item.value}</p>
+								<div class="min-w-0 flex-1">
+									<p
+										class="font-600 truncate text-[10px] tracking-wider uppercase"
+										style="color: var(--fg-muted)"
+									>
+										{item.label}
+									</p>
+									<p class="font-700 mt-0.5 truncate text-sm" style="color: var(--fg)">
+										{item.value}
+									</p>
+								</div>
 							</div>
 						{/each}
 					</div>
@@ -914,6 +1056,12 @@
 									</p>
 								</div>
 							</div>
+							<div class="mt-2.5 border-t pt-2" style="border-color: var(--border);">
+								<p class="text-[10px]" style="color: var(--fg-muted)">All-Time High</p>
+								<p class="font-700 text-sm" style="color: {athFormatted.color}">
+									{athFormatted.text}
+								</p>
+							</div>
 						</div>
 						<div
 							class="rounded-xl border p-3.5"
@@ -938,6 +1086,12 @@
 										{job.result.avg_loss_percentage.toFixed(2)}%
 									</p>
 								</div>
+							</div>
+							<div class="mt-2.5 border-t pt-2" style="border-color: var(--border);">
+								<p class="text-[10px]" style="color: var(--fg-muted)">All-Time Low</p>
+								<p class="font-700 text-sm" style="color: {atlFormatted.color}">
+									{atlFormatted.text}
+								</p>
 							</div>
 						</div>
 					</div>

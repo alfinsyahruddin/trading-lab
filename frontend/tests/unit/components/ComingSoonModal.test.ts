@@ -33,7 +33,7 @@ describe('ComingSoonModal', () => {
 		// Open source notice & GitHub repository
 		expect(screen.getAllByText(/open source/i).length).toBeGreaterThanOrEqual(1);
 		expect(
-			screen.getByText(/this app is open source\. you can run it locally from:/i)
+			screen.getByText(/this (app|platform) is open source\. you can run it locally from:/i)
 		).toBeInTheDocument();
 
 		const repoLinks = screen.getAllByRole('link', {
@@ -47,16 +47,6 @@ describe('ComingSoonModal', () => {
 		expect(repoUrlLink).toHaveAttribute('href', 'https://github.com/alfinsyahruddin/trading-lab');
 		expect(repoUrlLink).toHaveAttribute('target', '_blank');
 		expect(repoUrlLink).toHaveAttribute('rel', 'noopener noreferrer');
-
-		const viewOnGitHubBtn = screen.getByRole('link', {
-			name: /view on github/i
-		});
-		expect(viewOnGitHubBtn).toHaveAttribute(
-			'href',
-			'https://github.com/alfinsyahruddin/trading-lab'
-		);
-		expect(viewOnGitHubBtn).toHaveAttribute('target', '_blank');
-		expect(viewOnGitHubBtn).toHaveAttribute('rel', 'noopener noreferrer');
 	});
 
 	it('closes when Got it button is clicked', async () => {

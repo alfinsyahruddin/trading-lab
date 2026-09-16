@@ -14,6 +14,12 @@
 	let { title, description, bullets, delay = 0, isAi = false, icon }: Props = $props();
 </script>
 
+{#snippet bulletTriangle()}
+	<svg class="mt-1 size-2 shrink-0 fill-(--accent)" viewBox="0 0 6 8" aria-hidden="true">
+		<polygon points="0.4,1 5.6,4 0.4,7" />
+	</svg>
+{/snippet}
+
 {#if isAi}
 	<article
 		use:reveal={{ delay }}
@@ -42,8 +48,8 @@
 			<ul class="mt-1 flex flex-col gap-1.5 text-xs text-(--fg-muted)">
 				{#each bullets as bullet (bullet)}
 					<li class="flex items-start gap-2">
-						<span class="font-bold text-(--accent)">—</span>
-						{bullet}
+						{@render bulletTriangle()}
+						<span>{bullet}</span>
 					</li>
 				{/each}
 			</ul>
@@ -69,8 +75,8 @@
 		<ul class="mt-1 flex flex-col gap-1.5 text-xs text-(--fg-muted)">
 			{#each bullets as bullet (bullet)}
 				<li class="flex items-start gap-2">
-					<span class="font-bold text-(--accent)">—</span>
-					{bullet}
+					{@render bulletTriangle()}
+					<span>{bullet}</span>
 				</li>
 			{/each}
 		</ul>
