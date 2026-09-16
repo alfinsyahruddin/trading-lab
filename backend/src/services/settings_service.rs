@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use redis::aio::ConnectionManager;
 
 use crate::{
@@ -10,13 +8,14 @@ use crate::{
     repositories::settings_repository::SettingsRepository,
 };
 
+#[derive(Clone)]
 pub struct SettingsService {
-    repo: Arc<SettingsRepository>,
+    repo: SettingsRepository,
     redis: ConnectionManager,
 }
 
 impl SettingsService {
-    pub fn new(repo: Arc<SettingsRepository>, redis: ConnectionManager) -> Self {
+    pub fn new(repo: SettingsRepository, redis: ConnectionManager) -> Self {
         Self { repo, redis }
     }
 

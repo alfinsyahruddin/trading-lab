@@ -1,31 +1,10 @@
 use sqlx::{postgres::PgQueryResult, types::Json, PgPool};
 use uuid::Uuid;
 
-use crate::entities::{
-    app_error::AppError,
-    trading_strategy::{StrategyRuleGroup, TradingStrategyRecord},
+pub use crate::entities::trading_strategy::{
+    CreateStrategyRecordParams, UpdateStrategyRecordParams,
 };
-
-pub struct CreateStrategyRecordParams<'a> {
-    pub user_id: Uuid,
-    pub name: &'a str,
-    pub description: Option<&'a str>,
-    pub tp_percentage: f64,
-    pub sl_percentage: f64,
-    pub max_holding_period_days: i32,
-    pub rules: &'a [StrategyRuleGroup],
-}
-
-pub struct UpdateStrategyRecordParams<'a> {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub name: Option<&'a str>,
-    pub description: Option<Option<&'a str>>,
-    pub tp_percentage: Option<f64>,
-    pub sl_percentage: Option<f64>,
-    pub max_holding_period_days: Option<i32>,
-    pub rules: Option<&'a [StrategyRuleGroup]>,
-}
+use crate::entities::{app_error::AppError, trading_strategy::TradingStrategyRecord};
 
 #[derive(Clone)]
 pub struct TradingStrategyRepository {

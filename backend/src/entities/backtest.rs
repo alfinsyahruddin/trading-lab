@@ -97,6 +97,53 @@ pub struct BacktestTradeRecord {
     pub sell_date: NaiveDate,
 }
 
+#[derive(Debug, Clone)]
+pub struct CreateBacktestParams {
+    pub user_id: Uuid,
+    pub strategy_id: Uuid,
+    pub strategy_name: String,
+    pub name: String,
+    pub year: i32,
+    pub initial_cash: f64,
+    pub max_holding_stocks: i32,
+    pub max_stocks: i32,
+    pub backtest_duration_months: i32,
+    pub buy_fee_percentage: f64,
+    pub sell_fee_percentage: f64,
+    pub is_public: bool,
+}
+
+#[derive(Debug, FromRow)]
+pub struct MostTradedRow {
+    pub code: String,
+    pub total: i64,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+}
+
+#[derive(Debug, FromRow)]
+pub struct TopEntryRow {
+    pub code: String,
+    pub pnl: f64,
+    pub pnl_percentage: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct StockData {
+    pub code: String,
+    pub daily_data: Vec<(NaiveDate, f64, u64)>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Position {
+    pub code: String,
+    pub lots: i32,
+    pub buy_price: f64,
+    pub buy_value: f64,
+    pub buy_fee: f64,
+    pub buy_date: NaiveDate,
+}
+
 #[derive(Debug, Serialize)]
 pub struct BacktestJobResponse {
     pub id: Uuid,

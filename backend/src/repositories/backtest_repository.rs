@@ -1,6 +1,8 @@
 use chrono::Utc;
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
+
+pub use crate::entities::backtest::{CreateBacktestParams, MostTradedRow, TopEntryRow};
 
 use crate::{
     entities::{
@@ -13,38 +15,9 @@ use crate::{
     enums::backtest_status::BacktestStatus,
 };
 
+#[derive(Clone)]
 pub struct BacktestRepository {
     pool: PgPool,
-}
-
-pub struct CreateBacktestParams {
-    pub user_id: Uuid,
-    pub strategy_id: Uuid,
-    pub strategy_name: String,
-    pub name: String,
-    pub year: i32,
-    pub initial_cash: f64,
-    pub max_holding_stocks: i32,
-    pub max_stocks: i32,
-    pub backtest_duration_months: i32,
-    pub buy_fee_percentage: f64,
-    pub sell_fee_percentage: f64,
-    pub is_public: bool,
-}
-
-#[derive(FromRow)]
-pub struct MostTradedRow {
-    pub code: String,
-    pub total: i64,
-    pub pnl: f64,
-    pub pnl_percentage: f64,
-}
-
-#[derive(FromRow)]
-pub struct TopEntryRow {
-    pub code: String,
-    pub pnl: f64,
-    pub pnl_percentage: f64,
 }
 
 impl BacktestRepository {

@@ -45,6 +45,27 @@ pub struct TradingStrategyRecord {
     pub owner_email: Option<String>,
 }
 
+pub struct CreateStrategyRecordParams<'a> {
+    pub user_id: Uuid,
+    pub name: &'a str,
+    pub description: Option<&'a str>,
+    pub tp_percentage: f64,
+    pub sl_percentage: f64,
+    pub max_holding_period_days: i32,
+    pub rules: &'a [StrategyRuleGroup],
+}
+
+pub struct UpdateStrategyRecordParams<'a> {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub name: Option<&'a str>,
+    pub description: Option<Option<&'a str>>,
+    pub tp_percentage: Option<f64>,
+    pub sl_percentage: Option<f64>,
+    pub max_holding_period_days: Option<i32>,
+    pub rules: Option<&'a [StrategyRuleGroup]>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TradingStrategyResponse {
     pub id: Uuid,

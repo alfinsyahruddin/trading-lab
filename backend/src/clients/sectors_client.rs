@@ -1,31 +1,12 @@
 use async_trait::async_trait;
 use redis::aio::ConnectionManager;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 
 use crate::entities::app_error::AppError;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenerCompany {
-    pub symbol: String,
-    pub company_name: String,
-    #[serde(default)]
-    pub query_values: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScreenerResponse {
-    pub results: Vec<ScreenerCompany>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyTransaction {
-    pub symbol: String,
-    pub date: String,
-    pub close: f64,
-    pub volume: u64,
-    pub market_cap: f64,
-}
+pub use crate::entities::sectors::{
+    DailyTransaction, DefaultScreenerResponse, ScreenerCompany, ScreenerResponse,
+};
 
 #[async_trait]
 pub trait SectorsClientTrait: Send + Sync {
@@ -224,11 +205,6 @@ impl SectorsClientTrait for SectorsClient {
 
 // Wait, the prompt says: "Actually the reqwest client can handle query params — but since the where param has complex SQL-like syntax, just pass it as-is in the URL and let reqwest encode it."
 // So I should let reqwest handle it, or use urlencoding. I'll just change to reqwest's query builder.
-
-#[derive(Deserialize)]
-struct DefaultScreenerResponse {
-    results: Vec<ScreenerCompany>,
-}
 
 #[cfg(test)]
 mod tests {

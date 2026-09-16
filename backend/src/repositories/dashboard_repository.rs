@@ -1,47 +1,12 @@
-use chrono::{DateTime, NaiveDate, Utc};
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::entities::app_error::AppError;
+pub use crate::entities::dashboard::{LeaderboardRow, PortfolioPointRow, StatsRow};
 
+#[derive(Clone)]
 pub struct DashboardRepository {
     pool: PgPool,
-}
-
-#[derive(FromRow)]
-pub struct StatsRow {
-    pub total_stars_received: i64,
-    pub total_strategies: i64,
-    pub total_backtests: i64,
-}
-
-#[derive(FromRow)]
-pub struct LeaderboardRow {
-    pub id: Uuid,
-    pub name: String,
-    pub owner_name: String,
-    pub strategy_name: String,
-    pub year: i32,
-    pub initial_cash: f64,
-    pub backtest_duration_months: i32,
-    pub buy_fee_percentage: f64,
-    pub sell_fee_percentage: f64,
-    pub status: String,
-    pub net_pnl: f64,
-    pub net_pnl_percentage: f64,
-    pub win_rate: f64,
-    pub profit_factor: f64,
-    pub trades_processed: i32,
-    pub star_count: i64,
-    pub is_starred_by_me: bool,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(FromRow)]
-pub struct PortfolioPointRow {
-    pub backtest_job_id: Uuid,
-    pub date: NaiveDate,
-    pub net_value: f64,
 }
 
 impl DashboardRepository {

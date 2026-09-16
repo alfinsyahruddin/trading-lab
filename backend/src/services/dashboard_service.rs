@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::{
@@ -15,12 +14,12 @@ use crate::{
 };
 
 pub struct DashboardService {
-    repo: Arc<DashboardRepository>,
-    user_repo: Arc<UserRepository>,
+    repo: DashboardRepository,
+    user_repo: UserRepository,
 }
 
 impl DashboardService {
-    pub fn new(repo: Arc<DashboardRepository>, user_repo: Arc<UserRepository>) -> Self {
+    pub fn new(repo: DashboardRepository, user_repo: UserRepository) -> Self {
         Self { repo, user_repo }
     }
 

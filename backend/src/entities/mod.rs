@@ -6,6 +6,7 @@ pub mod backtest;
 pub mod base_response;
 pub mod dashboard;
 pub mod pagination;
+pub mod sectors;
 pub mod strategy_suggestion;
 pub mod trading_strategy;
 pub mod user;

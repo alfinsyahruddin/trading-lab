@@ -8,28 +8,27 @@ use crate::{
         app_error::AppError,
         strategy_suggestion::{StrategyAiSuggestion, StrategyAiSuggestionsRequest},
         trading_strategy::{
-            CreateTradingStrategyRequest, DuplicateTradingStrategyRequest, TradingStrategyResponse,
+            CreateStrategyRecordParams, CreateTradingStrategyRequest,
+            DuplicateTradingStrategyRequest, TradingStrategyResponse, UpdateStrategyRecordParams,
             UpdateTradingStrategyRequest,
         },
     },
     helpers::prompt_helper,
-    repositories::trading_strategy_repository::{
-        CreateStrategyRecordParams, TradingStrategyRepository, UpdateStrategyRecordParams,
-    },
+    repositories::trading_strategy_repository::TradingStrategyRepository,
     services::settings_service::SettingsService,
 };
 
 pub struct TradingStrategyService {
-    strategies: Arc<TradingStrategyRepository>,
+    strategies: TradingStrategyRepository,
     llm: Arc<dyn LLMTrait>,
-    settings: Arc<SettingsService>,
+    settings: SettingsService,
 }
 
 impl TradingStrategyService {
     pub fn new(
-        strategies: Arc<TradingStrategyRepository>,
+        strategies: TradingStrategyRepository,
         llm: Arc<dyn LLMTrait>,
-        settings: Arc<SettingsService>,
+        settings: SettingsService,
     ) -> Self {
         Self {
             strategies,

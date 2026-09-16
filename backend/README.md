@@ -9,7 +9,7 @@ High-performance REST API and historical backtest simulation service for the **T
 - **High-Performance API Engine**: Powered by Actix-web 4 with asynchronous non-blocking I/O.
 - **Layered Clean Architecture**: Strict separation of concerns across Entities/DTOs, Guards, Helpers, External Clients, Repositories (SQLx), Business Services, and Routes.
 - **Financial Market Data Client**: Custom `SectorsClient` interfacing with Sectors.app (`/v2/companies/` and `/v2/daily/{symbol}/`) with permanent Redis caching, 429 rate-limit backoff retries, and cache miss diagnostics.
-- **Historical Backtest Simulation Engine**: Asynchronous engine calculating trade executions, P/L, win rates, profit factor, Sharpe ratio (2% risk-free rate), max volatility, and daily net/gross equity curves.
+- **Historical Backtest Simulation Engine**: Modular historical simulation engine under `src/services/backtest/` (`engine.rs`, `rules.rs`) calculating trade executions, P/L, win rates, profit factor, Sharpe ratio (2% risk-free rate), max volatility, and daily net/gross equity curves.
 - **AI Intelligence & Summary (Google Gemini)**: Automated pre-submission strategy parameter refinement suggestions and 5-dimension qualitative backtest executive summaries with Redis setting toggles and persistent caching.
 - **Session & Auth Management**: Argon2id password hashing, JWT access/refresh token pairs, and stateful session tracking in Redis with instantaneous revocation on logout, password change, or admin moderation.
 - **Role-Based Access Control (RBAC)**: Fine-grained access extractors (`AuthenticatedUser`, `RequireAdmin`) for protected endpoints and administrative actions.
@@ -44,6 +44,7 @@ backend/
 │   ├── repositories/         # Database persistence layer (PostgreSQL / SQLx)
 │   ├── routes/               # Thin HTTP route handlers
 │   ├── services/             # Business logic, calculation routines, backtest simulation
+│   │   └── backtest/         # Modular backtest engine (simulation & screener rules)
 │   ├── setup/                # Infrastructure initializers (PostgreSQL, Redis, Reqwest)
 │   ├── di.rs                 # AppDependencies dependency injection container
 │   ├── http.rs               # HTTP server middleware, CORS, JSON error extractors

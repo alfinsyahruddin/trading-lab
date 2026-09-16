@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use validator::Validate;
 
 use crate::{
@@ -16,17 +14,13 @@ use crate::{
 
 #[derive(Clone)]
 pub struct AuthService {
-    users: Arc<UserRepository>,
-    sessions: Arc<SessionService>,
+    users: UserRepository,
+    sessions: SessionService,
     config: AppConfig,
 }
 
 impl AuthService {
-    pub fn new(
-        users: Arc<UserRepository>,
-        sessions: Arc<SessionService>,
-        config: AppConfig,
-    ) -> Self {
+    pub fn new(users: UserRepository, sessions: SessionService, config: AppConfig) -> Self {
         Self {
             users,
             sessions,

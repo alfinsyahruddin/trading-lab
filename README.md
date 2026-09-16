@@ -86,6 +86,7 @@ trading-lab/
 │   │   ├── repositories/     # PostgreSQL SQLx query layer
 │   │   ├── routes/           # REST API endpoints (users, strategies, backtests, dashboard, settings)
 │   │   ├── services/         # Business logic, calculation routines & simulation engine
+│   │   │   └── backtest/     # Modular backtest engine (simulation & screener rules)
 │   │   ├── setup/            # Infrastructure setup (PostgreSQL, Redis, HTTP client)
 │   │   ├── di.rs             # AppDependencies container
 │   │   ├── http.rs           # Server middleware & CORS configuration

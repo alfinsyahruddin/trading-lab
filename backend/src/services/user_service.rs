@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use redis::{aio::ConnectionManager, AsyncCommands};
 use uuid::Uuid;
 use validator::Validate;
@@ -20,17 +18,13 @@ use crate::{
 
 #[derive(Clone)]
 pub struct UserService {
-    users: Arc<UserRepository>,
-    sessions: Arc<SessionService>,
+    users: UserRepository,
+    sessions: SessionService,
     redis: ConnectionManager,
 }
 
 impl UserService {
-    pub fn new(
-        users: Arc<UserRepository>,
-        sessions: Arc<SessionService>,
-        redis: ConnectionManager,
-    ) -> Self {
+    pub fn new(users: UserRepository, sessions: SessionService, redis: ConnectionManager) -> Self {
         Self {
             users,
             sessions,

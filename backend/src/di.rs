@@ -42,11 +42,12 @@ impl AppDependencies {
         let redis = setup_redis(&config).await?;
         let http_client = setup_http_client()?;
 
-        let sectors_client = Arc::new(SectorsClient::new(
-            http_client.clone(),
-            config.sectors_api_key.clone(),
-            redis.clone(),
-        ));
+        let sectors_client: Arc<dyn crate::clients::sectors_client::SectorsClientTrait> =
+            Arc::new(SectorsClient::new(
+                http_client.clone(),
+                config.sectors_api_key.clone(),
+                redis.clone(),
+            ));
 
         let llm: Arc<dyn LLMTrait> = Arc::new(GeminiLLM::new(
             http_client.clone(),
@@ -54,46 +55,42 @@ impl AppDependencies {
             config.gemini_model.clone(),
         ));
 
-        let users = Arc::new(UserRepository::new(database.clone()));
-        let strategies = Arc::new(TradingStrategyRepository::new(database.clone()));
-        let backtests = Arc::new(BacktestRepository::new(database.clone()));
-        let dashboard = Arc::new(DashboardRepository::new(database.clone()));
-        let settings_repo = Arc::new(SettingsRepository::new(database.clone()));
+        let users = UserRepository::new(database.clone());
+        let strategies = TradingStrategyRepository::new(database.clone());
+        let backtests = BacktestRepository::new(database.clone());
+        let dashboard = DashboardRepository::new(database.clone());
+        let settings_repo = SettingsRepository::new(database.clone());
 
-        let sessions = Arc::new(SessionService::new(
-            redis.clone(),
-            config.refresh_token_expiration_seconds,
-        ));
+        let sessions = SessionService::new(redis.clone(), config.refresh_token_expiration_seconds);
 
-        let settings_service = Arc::new(SettingsService::new(settings_repo, redis.clone()));
+        let settings_service = SettingsService::new(settings_repo, redis.clone());
 
-        let auth_service =
-            AuthService::new(Arc::clone(&users), Arc::clone(&sessions), config.clone());
-        let user_service = UserService::new(users.clone(), Arc::clone(&sessions), redis.clone());
+        let auth_service = AuthService::new(users.clone(), sessions.clone(), config.clone());
+        let user_service = UserService::new(users.clone(), sessions.clone(), redis.clone());
         let trading_strategy_service = TradingStrategyService::new(
-            Arc::clone(&strategies),
+            strategies.clone(),
             Arc::clone(&llm),
-            Arc::clone(&settings_service),
+            settings_service.clone(),
         );
         let backtest_service = BacktestService::new(
             backtests,
             strategies,
             sectors_client,
             Arc::clone(&llm),
-            Arc::clone(&settings_service),
-            redis.clone(),
+            settings_service.clone(),
+            redis,
         );
-        let dashboard_service = DashboardService::new(dashboard, Arc::clone(&users));
+        let dashboard_service = DashboardService::new(dashboard, users);
 
         Ok(Self {
             config: Data::new(config),
             auth_service: Data::new(auth_service),
             user_service: Data::new(user_service),
-            session_service: Data::from(sessions),
+            session_service: Data::new(sessions),
             trading_strategy_service: Data::new(trading_strategy_service),
             backtest_service: Data::new(backtest_service),
             dashboard_service: Data::new(dashboard_service),
-            settings_service: Data::from(settings_service),
+            settings_service: Data::new(settings_service),
             http_client: Data::new(http_client),
         })
     }

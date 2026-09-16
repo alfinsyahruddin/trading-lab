@@ -1,8 +1,45 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::Serialize;
+use sqlx::FromRow;
 use uuid::Uuid;
 
 use crate::enums::backtest_status::BacktestStatus;
+
+#[derive(Debug, FromRow)]
+pub struct StatsRow {
+    pub total_stars_received: i64,
+    pub total_strategies: i64,
+    pub total_backtests: i64,
+}
+
+#[derive(Debug, FromRow)]
+pub struct LeaderboardRow {
+    pub id: Uuid,
+    pub name: String,
+    pub owner_name: String,
+    pub strategy_name: String,
+    pub year: i32,
+    pub initial_cash: f64,
+    pub backtest_duration_months: i32,
+    pub buy_fee_percentage: f64,
+    pub sell_fee_percentage: f64,
+    pub status: String,
+    pub net_pnl: f64,
+    pub net_pnl_percentage: f64,
+    pub win_rate: f64,
+    pub profit_factor: f64,
+    pub trades_processed: i32,
+    pub star_count: i64,
+    pub is_starred_by_me: bool,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, FromRow)]
+pub struct PortfolioPointRow {
+    pub backtest_job_id: Uuid,
+    pub date: NaiveDate,
+    pub net_value: f64,
+}
 
 #[derive(Debug, Serialize)]
 pub struct DashboardStatsResponse {

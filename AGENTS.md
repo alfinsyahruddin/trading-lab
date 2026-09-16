@@ -22,6 +22,7 @@ trading-lab/
 │   │   ├── repositories/     # Database access layer (PostgreSQL / SQLx)
 │   │   ├── routes/           # HTTP route handlers & endpoints
 │   │   ├── services/         # Business logic and simulation orchestration
+│   │   │   └── backtest/     # Modular backtest engine (simulation & screener rules)
 │   │   ├── setup/            # Infrastructure initializers (DB, Redis, HTTP client)
 │   │   ├── di.rs             # Dependency injection container
 │   │   ├── http.rs           # HTTP middleware, CORS, JSON configuration
@@ -77,16 +78,16 @@ trading-lab/
 
 ### Layered Architecture
 Backend logic is strictly segregated into distinct layers:
-1. **Entities & DTOs** (`src/entities/`): Request/response structs, configurations (`AppConfig`), and errors (`AppError`).
+1. **Entities & DTOs** (`src/entities/`): Request/response structs, configurations (`AppConfig`), errors (`AppError`), external client models (e.g. Sectors DTOs in `src/entities/sectors.rs`), and database query row models (`*Row`). All domain structs and DTOs strictly reside in this folder.
 2. **Guards / Extractors** (`src/guards/`):
    - `AuthenticatedUser`: Validates JWT access token and active session in Redis; extracts user claims (`sub`, `sid`, `role`).
    - `RequireAdmin`: Ensures the authenticated user possesses the `ADMIN` role.
-3. **Helpers** (`src/helpers/`): Pure utility functions (`hash_helper` for Argon2, `token_helper` for JWT signing/decoding).
-4. **Clients** (`src/clients/`): External third-party integrations (e.g. `SectorsClient` for Sectors.app financial data with Redis caching and 429 retry backoff).
-5. **Repositories** (`src/repositories/`): Direct SQLx queries against PostgreSQL. Repositories handle database interactions only.
-6. **Services** (`src/services/`): Business logic, calculation routines, background task execution, and orchestration between repositories, Redis, and external clients.
+3. **Helpers** (`src/helpers/`): Pure utility functions (`hash_helper` for Argon2, `token_helper` for JWT signing/decoding, `math_helper` for financial calculations).
+4. **Clients** (`src/clients/`): External third-party integrations (e.g. `SectorsClient` for Sectors.app financial data with Redis caching and 429 retry backoff, `GeminiLLM` for AI intelligence).
+5. **Repositories** (`src/repositories/`): Direct SQLx queries against PostgreSQL. Repositories handle database interactions only. Repositories derive `Clone` and are stored by value in services (since `PgPool` is internally reference-counted via `Arc`), avoiding redundant `Arc` wrapping.
+6. **Services** (`src/services/`): Business logic, calculation routines, background task execution, and orchestration between repositories, Redis, and external clients. Domain-heavy computation such as historical simulation (`engine.rs`) and screener rule parsing (`rules.rs`) is modularized under `src/services/backtest/`.
 7. **Routes** (`src/routes/`): Thin HTTP controllers that extract parameters/guards, invoke services, and transform results into standard responses.
-8. **Dependency Injection** (`src/di.rs`): `AppDependencies` struct registered with Actix `app_data`.
+8. **Dependency Injection** (`src/di.rs`): `AppDependencies` container registered with Actix `app_data`. Concrete services and repositories are passed by value/cloned into services and wrapped in Actix `web::Data` at the HTTP boundary.
 
 ### API Envelope & Contract
 All responses must strictly adhere to the unified JSON envelope:
@@ -145,7 +146,9 @@ All responses must strictly adhere to the unified JSON envelope:
 - **Data Model**: `backtest_jobs`, `backtest_results`, `backtest_portfolio_history`, `backtest_trades`, and `backtest_stars`.
 - **Unique Name Constraint**: Backtest job names are unique per user via `UNIQUE(user_id, name)`.
 - **Third-Party Client**: `SectorsClientTrait` and `SectorsClient` fetch data from the Sectors.app API (`/v2/companies/` screener and `/v2/daily/{symbol}/` daily transactions) with Redis caching (no expiration), 429 retries (2x with 1s delay), and console logging on cache misses.
-- **Simulation Engine**: Asynchronous simulation via `tokio::spawn` calculating P/L, win rate, profit factor, Sharpe ratio (2% risk-free rate), portfolio volatility, and tracking daily net/gross equity curve values.
+- **Simulation Engine & Rule Parser**: Modular architecture under `src/services/backtest/`:
+  - `engine.rs`: Deterministic historical simulation engine (`simulate_backtest`), calculating P/L, win rate, profit factor, Sharpe ratio (2% risk-free rate), portfolio volatility, broker commissions, and daily net/gross equity curve values.
+  - `rules.rs`: Screener SQL query building (`build_where_query`) and manual indicator evaluation (`evaluate_manual_rules`) across dynamic multi-group condition trees.
 - **Endpoints**:
   - `GET /api/backtests`: List all backtests owned by the authenticated user with sparkline history.
   - `GET /api/backtests/{id}`: Retrieve full backtest details, metrics, portfolio history, top gainers/losers, most traded, and trade history.
