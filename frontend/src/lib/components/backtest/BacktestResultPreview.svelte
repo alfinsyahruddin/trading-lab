@@ -43,7 +43,6 @@
 				handleScale: false
 			});
 
-	
 			const series = chart.addSeries(BaselineSeries, {
 				baseValue: { type: 'price', price: initialCash },
 				topLineColor: colors.upColor,
@@ -65,7 +64,6 @@
 
 			series.setData(chartData);
 			chart.timeScale().fitContent();
-
 		}
 	});
 </script>
