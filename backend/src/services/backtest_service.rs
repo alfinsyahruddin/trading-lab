@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::NaiveDate;
-use futures_util::future::join_all;
 use redis::aio::ConnectionManager;
 use uuid::Uuid;
 use validator::Validate;
@@ -372,6 +371,7 @@ impl BacktestService {
                 &repo,
                 &strategy_repo,
                 sectors.as_ref(),
+                sectors.clone(),
                 llm.as_ref(),
                 &settings,
                 &redis,
@@ -460,6 +460,7 @@ impl BacktestService {
                 &repo,
                 &strategy_repo,
                 sectors.as_ref(),
+                sectors.clone(),
                 llm.as_ref(),
                 &settings,
                 &redis,
@@ -525,6 +526,7 @@ async fn run_backtest(
     repo: &BacktestRepository,
     strategy_repo: &TradingStrategyRepository,
     sectors: &dyn SectorsClientTrait,
+    sectors_arc: Arc<dyn SectorsClientTrait>,
     llm: &dyn LLMTrait,
     settings: &SettingsService,
     redis: &ConnectionManager,
@@ -582,44 +584,137 @@ async fn run_backtest(
         start_str, end_str
     );
 
-    let mut fetch_futures = Vec::new();
-    for stock in &stocks {
-        let symbol = &stock.symbol;
-        let start = &start_str;
-        let end = &end_str;
-        fetch_futures.push(async move {
-            let data = sectors.daily_transactions(symbol, start, end).await;
-            (symbol.clone(), data)
-        });
+    // ── Rate-aware parallel fetch ─────────────────────────────────────────────
+    // Sectors API limit: 25 requests / minute.
+    // Each stock needs `chunks_per_stock` HTTP calls (one per 90-day window).
+    // • total_api_calls ≤ 25 → fire everything in parallel at once.
+    // • total_api_calls >  25 → split into batches of ≤25 calls (parallel
+    //   within each batch), then wait 60 s before the next batch.
+    use crate::clients::sectors_client::compute_date_chunks;
+    use futures_util::future::join_all;
+
+    const RATE_LIMIT: usize = 25;
+    const RATE_LIMIT_WINDOW_SECS: u64 = 60;
+
+    let chunks_per_stock = compute_date_chunks(start_date, end_date).len().max(1);
+    let total_api_calls = stocks.len() * chunks_per_stock;
+    let stocks_per_batch = (RATE_LIMIT / chunks_per_stock).max(1);
+
+    eprintln!(
+        "[Backtest] {} stocks × {} chunk(s) = {} total API call(s) | batch size: {} stock(s)",
+        stocks.len(),
+        chunks_per_stock,
+        total_api_calls,
+        if total_api_calls <= RATE_LIMIT {
+            stocks.len() // single batch
+        } else {
+            stocks_per_batch
+        }
+    );
+
+    /// Converts a raw [`DailyTransaction`] list into filtered, sorted `(date, close, volume)` triples.
+    fn process_transactions(
+        data: Vec<crate::entities::sectors::DailyTransaction>,
+        manual_filter_groups: &[crate::entities::trading_strategy::StrategyRuleGroup],
+    ) -> Vec<(NaiveDate, f64, u64)> {
+        let mut valid = Vec::new();
+        for d in data {
+            let Some(date) = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() else {
+                continue;
+            };
+            let vol = d.volume as f64;
+            let val = d.close * vol * 100.0;
+            if evaluate_manual_rules(manual_filter_groups, d.close, vol, val) {
+                valid.push((date, d.close, d.volume));
+            }
+        }
+        valid.sort_by_key(|&(date, _, _)| date);
+        valid
     }
 
-    let results = join_all(fetch_futures).await;
+    let mut stock_data_list: Vec<StockData> = Vec::new();
 
-    let mut stock_data_list = Vec::new();
-    for (symbol, data_result) in results {
-        if let Ok(data) = data_result {
-            let mut valid_data = Vec::new();
-            for d in data {
-                let Some(date) = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() else {
-                    continue;
-                };
-                let vol = d.volume as f64;
-                let val = d.close * vol * 100.0;
+    if total_api_calls <= RATE_LIMIT {
+        // ── All calls fit within one rate-limit window: full parallel ──────
+        eprintln!(
+            "[Backtest] Firing all {} API call(s) in parallel (≤ {} limit)",
+            total_api_calls, RATE_LIMIT
+        );
 
-                if evaluate_manual_rules(&manual_filter_groups, d.close, vol, val) {
-                    valid_data.push((date, d.close, d.volume));
+        let futures = stocks.iter().map(|stock| {
+            let s = sectors_arc.clone();
+            let symbol = stock.symbol.clone();
+            let start = start_str.clone();
+            let end = end_str.clone();
+            async move {
+                let result = s.daily_transactions(&symbol, &start, &end).await;
+                (symbol, result)
+            }
+        });
+
+        for (symbol, data_result) in join_all(futures).await {
+            if let Ok(data) = data_result {
+                let valid = process_transactions(data, &manual_filter_groups);
+                if !valid.is_empty() {
+                    stock_data_list.push(StockData {
+                        code: symbol,
+                        daily_data: valid,
+                    });
                 }
             }
+        }
+    } else {
+        // ── More than 25 calls needed: batched parallel ────────────────────
+        let total_batches = stocks.len().div_ceil(stocks_per_batch);
+        eprintln!(
+            "[Backtest] {} batches of ≤{} stock(s) with {}s pause between batches",
+            total_batches, stocks_per_batch, RATE_LIMIT_WINDOW_SECS
+        );
 
-            if !valid_data.is_empty() {
-                valid_data.sort_by_key(|&(date, _, _)| date);
-                stock_data_list.push(StockData {
-                    code: symbol,
-                    daily_data: valid_data,
-                });
+        for (batch_idx, batch) in stocks.chunks(stocks_per_batch).enumerate() {
+            if batch_idx > 0 {
+                eprintln!(
+                    "[Backtest] Rate-limit pause: waiting {}s before batch {}/{}...",
+                    RATE_LIMIT_WINDOW_SECS,
+                    batch_idx + 1,
+                    total_batches
+                );
+                tokio::time::sleep(std::time::Duration::from_secs(RATE_LIMIT_WINDOW_SECS)).await;
+            }
+
+            eprintln!(
+                "[Backtest] Fetching batch {}/{} ({} stock(s), {} API call(s))",
+                batch_idx + 1,
+                total_batches,
+                batch.len(),
+                batch.len() * chunks_per_stock
+            );
+
+            let futures = batch.iter().map(|stock| {
+                let s = sectors_arc.clone();
+                let symbol = stock.symbol.clone();
+                let start = start_str.clone();
+                let end = end_str.clone();
+                async move {
+                    let result = s.daily_transactions(&symbol, &start, &end).await;
+                    (symbol, result)
+                }
+            });
+
+            for (symbol, data_result) in join_all(futures).await {
+                if let Ok(data) = data_result {
+                    let valid = process_transactions(data, &manual_filter_groups);
+                    if !valid.is_empty() {
+                        stock_data_list.push(StockData {
+                            code: symbol,
+                            daily_data: valid,
+                        });
+                    }
+                }
             }
         }
     }
+    // ─────────────────────────────────────────────────────────────────────────
 
     if stock_data_list.is_empty() {
         return Err(AppError::bad_request(
