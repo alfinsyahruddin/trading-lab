@@ -77,9 +77,9 @@ bun run format
 
 ---
 
-## 2. Verification Checklist for Tasks & PRs
+## 2. Verification Checklist for Tasks
 
-Before completing any task or opening a pull request, run the following verification steps:
+Before completing any task, run the following verification steps:
 
 ### Backend Changes Checklist
 - [ ] `cargo fmt --check` passes cleanly with zero formatting violations.

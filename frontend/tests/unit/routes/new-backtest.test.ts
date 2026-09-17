@@ -48,9 +48,10 @@ describe('NewBacktestPage', () => {
 		// Wait for strategies to load and form to render
 		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
 
-		// Default year is 2025 -> test year 2026, default duration is 12 months (1 Year)
-		const expectedDateRange = calculateBacktestDateRange(2025, 12).formatted;
+		// Default year is 2025 -> test year 2026, default duration is 3 months (3 Months)
+		const expectedDateRange = calculateBacktestDateRange(2025, 3).formatted;
 		expect(screen.getByText(expectedDateRange)).toBeInTheDocument();
+		expect(screen.getByText('(90 Days)')).toBeInTheDocument();
 	});
 
 	it('updates Backtest Date when duration or year changes', async () => {
@@ -64,12 +65,14 @@ describe('NewBacktestPage', () => {
 		await fireEvent.click(screen.getByRole('option', { name: /1 Month/i }));
 
 		expect(screen.getByText('1 Jan 2026 - 31 Jan 2026')).toBeInTheDocument();
+		expect(screen.getByText('(31 Days)')).toBeInTheDocument();
 
 		// Change year to 2023 (test year 2024, leap year)
 		const year2023Btn = screen.getByRole('button', { name: '2023' });
 		await fireEvent.click(year2023Btn);
 
 		expect(screen.getByText('1 Jan 2024 - 31 Jan 2024')).toBeInTheDocument();
+		expect(screen.getByText('(31 Days)')).toBeInTheDocument();
 	});
 
 	it('renders Max Stocks input with default value 12 and submits max_stocks in payload', async () => {
@@ -107,5 +110,25 @@ describe('NewBacktestPage', () => {
 		const year2024Btn = screen.getByRole('button', { name: '2024' });
 		await fireEvent.click(year2024Btn);
 		expect(nameInput.value).toBe('Backtest Momentum Breakout - 2024');
+	});
+
+	it('displays dynamic stock filtering year informative note under Backtest Data Year', async () => {
+		render(NewBacktestPage);
+
+		expect(await screen.findByText('Backtest Date')).toBeInTheDocument();
+
+		// Default year 2025
+		expect(
+			screen.getByText(/the year selected will be used for filtering stocks/i)
+		).toBeInTheDocument();
+		expect(screen.getByText('pb[2025]')).toBeInTheDocument();
+		expect(screen.getByText('ebitda[2025]')).toBeInTheDocument();
+
+		// Change year to 2022
+		const year2022Btn = screen.getByRole('button', { name: '2022' });
+		await fireEvent.click(year2022Btn);
+
+		expect(screen.getByText('pb[2022]')).toBeInTheDocument();
+		expect(screen.getByText('ebitda[2022]')).toBeInTheDocument();
 	});
 });

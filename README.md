@@ -25,8 +25,8 @@ Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX
 
 ### 🤖 AI-Powered
 - **AI Strategy Refinement**: Intercepts strategy creation and modification to analyze Take-Profit, Stop-Loss, holding duration, and conditional screening rules against IDX market dynamics, offering one-click "Accept" or "Ignore" suggestions to optimize risk-reward parameters and rule conditions (adding variables, modifying thresholds).
-- **AI Executive Summary**: Generates a structured, 5-point qualitative breakdown on completed backtests (Market Alignment, Risk-Adjusted Efficiency, Profit Drivers, Drawdown Exposure, and Iteration Advice).
-- **Persistent AI Caching**: AI summaries are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
+- **AI Insights**: Generates a actionable qualitative breakdown on completed backtests.
+- **Persistent AI Caching**: AI insights are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
 - **Platform-Wide Master Toggle**: Administrators can dynamically enable or disable AI capabilities across the entire platform via app settings.
 
 ### 📊 Deep Analytics & Interactive Visualizations

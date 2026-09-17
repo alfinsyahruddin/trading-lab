@@ -7,12 +7,15 @@ export const LANDING_TYPEWRITER_WORDS = [
 export interface LandingHeroStat {
 	value: string;
 	label: string;
+	target: number;
+	suffix?: string;
+	prefix?: string;
 }
 
 export const LANDING_HERO_STATS: LandingHeroStat[] = [
-	{ value: '100+', label: 'IDX Indicators' },
-	{ value: '4 Years', label: 'Historical Data' },
-	{ value: '8+', label: 'Performance Metrics' }
+	{ value: '100+', label: 'IDX Indicators', target: 100, suffix: '+' },
+	{ value: '4 Years', label: 'Historical Data', target: 4, suffix: ' Years' },
+	{ value: '8+', label: 'Performance Metrics', target: 8, suffix: '+' }
 ];
 
 export interface LandingFeature {
@@ -53,7 +56,7 @@ export const LANDING_FEATURES: LandingFeature[] = [
 		id: 'ai-powered',
 		title: 'AI-Powered',
 		description:
-			'AI reviews your strategies, offering one-click refinements. After each backtest, get a structured 5-point executive summary.',
+			'AI reviews your strategies, offering one-click refinements. After each backtest, get actionable AI insights.',
 		bullets: [
 			'Risk-reward optimization hints',
 			'Rule enhancement suggestions',
@@ -130,9 +133,9 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		id: 'ai-summary',
 		lightSrc: '/ai-summary-light.png',
 		darkSrc: '/ai-summary-dark.png',
-		alt: 'AI executive summary with qualitative performance breakdown',
-		tag: '✦ AI Summary',
-		description: '5-point qualitative breakdown and actionable insights for every backtest.',
+		alt: 'AI insights with qualitative performance breakdown',
+		tag: '✦ AI Insights',
+		description: 'Qualitative breakdown and actionable insights for every backtest.',
 		delay: 300,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-3',
 		imageBorderClass: 'border-[rgba(222,152,254,0.25)] shadow-none dark:shadow-xl',
@@ -167,7 +170,7 @@ export const LANDING_WORKFLOW_STEPS: LandingWorkflowStep[] = [
 		step: '03',
 		title: 'Analyze and refine',
 		description:
-			'Review your equity curve, win rate, Sharpe ratio, and AI executive summary. Share your winning strategies with the community—or keep them private.',
+			'Review your equity curve, win rate, Sharpe ratio, and AI insights. Share your winning strategies with the community—or keep them private.',
 		delay: 300
 	}
 ];

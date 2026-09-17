@@ -37,6 +37,7 @@
 	let openUpwards = $state(false);
 	let searchQuery = $state('');
 	let containerRef = $state<HTMLDivElement | null>(null);
+	let triggerRef = $state<HTMLButtonElement | null>(null);
 	let searchInputRef = $state<HTMLInputElement | null>(null);
 	let highlightedIndex = $state(0);
 
@@ -57,8 +58,9 @@
 		isOpen = !isOpen;
 		if (isOpen) {
 			searchQuery = '';
-			if (containerRef && typeof window !== 'undefined') {
-				const rect = containerRef.getBoundingClientRect();
+			const anchorEl = triggerRef || containerRef;
+			if (anchorEl && typeof window !== 'undefined') {
+				const rect = anchorEl.getBoundingClientRect();
 				const spaceBelow = window.innerHeight - rect.bottom;
 				const spaceAbove = rect.top;
 				openUpwards = spaceBelow < 260 && spaceAbove > spaceBelow;
@@ -135,132 +137,140 @@
 		</label>
 	{/if}
 
-	<!-- Custom Trigger Button -->
-	<button
-		type="button"
-		role="combobox"
-		id={selectId}
-		aria-haspopup="listbox"
-		aria-controls={listboxId}
-		aria-expanded={isOpen}
-		{disabled}
-		onclick={toggleDropdown}
-		onkeydown={handleKeyDown}
-		class="group flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-base transition-all duration-150 outline-none disabled:cursor-not-allowed sm:text-sm {buttonClass}"
-		style="
-			background-color: {disabled ? 'var(--bg-input-disabled, var(--bg))' : 'var(--bg-input, var(--bg))'};
-			border-color: {error
-			? 'var(--danger)'
-			: isOpen
-				? 'var(--accent)'
-				: disabled
-					? 'var(--border)'
-					: 'var(--border-strong)'};
-			color: {disabled ? 'var(--fg-muted)' : selectedOption ? 'var(--fg)' : 'var(--fg-muted)'};
-			box-shadow: {isOpen ? '0 0 0 3px rgba(48,180,201,0.1)' : 'none'};
-			{buttonStyle}
-		"
-	>
-		<span class="truncate">
-			{selectedOption ? selectedOption.label : placeholder}
-		</span>
-		<Icon
-			icon="lucide:chevron-down"
-			class="shrink-0 transition-transform duration-200 {isOpen
-				? 'rotate-180 text-(--accent)'
-				: 'text-(--fg-muted)'}"
-			width="16"
-			height="16"
-		/>
-	</button>
-
-	<!-- Hidden input for form values -->
-	<input type="hidden" name={label} {value} {required} />
-
-	<!-- Floating Dropdown Menu -->
-	{#if isOpen}
-		<div
-			id={listboxId}
-			role="listbox"
-			tabindex="-1"
-			class="absolute {openUpwards
-				? 'bottom-full mb-1.5'
-				: 'top-full mt-1.5'} left-0 z-50 flex max-h-64 w-full min-w-50 flex-col overflow-hidden rounded-xl border shadow-xl backdrop-blur-md"
+	<!-- Custom Trigger Button and anchored dropdown menu wrapper -->
+	<div class="relative w-full">
+		<button
+			bind:this={triggerRef}
+			type="button"
+			role="combobox"
+			id={selectId}
+			aria-haspopup="listbox"
+			aria-controls={listboxId}
+			aria-expanded={isOpen}
+			{disabled}
+			onclick={toggleDropdown}
+			onkeydown={handleKeyDown}
+			class="group flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-base transition-all duration-150 outline-none disabled:cursor-not-allowed sm:text-sm {buttonClass}"
 			style="
-				background-color: var(--bg-card);
-				border-color: var(--border);
-				box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.25), 0 4px 12px -2px rgba(0, 0, 0, 0.15);
+				background-color: {disabled ? 'var(--bg-input-disabled, var(--bg))' : 'var(--bg-input, var(--bg))'};
+				border-color: {error
+				? 'var(--danger)'
+				: isOpen
+					? 'var(--accent)'
+					: disabled
+						? 'var(--border)'
+						: 'var(--border-strong)'};
+				color: {disabled ? 'var(--fg-muted)' : selectedOption ? 'var(--fg)' : 'var(--fg-muted)'};
+				box-shadow: {isOpen ? '0 0 0 3px rgba(48,180,201,0.1)' : 'none'};
+				{buttonStyle}
 			"
 		>
-			<!-- Search Header -->
+			<span class="truncate">
+				{selectedOption ? selectedOption.label : placeholder}
+			</span>
+			<Icon
+				icon="lucide:chevron-down"
+				class="shrink-0 transition-transform duration-200 {isOpen
+					? 'rotate-180 text-(--accent)'
+					: 'text-(--fg-muted)'}"
+				width="16"
+				height="16"
+			/>
+		</button>
+
+		<!-- Floating Dropdown Menu -->
+		{#if isOpen}
 			<div
-				class="sticky top-0 z-10 border-b p-2"
-				style="background-color: var(--bg-card); border-color: var(--border);"
+				id={listboxId}
+				role="listbox"
+				tabindex="-1"
+				class="absolute {openUpwards
+					? 'bottom-full mb-1'
+					: 'top-full mt-1'} left-0 z-50 flex max-h-64 w-full min-w-50 flex-col overflow-hidden rounded-xl border shadow-xl backdrop-blur-md"
+				style="
+					background-color: var(--bg-card);
+					border-color: var(--border);
+					box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.25), 0 4px 12px -2px rgba(0, 0, 0, 0.15);
+				"
 			>
-				<div class="relative flex items-center">
-					<Icon
-						icon="lucide:search"
-						class="pointer-events-none absolute left-2.5 text-(--fg-muted)"
-						width="14"
-						height="14"
-					/>
-					<input
-						bind:this={searchInputRef}
-						type="text"
-						bind:value={searchQuery}
-						onkeydown={handleKeyDown}
-						placeholder="Search..."
-						class="w-full rounded-md border bg-transparent py-1.5 pr-3 pl-8 text-xs text-(--fg) transition-colors outline-none"
-						style="border-color: var(--border);"
-					/>
-					{#if searchQuery}
-						<button
-							type="button"
-							onclick={() => (searchQuery = '')}
-							class="btn-interactive absolute right-2 text-(--fg-muted) hover:text-(--fg)"
-						>
-							<Icon icon="lucide:x" width="12" height="12" />
-						</button>
+				<!-- Search Header -->
+				<div
+					class="sticky top-0 z-10 border-b p-2"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div class="relative flex items-center">
+						<Icon
+							icon="lucide:search"
+							class="pointer-events-none absolute left-2.5 text-(--fg-muted)"
+							width="14"
+							height="14"
+						/>
+						<input
+							bind:this={searchInputRef}
+							type="text"
+							bind:value={searchQuery}
+							onkeydown={handleKeyDown}
+							placeholder="Search..."
+							class="w-full rounded-md border bg-transparent py-1.5 pr-3 pl-8 text-xs text-(--fg) transition-colors outline-none"
+							style="border-color: var(--border);"
+						/>
+						{#if searchQuery}
+							<button
+								type="button"
+								onclick={() => (searchQuery = '')}
+								class="btn-interactive absolute right-2 text-(--fg-muted) hover:text-(--fg)"
+							>
+								<Icon icon="lucide:x" width="12" height="12" />
+							</button>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Options List -->
+				<div class="overflow-y-auto p-1 text-sm">
+					{#if filteredOptions.length === 0}
+						<div class="py-4 text-center text-xs" style="color: var(--fg-muted)">
+							No options found
+						</div>
+					{:else}
+						{#each filteredOptions as opt, index (opt.value)}
+							{@const isSelected = String(opt.value) === String(value)}
+							{@const isHighlighted = index === highlightedIndex}
+							<button
+								type="button"
+								role="option"
+								aria-selected={isSelected}
+								onclick={() => selectOption(opt)}
+								onmouseenter={() => (highlightedIndex = index)}
+								class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-100"
+								style="
+									background-color: {isSelected
+									? 'var(--accent-soft)'
+									: isHighlighted
+										? 'var(--bg-card-hover, rgba(255,255,255,0.05))'
+										: 'transparent'};
+									color: {isSelected ? 'var(--accent)' : 'var(--fg)'};
+								"
+							>
+								<span class="truncate font-medium">{opt.label}</span>
+								{#if isSelected}
+									<Icon
+										icon="lucide:check"
+										width="14"
+										height="14"
+										class="shrink-0 text-(--accent)"
+									/>
+								{/if}
+							</button>
+						{/each}
 					{/if}
 				</div>
 			</div>
+		{/if}
+	</div>
 
-			<!-- Options List -->
-			<div class="overflow-y-auto p-1 text-sm">
-				{#if filteredOptions.length === 0}
-					<div class="py-4 text-center text-xs" style="color: var(--fg-muted)">
-						No options found
-					</div>
-				{:else}
-					{#each filteredOptions as opt, index (opt.value)}
-						{@const isSelected = String(opt.value) === String(value)}
-						{@const isHighlighted = index === highlightedIndex}
-						<button
-							type="button"
-							role="option"
-							aria-selected={isSelected}
-							onclick={() => selectOption(opt)}
-							onmouseenter={() => (highlightedIndex = index)}
-							class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-100"
-							style="
-								background-color: {isSelected
-								? 'var(--accent-soft)'
-								: isHighlighted
-									? 'var(--bg-card-hover, rgba(255,255,255,0.05))'
-									: 'transparent'};
-								color: {isSelected ? 'var(--accent)' : 'var(--fg)'};
-							"
-						>
-							<span class="truncate font-medium">{opt.label}</span>
-							{#if isSelected}
-								<Icon icon="lucide:check" width="14" height="14" class="shrink-0 text-(--accent)" />
-							{/if}
-						</button>
-					{/each}
-				{/if}
-			</div>
-		</div>
-	{/if}
+	<!-- Hidden input for form values -->
+	<input type="hidden" name={label} {value} {required} />
 
 	{#if error}
 		<p class="text-xs" style="color: var(--danger)">{error}</p>

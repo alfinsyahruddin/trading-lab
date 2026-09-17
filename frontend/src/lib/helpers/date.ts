@@ -9,7 +9,7 @@ export function calculateBacktestDateRange(
 	year: number,
 	durationMonths: number,
 	maxDate: Date = new Date()
-): { startDate: Date; endDate: Date; formatted: string } {
+): { startDate: Date; endDate: Date; formatted: string; days: number } {
 	const safeYear = Number(year) || 2025;
 	const safeMonths = Math.max(1, Number(durationMonths) || 12);
 
@@ -24,10 +24,15 @@ export function calculateBacktestDateRange(
 		endDate = maxD >= startDate ? maxD : startDate;
 	}
 
+	const utcStart = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+	const utcEnd = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+	const days = Math.round((utcEnd - utcStart) / 86_400_000) + 1;
+
 	return {
 		startDate,
 		endDate,
-		formatted: formatBacktestDateRange(startDate, endDate)
+		formatted: formatBacktestDateRange(startDate, endDate),
+		days
 	};
 }
 

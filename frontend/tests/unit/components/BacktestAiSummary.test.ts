@@ -8,7 +8,6 @@ describe('BacktestAiSummary', () => {
 	it('renders summary dimensions, spotlight recommendation, and header', () => {
 		const summary = [
 			'Net return of +15.2% over 12 months outperformed benchmark.',
-			'Win rate of 65% coupled with 2.1 profit factor demonstrates strong expectancy.',
 			'Annualized volatility of 14% indicates moderate risk exposure.',
 			'Average winning hold time of 8 days shows disciplined profit capture.',
 			'Consider tightening stop loss to -3.5% to improve risk-reward ratio.'
@@ -16,13 +15,14 @@ describe('BacktestAiSummary', () => {
 
 		render(BacktestAiSummary, { props: { summary } });
 
-		expect(screen.getByText('AI Summary')).toBeInTheDocument();
+		expect(screen.getByText('AI Insights')).toBeInTheDocument();
 		expect(screen.getByText('Backtest Review')).toBeInTheDocument();
+		expect(screen.queryByText('AI Summary')).not.toBeInTheDocument();
 		expect(screen.queryByText('Gemini Insights')).not.toBeInTheDocument();
 
 		// Dimension titles
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
-		expect(screen.getByText('Win / Loss Performance')).toBeInTheDocument();
+		expect(screen.queryByText('Win / Loss Performance')).not.toBeInTheDocument();
 		expect(screen.getByText('Risk & Volatility Profile')).toBeInTheDocument();
 		expect(screen.getByText('Holding & Execution')).toBeInTheDocument();
 		expect(screen.getByText('Next Steps')).toBeInTheDocument();
@@ -34,15 +34,39 @@ describe('BacktestAiSummary', () => {
 		expect(screen.getByText('-3.5%')).toBeInTheDocument();
 	});
 
+	it('renders first 3 items in grid and last item as Next Steps when given a legacy 5-item summary', () => {
+		const summary = [
+			'Net return of +15.2% over 12 months.',
+			'Legacy win rate point.',
+			'Annualized volatility of 14%.',
+			'Average winning hold time of 8 days.',
+			'Recommendation to keep stop loss.'
+		];
+
+		render(BacktestAiSummary, { props: { summary } });
+
+		// Should have Profitability, Risk, Holding in grid
+		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
+		expect(screen.getByText('Risk & Volatility Profile')).toBeInTheDocument();
+		expect(screen.getByText('Holding & Execution')).toBeInTheDocument();
+		expect(screen.queryByText('Win / Loss Performance')).not.toBeInTheDocument();
+
+		// Next Steps is the 5th item
+		expect(screen.getByText('Next Steps')).toBeInTheDocument();
+		expect(screen.getByText('Recommendation to keep stop loss.')).toBeInTheDocument();
+		// 4th item (index 3) is omitted from 3-card grid
+		expect(screen.queryByText('Average winning hold time of 8 days.')).not.toBeInTheDocument();
+	});
+
 	it('renders nothing when summary is empty', () => {
 		render(BacktestAiSummary, { props: { summary: [] } });
+		expect(screen.queryByText('AI Insights')).not.toBeInTheDocument();
 		expect(screen.queryByText('AI Summary')).not.toBeInTheDocument();
 	});
 
 	it('toggles collapse and expand modes', async () => {
 		const summary = [
 			'Net return of +15.2% over 12 months.',
-			'Win rate of 65%.',
 			'Volatility of 14%.',
 			'Hold time of 8 days.',
 			'Actionable recommendation point.'
@@ -54,45 +78,20 @@ describe('BacktestAiSummary', () => {
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
 
 		// Click collapse
-		const collapseBtn = screen.getByTitle('Collapse summary');
+		const collapseBtn = screen.getByTitle('Collapse insights');
 		await fireEvent.click(collapseBtn);
 
 		// Now collapsed: Bento grid hidden, Next Steps shown
 		expect(screen.queryByText('Profitability & Return')).not.toBeInTheDocument();
 		expect(screen.getByText('Next Steps')).toBeInTheDocument();
-		expect(screen.getByTitle('Expand summary')).toBeInTheDocument();
+		expect(screen.getByTitle('Expand insights')).toBeInTheDocument();
+		expect(screen.queryByText('Collapse')).not.toBeInTheDocument();
+		expect(screen.queryByText('Expand')).not.toBeInTheDocument();
 
 		// Click expand
-		const expandBtn = screen.getByTitle('Expand summary');
+		const expandBtn = screen.getByTitle('Expand insights');
 		await fireEvent.click(expandBtn);
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
-	});
-
-	it('handles copy summary action', async () => {
-		const writeTextMock = vi.fn().mockResolvedValue(undefined);
-		Object.assign(navigator, {
-			clipboard: {
-				writeText: writeTextMock
-			}
-		});
-
-		const summary = [
-			'Net return +20%.',
-			'Win rate 60%.',
-			'Sharpe 1.5.',
-			'Hold 5 days.',
-			'Keep SL at -5%.'
-		];
-
-		render(BacktestAiSummary, { props: { summary } });
-
-		const copyBtn = screen.getByTitle('Copy AI summary in Markdown');
-		await fireEvent.click(copyBtn);
-
-		expect(writeTextMock).toHaveBeenCalledOnce();
-		expect(writeTextMock.mock.calls[0][0]).toContain('### AI Summary');
-		expect(writeTextMock.mock.calls[0][0]).toContain('Profitability & Return');
-		expect(writeTextMock.mock.calls[0][0]).toContain('Keep SL at -5%.');
 	});
 
 	describe('parseSummaryTokens', () => {

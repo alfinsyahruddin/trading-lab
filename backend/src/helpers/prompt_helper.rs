@@ -56,13 +56,12 @@ Key Backtest Metrics:
 - Avg Profit: Rp{avg_profit:.0} ({avg_profit_pct:.2}%), Avg Loss: Rp{avg_loss:.0} ({avg_loss_pct:.2}%)
 - Avg Holding Time: {avg_hold:.1} days (Avg Win Hold: {win_hold:.1} days, Avg Loss Hold: {loss_hold:.1} days)
 
-Generate a high-impact executive summary consisting of a JSON array of up to 5 clear, insightful keypoint strings (maximum 5 strings).
-Each keypoint should be 1-2 concise sentences addressing one of the following 5 dimensions:
-1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, and fee drag impact.
-2. Win/Loss Performance: Win rate vs profit factor, and average win magnitude compared to average loss.
-3. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
-4. Holding & Execution Efficiency: Win holding duration vs loss holding duration (discipline in cutting losses vs letting winners run).
-5. Strategic Verdict & Actionable Improvement: Concrete recommendation for parameter tuning (e.g. SL, TP, or holding window) under Indonesian market conditions.
+Generate a high-impact executive summary consisting of a JSON array of up to 4 clear, insightful keypoint strings (maximum 4 strings).
+Each keypoint should be 1-2 concise sentences addressing one of the following 4 dimensions:
+1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, win rate vs profit factor, and fee drag impact.
+2. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
+3. Holding & Execution Efficiency: Win holding duration vs loss holding duration (discipline in cutting losses vs letting winners run).
+4. Strategic Verdict & Actionable Improvement: Concrete recommendation for parameter tuning (e.g. SL, TP, or holding window) under Indonesian market conditions.
 
 Formatting and Style Guidelines:
 - Highlight key metrics, numbers, and stats in Markdown bold (e.g. **+31.2%**, **-20.0%**, **0.0%**, **Rp 12.5M**, **64%**, **2.3 PF**, **Sharpe 1.8**, **7.5 days**).
@@ -71,7 +70,7 @@ Formatting and Style Guidelines:
 - Keep each point crisp, direct, and actionable for traders.
 
 Return ONLY a valid JSON array of strings:
-["Keypoint 1...", "Keypoint 2...", "Keypoint 3...", "Keypoint 4...", "Keypoint 5..."]"#,
+["Keypoint 1...", "Keypoint 2...", "Keypoint 3...", "Keypoint 4..."]"#,
         strategy_name = strategy_name,
         job_name = job_name,
         year = year,
@@ -336,6 +335,9 @@ mod tests {
         assert!(prompt.contains("Win Rate: 64.00%"));
         assert!(prompt.contains("Sharpe Ratio: 1.80"));
         assert!(prompt.contains("Portfolio Volatility: 14.20%"));
+        assert!(prompt.contains("maximum 4 strings"));
+        assert!(prompt.contains("win rate vs profit factor"));
+        assert!(!prompt.contains("2. Win/Loss Performance"));
     }
 
     #[test]

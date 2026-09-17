@@ -16,7 +16,7 @@ For in-depth explanations, refer directly to the specialized guides:
 | ⚡ [**Frontend Architecture**](./docs/frontend.md) | SvelteKit 5 SPA, Svelte 5 Runes conventions, complete UI component catalog (including landing & modals), CSR route guards, and API client. |
 | ⚙️ [**Environment & Credentials**](./docs/environment.md) | Complete environment variable reference (host & Docker), default seeded credentials (`admin@mail.com` / `admin123`), and security policies. |
 | 🧪 [**Testing Guide**](./docs/testing.md) | Rust unit & HTTP contract tests, Vitest unit/component suites, and Playwright E2E testing workflows. |
-| 🛠️ [**Contributor Workflow**](./docs/workflow.md) | Development workflows, Docker Compose operations, PR verification checklists, and git commit guidelines. |
+| 🛠️ [**Contributor Workflow**](./docs/workflow.md) | Development workflows, Docker Compose operations, verification checklists, and git commit guidelines. |
 
 ---
 

@@ -21,7 +21,8 @@ vi.mock('lightweight-charts', () => ({
 		remove: vi.fn()
 	})),
 	ColorType: { Solid: 'solid' },
-	AreaSeries: 'Area'
+	AreaSeries: 'Area',
+	BaselineSeries: 'Baseline'
 }));
 
 vi.mock('$lib/api', async (importOriginal) => {

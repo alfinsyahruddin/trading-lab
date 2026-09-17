@@ -365,7 +365,7 @@
 			</div>
 		</div>
 
-		<!-- AI Executive Summary Card Skeleton -->
+		<!-- AI Insights Card Skeleton -->
 		<div
 			class="rounded-2xl border p-5 sm:p-6"
 			style="background-color: var(--bg-card); border-color: var(--border);"
@@ -469,7 +469,7 @@
 		<p class="font-600 text-sm" style="color: var(--danger)">{error}</p>
 	</div>
 {:else if job}
-	<!-- AI Summary (when available) -->
+	<!-- AI Insights (when available) -->
 	{#if job.result?.ai_summary && job.result.ai_summary.length > 0}
 		<BacktestAiSummary summary={job.result.ai_summary} />
 	{/if}

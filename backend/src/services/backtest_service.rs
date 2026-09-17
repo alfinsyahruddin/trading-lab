@@ -778,7 +778,7 @@ pub async fn generate_backtest_ai_summary(
 
     let summary: Vec<String> =
         crate::clients::llm_client::generate_structured(llm, &prompt).await?;
-    let truncated: Vec<String> = summary.into_iter().take(5).collect();
+    let truncated: Vec<String> = summary.into_iter().take(4).collect();
 
     Ok(truncated)
 }
@@ -792,7 +792,7 @@ mod tests {
     #[async_trait::async_trait]
     impl LLMTrait for MockLLM {
         async fn generate(&self, _prompt: &str) -> Result<String, AppError> {
-            Ok(r#"["Point 1: Strong performance.", "Point 2: Good win rate.", "Point 3: Low volatility.", "Point 4: Efficient hold time.", "Point 5: Maintain current SL."]"#.into())
+            Ok(r#"["Point 1: Strong performance.", "Point 2: Low volatility.", "Point 3: Efficient hold time.", "Point 4: Maintain current SL."]"#.into())
         }
     }
 
@@ -840,7 +840,7 @@ mod tests {
         .await
         .expect("generates summary");
 
-        assert_eq!(summary.len(), 5);
+        assert_eq!(summary.len(), 4);
         assert_eq!(summary[0], "Point 1: Strong performance.");
     }
 }

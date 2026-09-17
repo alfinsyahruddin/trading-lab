@@ -22,7 +22,7 @@
 	let formInitialCash = $state('100000000');
 	let formMaxHoldingStocks = $state('4');
 	let formMaxStocks = $state('12');
-	let formDuration = $state('12');
+	let formDuration = $state('3');
 	let formBuyFee = $state('0.15');
 	let formSellFee = $state('0.25');
 	let isPublic = $state(false);
@@ -77,9 +77,7 @@
 		return new Intl.NumberFormat('id-ID').format(val || 0);
 	}
 
-	const backtestDateRange = $derived(
-		calculateBacktestDateRange(formYear, Number(formDuration)).formatted
-	);
+	const backtestDateRange = $derived(calculateBacktestDateRange(formYear, Number(formDuration)));
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -202,6 +200,11 @@
 				<div class="flex flex-1 flex-col gap-1.5">
 					<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Data Year</span>
 					<SegmentedControl options={yearOptions} bind:value={formYear} />
+					<span class="font-500 text-xs" style="color: var(--fg-muted)">
+						The year selected will be used for filtering stocks, for example:
+						<span class="font-600 font-mono">pb[{formYear}]</span>,
+						<span class="font-600 font-mono">ebitda[{formYear}]</span>, etc.
+					</span>
 				</div>
 
 				<div class="flex shrink-0 flex-col gap-1.5">
@@ -267,7 +270,11 @@
 					<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Date</span>
 					<div class="font-500 flex h-[42px] items-center gap-2 text-sm" style="color: var(--fg)">
 						<Icon icon="lucide:calendar" width="16" height="16" style="color: var(--fg-muted)" />
-						<span>{backtestDateRange}</span>
+						<span>{backtestDateRange.formatted}</span>
+						<span class="text-xs font-normal opacity-60" style="color: var(--fg-muted)">
+							({backtestDateRange.days}
+							{backtestDateRange.days === 1 ? 'Day' : 'Days'})
+						</span>
 					</div>
 				</div>
 			</div>

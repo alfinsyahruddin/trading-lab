@@ -17,6 +17,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(31);
 
 		expect(result.formatted).toBe('1 Jan 2026 - 31 Jan 2026');
+		expect(result.days).toBe(31);
 	});
 
 	it('calculates 3 months date range for screener year 2025 (matching backend)', () => {
@@ -30,6 +31,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(31);
 
 		expect(result.formatted).toBe('1 Jan 2026 - 31 Mar 2026');
+		expect(result.days).toBe(90);
 	});
 
 	it('calculates 6 months date range for screener year 2025 (matching backend)', () => {
@@ -43,6 +45,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(30);
 
 		expect(result.formatted).toBe('1 Jan 2026 - 30 Jun 2026');
+		expect(result.days).toBe(181);
 	});
 
 	it('calculates 12 months date range for screener year 2025 when maxDate is in future (matching backend)', () => {
@@ -57,6 +60,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(31);
 
 		expect(result.formatted).toBe('1 Jan 2026 - 31 Dec 2026');
+		expect(result.days).toBe(365);
 	});
 
 	it('caps end date at current date when date range exceeds maxDate (matching backend)', () => {
@@ -84,6 +88,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(29); // Leap day
 
 		expect(result.formatted).toBe('1 Jan 2024 - 29 Feb 2024');
+		expect(result.days).toBe(60);
 	});
 
 	it('calculates non-leap year February correctly (screener year 2022 -> 2023)', () => {
@@ -97,6 +102,7 @@ describe('date helper', () => {
 		expect(result.endDate.getDate()).toBe(28);
 
 		expect(result.formatted).toBe('1 Jan 2023 - 28 Feb 2023');
+		expect(result.days).toBe(59);
 	});
 
 	it('formats individual date with formatDateShort', () => {

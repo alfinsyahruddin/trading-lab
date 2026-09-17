@@ -80,7 +80,6 @@
 
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { toast } from '$lib/helpers/toast.svelte';
 	import { slide } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
 
@@ -90,9 +89,7 @@
 		summary?: string[];
 	} = $props();
 
-	let copied = $state(false);
 	let isCollapsed = $state(false);
-	let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	const DIMENSIONS = [
 		{
@@ -101,13 +98,6 @@
 			icon: 'lucide:trending-up',
 			badgeClass: 'text-emerald-500 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
 			iconColor: 'var(--success)'
-		},
-		{
-			title: 'Win / Loss Performance',
-			shortTitle: 'Performance',
-			icon: 'lucide:target',
-			badgeClass: 'text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-			iconColor: '#818cf8'
 		},
 		{
 			title: 'Risk & Volatility Profile',
@@ -135,10 +125,10 @@
 	// Extract standard grid cards and spotlight recommendation
 	const gridPoints = $derived.by(() => {
 		if (!summary || summary.length === 0) return [];
-		if (summary.length <= 4) {
+		if (summary.length <= 3) {
 			return summary.slice(0, Math.max(0, summary.length - 1));
 		}
-		return summary.slice(0, 4);
+		return summary.slice(0, 3);
 	});
 
 	const recommendationPoint = $derived.by(() => {
@@ -147,29 +137,6 @@
 	});
 
 	const isSinglePoint = $derived(summary && summary.length === 1);
-
-	async function handleCopy() {
-		if (!summary || summary.length === 0) return;
-		const lines = summary.map((point, i) => {
-			const dim = DIMENSIONS[i]?.title ?? `Point ${i + 1}`;
-			return `- **${dim}**: ${point}`;
-		});
-		const content = `### AI Summary\n\n${lines.join('\n')}`;
-
-		try {
-			if (typeof navigator !== 'undefined' && navigator?.clipboard?.writeText) {
-				await navigator.clipboard.writeText(content);
-			}
-			copied = true;
-			toast.success('AI summary copied to clipboard');
-			if (copyTimeout) clearTimeout(copyTimeout);
-			copyTimeout = setTimeout(() => {
-				copied = false;
-			}, 2000);
-		} catch {
-			toast.error('Failed to copy to clipboard');
-		}
-	}
 </script>
 
 {#if summary && summary.length > 0}
@@ -221,7 +188,7 @@
 								background-clip: text;
 							"
 						>
-							AI Summary
+							AI Insights
 						</h3>
 						<span
 							class="font-600 rounded-full border px-2 py-0.5 text-[10px] tracking-wide uppercase"
@@ -232,30 +199,15 @@
 					</div>
 				</div>
 
-				<!-- Action buttons (Copy + Collapse) -->
-				<div class="flex items-center gap-1.5">
-					<button
-						type="button"
-						onclick={handleCopy}
-						class="btn-interactive font-600 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-all hover:bg-(--bg-card-hover) active:scale-95"
-						style="border-color: var(--border); color: var(--fg-muted);"
-						title="Copy AI summary in Markdown"
-					>
-						<Icon
-							icon={copied ? 'lucide:check' : 'lucide:copy'}
-							width="13"
-							height="13"
-							style="color: {copied ? 'var(--success)' : 'var(--fg-muted)'};"
-						/>
-						<span class="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
-					</button>
-
+				<!-- Collapse action button (chevron only) -->
+				<div class="flex items-center">
 					<button
 						type="button"
 						onclick={() => (isCollapsed = !isCollapsed)}
-						class="btn-interactive font-600 inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs transition-all hover:bg-(--bg-card-hover) active:scale-95"
+						class="btn-interactive font-600 inline-flex size-7 items-center justify-center rounded-lg border transition-all hover:bg-(--bg-card-hover) active:scale-95"
 						style="border-color: var(--border); color: var(--fg-muted);"
-						title={isCollapsed ? 'Expand summary' : 'Collapse summary'}
+						title={isCollapsed ? 'Expand insights' : 'Collapse insights'}
+						aria-label={isCollapsed ? 'Expand insights' : 'Collapse insights'}
 					>
 						<span
 							class="inline-flex transition-transform duration-300 ease-in-out {isCollapsed
@@ -264,7 +216,6 @@
 						>
 							<Icon icon="lucide:chevron-up" width="14" height="14" />
 						</span>
-						<span class="text-[11px]">{isCollapsed ? 'Expand' : 'Collapse'}</span>
 					</button>
 				</div>
 			</div>
@@ -272,8 +223,8 @@
 			<!-- Collapsible Bento Grid Layout with smooth slide transition -->
 			{#if !isCollapsed && !isSinglePoint && gridPoints.length > 0}
 				<div transition:slide={{ duration: 250, easing: cubicInOut }} class="overflow-hidden pb-3">
-					<!-- 2x2 Responsive Dimension Grid -->
-					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<!-- 3-Column Responsive Dimension Grid -->
+					<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 						{#each gridPoints as point, i (i)}
 							{@const config = DIMENSIONS[i] || {
 								title: `Dimension ${i + 1}`,
@@ -383,12 +334,12 @@
 							</div>
 						</div>
 
-						<!-- Recommendation Content with Formatted Tokens & Smaller Text Size -->
-						<p class="font-400 text-[11px] leading-relaxed sm:text-xs" style="color: var(--fg);">
+						<!-- Recommendation Content with Formatted Tokens -->
+						<p class="font-400 text-xs leading-relaxed sm:text-sm" style="color: var(--fg);">
 							{#each parseSummaryTokens(recommendationPoint) as token, j (j)}
 								{#if token.tone === 'positive'}
 									<span
-										class="font-700 py-0.2 inline-block rounded px-1.5 text-[11px] sm:text-xs"
+										class="font-700 inline-block rounded px-1.5 py-0.5 text-xs sm:text-sm"
 										class:italic={token.italic}
 										style="color: var(--success); background-color: rgba(34, 197, 94, 0.15);"
 									>
@@ -396,7 +347,7 @@
 									</span>
 								{:else if token.tone === 'negative'}
 									<span
-										class="font-700 py-0.2 inline-block rounded px-1.5 text-[11px] sm:text-xs"
+										class="font-700 inline-block rounded px-1.5 py-0.5 text-xs sm:text-sm"
 										class:italic={token.italic}
 										style="color: var(--danger); background-color: rgba(239, 68, 68, 0.15);"
 									>
@@ -404,7 +355,7 @@
 									</span>
 								{:else if token.tone === 'neutral'}
 									<span
-										class="font-700 py-0.2 inline-block rounded px-1.5 text-[11px] sm:text-xs"
+										class="font-700 inline-block rounded px-1.5 py-0.5 text-xs sm:text-sm"
 										class:italic={token.italic}
 										style="color: var(--fg-muted); background-color: rgba(148, 163, 184, 0.15);"
 									>

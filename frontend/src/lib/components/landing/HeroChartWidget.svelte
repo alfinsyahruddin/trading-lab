@@ -12,7 +12,7 @@
 		targetReturn = 24.8,
 		targetSharpe = 1.82,
 		targetWinRate = 75,
-		duration = 2200
+		duration = 4400
 	}: Props = $props();
 
 	let returnVal = $state(0);

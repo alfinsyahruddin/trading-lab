@@ -5,21 +5,65 @@
 	import LandingLogo from './LandingLogo.svelte';
 	import LandingCtaButtons from './LandingCtaButtons.svelte';
 	import HeroChartWidget from './HeroChartWidget.svelte';
-	import { LANDING_HERO_STATS, LANDING_TYPEWRITER_WORDS } from '$lib/constants/landing';
+	import {
+		LANDING_HERO_STATS,
+		LANDING_TYPEWRITER_WORDS,
+		type LandingHeroStat
+	} from '$lib/constants/landing';
 
 	interface Props {
 		isLoggedIn: boolean;
 		oncomingsoon?: () => void;
+		statsDuration?: number;
 	}
 
-	let { isLoggedIn, oncomingsoon }: Props = $props();
+	let { isLoggedIn, oncomingsoon, statsDuration = 3600 }: Props = $props();
 
 	let heroVisible = $state(false);
 	let displayedWord = $state<string>(LANDING_TYPEWRITER_WORDS[0]);
+	let animatedStats = $state<number[]>(LANDING_HERO_STATS.map(() => 0));
+
+	function formatStatDisplay(stat: LandingHeroStat, currentVal: number): string {
+		const prefix = stat.prefix ?? '';
+		let suffix = stat.suffix ?? '';
+		if (stat.suffix === ' Years' && currentVal === 1) {
+			suffix = ' Year';
+		}
+		return `${prefix}${currentVal}${suffix}`;
+	}
 
 	onMount(() => {
 		// Hero reveal shortly after mount
-		const revealTimer = setTimeout(() => (heroVisible = true), 100);
+		const revealTimer = setTimeout(() => (heroVisible = true), 200);
+
+		// Number increase animation from 0 -> target (ease-out)
+		let statRafId: number | null = null;
+		if (typeof window !== 'undefined') {
+			if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+				animatedStats = LANDING_HERO_STATS.map((s) => s.target);
+			} else {
+				let statStartTime: number | null = null;
+
+				function stepStats(timestamp: number) {
+					if (!statStartTime) statStartTime = timestamp;
+					const elapsed = timestamp - statStartTime;
+					const progress = Math.min(elapsed / statsDuration, 1);
+
+					// Cubic ease-out deceleration curve
+					const ease = 1 - Math.pow(1 - progress, 3);
+
+					animatedStats = LANDING_HERO_STATS.map((stat) => Math.round(stat.target * ease));
+
+					if (progress < 1) {
+						statRafId = requestAnimationFrame(stepStats);
+					} else {
+						animatedStats = LANDING_HERO_STATS.map((stat) => stat.target);
+					}
+				}
+
+				statRafId = requestAnimationFrame(stepStats);
+			}
+		}
 
 		// Typewriter animation loop
 		let typewriterTimer: ReturnType<typeof setTimeout> | null = null;
@@ -60,6 +104,7 @@
 		return () => {
 			clearTimeout(revealTimer);
 			if (typewriterTimer) clearTimeout(typewriterTimer);
+			if (statRafId !== null) cancelAnimationFrame(statRafId);
 		};
 	});
 </script>
@@ -90,7 +135,7 @@
 
 	<!-- Hero Content (Left side) -->
 	<div
-		class="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 py-10 transition-all duration-700 sm:gap-7 sm:px-8 sm:py-12 md:mx-0 md:ml-[max(6%,2rem)] md:max-w-xl lg:max-w-2xl"
+		class="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 py-10 transition-all duration-1400 sm:gap-7 sm:px-8 sm:py-12 md:mx-0 md:ml-[max(6%,2rem)] md:max-w-xl lg:max-w-2xl"
 		class:opacity-100={heroVisible}
 		class:translate-y-0={heroVisible}
 		class:opacity-0={!heroVisible}
@@ -128,7 +173,9 @@
 					<div class="hidden h-9 w-px bg-(--border) sm:block" aria-hidden="true"></div>
 				{/if}
 				<div class="flex flex-col gap-0.5 px-2 first:pl-0 last:pr-0 sm:px-0">
-					<span class="font-mono text-xl font-bold text-(--accent) sm:text-3xl">{stat.value}</span>
+					<span class="font-mono text-xl font-bold text-(--accent) sm:text-3xl">
+						{formatStatDisplay(stat, animatedStats[idx] ?? stat.target)}
+					</span>
 					<span
 						class="font-mono text-[10px] font-medium tracking-wider text-(--fg-muted) uppercase sm:text-[11px]"
 					>
@@ -151,7 +198,7 @@
 
 	<!-- Scroll indicator -->
 	<div
-		class="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex flex-col items-center justify-center transition-opacity duration-700"
+		class="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex flex-col items-center justify-center transition-opacity duration-1400"
 		class:opacity-100={heroVisible}
 		class:opacity-0={!heroVisible}
 		aria-hidden="true"
