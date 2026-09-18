@@ -350,203 +350,106 @@
 			</div>
 		</div>
 
-		<!-- ── Strategy Rules & Conditions ───────────────────────────────── -->
-		<div
-			class="flex flex-col rounded-2xl border p-5 sm:p-6"
-			style="background-color: var(--bg-card); border-color: var(--border);"
-		>
-			<div class="mb-4 flex items-center gap-2">
-				<Icon icon="lucide:code-2" width="18" height="18" style="color: var(--accent);" />
-				<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
-					Rules & Entry Conditions
-				</h2>
-			</div>
-
-			{#if strategy.rules && strategy.rules.length > 0}
-				<div class="flex flex-col gap-4">
-					{#each strategy.rules as group, gIdx (gIdx)}
-						{#if gIdx > 0}
-							<div class="flex items-center gap-3">
-								<div class="h-px flex-1" style="background-color: var(--border);"></div>
-								<span
-									class="font-800 rounded-lg px-2.5 py-1 font-mono text-xs uppercase shadow-xs"
-									style="background-color: var(--accent-soft); color: var(--accent);"
-								>
-									{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
-								</span>
-								<div class="h-px flex-1" style="background-color: var(--border);"></div>
-							</div>
-						{/if}
-
-						<div
-							class="flex flex-col gap-3 rounded-xl border p-4"
-							style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
-						>
-							<div class="flex items-center justify-between">
-								<span
-									class="font-600 text-xs tracking-wider uppercase"
-									style="color: var(--fg-muted)"
-								>
-									Condition Group #{gIdx + 1}
-								</span>
-								<span class="font-500 text-xs" style="color: var(--fg-muted)">
-									{group.conditions.length}
-									{group.conditions.length === 1 ? 'condition' : 'conditions'}
-								</span>
-							</div>
-
-							<div class="flex flex-col gap-2">
-								{#each group.conditions as condition, cIdx (cIdx)}
-									{#if cIdx > 0}
-										<div class="flex items-center justify-center gap-2 py-0.5">
-											<span class="font-700 font-mono text-[11px]" style="color: var(--accent);">
-												{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
-											</span>
-										</div>
-									{/if}
-
-									{@const info = getVariableInfo(condition.variable)}
-									<div
-										class="grid grid-cols-1 items-center gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4"
-										style="background-color: var(--bg-card); border-color: var(--border);"
-									>
-										<!-- Left: Variable -->
-										<div class="flex flex-wrap items-center gap-2">
-											<span
-												class="font-700 rounded-md px-2 py-1 font-mono text-xs"
-												style="background-color: var(--accent-soft); color: var(--accent);"
-											>
-												{condition.variable}
-											</span>
-											{#if info.name !== condition.variable}
-												<span class="font-500 text-xs" style="color: var(--fg)">
-													{info.name}
-												</span>
-											{/if}
-										</div>
-
-										<!-- Center: Operator -->
-										<div class="flex items-center justify-start sm:justify-center">
-											<span
-												class="font-700 rounded-md border px-2.5 py-1 font-mono text-xs shadow-2xs"
-												style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border); color: var(--fg-muted);"
-											>
-												{condition.operator}
-											</span>
-										</div>
-
-										<!-- Right: Target Value -->
-										<div class="flex items-center justify-start sm:justify-end">
-											<span
-												class="font-700 rounded-md px-2.5 py-1 font-mono text-xs"
-												style="background-color: var(--bg-card-hover, var(--bg)); color: var(--fg);"
-											>
-												{condition.value}
-											</span>
-										</div>
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div
-					class="rounded-xl border border-dashed p-8 text-center"
-					style="border-color: var(--border);"
-				>
-					<p class="font-500 text-sm" style="color: var(--fg-muted)">
-						No rules configured for this strategy yet.
-					</p>
-				</div>
-			{/if}
-		</div>
-
-		<!-- ── Related Backtest Executions ───────────────────────────────── -->
-		{#if isOwner}
+		<!-- ── Strategy Rules & Backtest History (40% : 60%) ─────────────── -->
+		<div class="grid grid-cols-1 items-start gap-6 {isOwner ? 'lg:grid-cols-[2fr_3fr]' : ''}">
+			<!-- ── Strategy Rules & Conditions ───────────────────────────────── -->
 			<div
-				class="flex flex-col rounded-2xl border p-5 sm:p-6"
+				class="flex min-w-0 flex-col rounded-2xl border p-5 sm:p-6"
 				style="background-color: var(--bg-card); border-color: var(--border);"
 			>
-				<div class="mb-4 flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<Icon icon="lucide:activity" width="18" height="18" style="color: var(--accent);" />
-						<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
-							Backtest History ({relatedBacktests.length})
-						</h2>
-					</div>
-
-					<a
-						href="/dashboard/backtests/new"
-						class="btn-interactive font-600 inline-flex items-center gap-1 text-xs"
-						style="color: var(--accent);"
-					>
-						<span>Run New Backtest</span>
-						<Icon icon="lucide:chevron-right" width="14" height="14" />
-					</a>
+				<div class="mb-4 flex items-center gap-2">
+					<Icon icon="lucide:code-2" width="18" height="18" style="color: var(--accent);" />
+					<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
+						Rules & Entry Conditions
+					</h2>
 				</div>
 
-				{#if relatedBacktests.length > 0}
-					<div class="flex flex-col gap-3">
-						{#each relatedBacktests as bt (bt.id)}
-							<a
-								href="/dashboard/backtests/{bt.id}"
-								class="btn-interactive group flex flex-col gap-3 rounded-xl border p-4 transition-all duration-150 hover:shadow-xs sm:flex-row sm:items-center sm:justify-between"
+				{#if strategy.rules && strategy.rules.length > 0}
+					<div class="flex flex-col gap-4">
+						{#each strategy.rules as group, gIdx (gIdx)}
+							{#if gIdx > 0}
+								<div class="flex items-center gap-3">
+									<div class="h-px flex-1" style="background-color: var(--border);"></div>
+									<span
+										class="font-800 rounded-lg px-2.5 py-1 font-mono text-xs uppercase shadow-xs"
+										style="background-color: var(--accent-soft); color: var(--accent);"
+									>
+										{strategy.rules[gIdx - 1]?.connector_to_next || 'AND'}
+									</span>
+									<div class="h-px flex-1" style="background-color: var(--border);"></div>
+								</div>
+							{/if}
+
+							<div
+								class="flex flex-col gap-3 rounded-xl border p-4"
 								style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
 							>
-								<div class="flex flex-col gap-1">
-									<div class="flex flex-wrap items-center gap-2">
-										<span class="font-700 text-sm" style="color: var(--fg)">
-											{bt.name}
-										</span>
-										<span
-											class="font-600 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
-											style="background-color: var(--bg-card); color: var(--fg)"
-										>
-											{bt.year}
-										</span>
-										<StatusBadge status={bt.status} />
-									</div>
-
-									<div
-										class="flex flex-wrap items-center gap-3 text-xs"
+								<div class="flex items-center justify-between">
+									<span
+										class="font-600 text-xs tracking-wider uppercase"
 										style="color: var(--fg-muted)"
 									>
-										<span>Initial: Rp {formatRupiah(bt.initial_cash)}</span>
-										<span>•</span>
-										<span>{formatDuration(bt.backtest_duration_months)}</span>
-										<span>•</span>
-										<span>Max {bt.max_holding_stocks} Stocks</span>
-									</div>
+										Condition Group #{gIdx + 1}
+									</span>
+									<span class="font-500 text-xs" style="color: var(--fg-muted)">
+										{group.conditions.length}
+										{group.conditions.length === 1 ? 'condition' : 'conditions'}
+									</span>
 								</div>
 
-								<div class="flex items-center gap-4 self-end sm:self-center">
-									{#if bt.status === 'DONE' && bt.result}
-										<div class="flex flex-col text-right">
-											<span
-												class="font-600 text-[10px] tracking-wider uppercase"
-												style="color: var(--fg-muted)"
-											>
-												Net P/L
-											</span>
-											<span
-												class="font-700 text-sm"
-												style="color: {bt.result.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-											>
-												{formatPnl(bt.result.net_pnl, bt.result.net_pnl_percentage)}
-											</span>
+								<div class="flex flex-col gap-2">
+									{#each group.conditions as condition, cIdx (cIdx)}
+										{#if cIdx > 0}
+											<div class="flex items-center justify-center gap-2 py-0.5">
+												<span class="font-700 font-mono text-[11px]" style="color: var(--accent);">
+													{group.conditions[cIdx - 1]?.connector_to_next || 'AND'}
+												</span>
+											</div>
+										{/if}
+
+										{@const info = getVariableInfo(condition.variable)}
+										<div
+											class="grid grid-cols-1 items-center gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4"
+											style="background-color: var(--bg-card); border-color: var(--border);"
+										>
+											<!-- Left: Variable -->
+											<div class="flex min-w-0 flex-wrap items-center gap-2">
+												<span
+													class="font-700 rounded-md px-2 py-1 font-mono text-xs"
+													style="background-color: var(--accent-soft); color: var(--accent);"
+												>
+													{condition.variable}
+												</span>
+												{#if info.name !== condition.variable}
+													<span class="font-500 text-xs" style="color: var(--fg)">
+														{info.name}
+													</span>
+												{/if}
+											</div>
+
+											<!-- Center: Operator -->
+											<div class="flex items-center justify-start sm:justify-center">
+												<span
+													class="font-700 rounded-md border px-2.5 py-1 font-mono text-xs shadow-2xs"
+													style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border); color: var(--fg-muted);"
+												>
+													{condition.operator}
+												</span>
+											</div>
+
+											<!-- Right: Target Value -->
+											<div class="flex items-center justify-start sm:justify-end">
+												<span
+													class="font-700 rounded-md px-2.5 py-1 font-mono text-xs"
+													style="background-color: var(--bg-card-hover, var(--bg)); color: var(--fg);"
+												>
+													{condition.value}
+												</span>
+											</div>
 										</div>
-									{/if}
-
-									<Icon
-										icon="lucide:chevron-right"
-										width="16"
-										height="16"
-										class="transition-transform duration-150 group-hover:translate-x-0.5"
-										style="color: var(--fg-muted);"
-									/>
+									{/each}
 								</div>
-							</a>
+							</div>
 						{/each}
 					</div>
 				{:else}
@@ -555,20 +458,117 @@
 						style="border-color: var(--border);"
 					>
 						<p class="font-500 text-sm" style="color: var(--fg-muted)">
-							No backtests run for this strategy yet.
+							No rules configured for this strategy yet.
 						</p>
-						<a
-							href="/dashboard/backtests/new"
-							class="btn-interactive font-600 mt-3 inline-flex items-center gap-1.5 text-xs"
-							style="color: var(--accent);"
-						>
-							<Icon icon="lucide:play" width="13" height="13" />
-							<span>Launch Backtest</span>
-						</a>
 					</div>
 				{/if}
 			</div>
-		{/if}
+
+			<!-- ── Related Backtest Executions ───────────────────────────────── -->
+			{#if isOwner}
+				<div
+					class="flex min-w-0 flex-col rounded-2xl border p-5 sm:p-6"
+					style="background-color: var(--bg-card); border-color: var(--border);"
+				>
+					<div class="mb-4 flex items-center justify-between">
+						<div class="flex items-center gap-2">
+							<Icon icon="lucide:activity" width="18" height="18" style="color: var(--accent);" />
+							<h2 class="font-700 text-base sm:text-lg" style="color: var(--fg)">
+								Backtest History
+							</h2>
+						</div>
+
+						<span class="font-500 text-xs" style="color: var(--fg-muted)">
+							{relatedBacktests.length} Backtests
+						</span>
+					</div>
+
+					{#if relatedBacktests.length > 0}
+						<div class="flex flex-col gap-3">
+							{#each relatedBacktests as bt (bt.id)}
+								<a
+									href="/dashboard/backtests/{bt.id}"
+									class="btn-interactive group flex flex-col gap-3 rounded-xl border p-4 transition-all duration-150 hover:shadow-xs sm:flex-row sm:items-center sm:justify-between"
+									style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
+								>
+									<div class="flex min-w-0 flex-col gap-1">
+										<div class="flex flex-wrap items-center gap-2">
+											<span class="font-700 truncate text-sm" style="color: var(--fg)">
+												{bt.name}
+											</span>
+											<span
+												class="font-600 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+												style="background-color: var(--bg-card); color: var(--fg)"
+											>
+												{bt.year}
+											</span>
+											<StatusBadge status={bt.status} />
+										</div>
+
+										<div
+											class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+											style="color: var(--fg-muted)"
+										>
+											<span>Initial: Rp {formatRupiah(bt.initial_cash)}</span>
+											<span>•</span>
+											<span>{formatDuration(bt.backtest_duration_months)}</span>
+											<span>•</span>
+											<span>Max {bt.max_holding_stocks} Stocks</span>
+										</div>
+									</div>
+
+									<div class="flex shrink-0 items-center gap-4 self-end sm:self-center">
+										{#if bt.status === 'DONE' && bt.result}
+											<div class="flex flex-col text-right">
+												<span
+													class="font-600 text-[10px] tracking-wider uppercase"
+													style="color: var(--fg-muted)"
+												>
+													Net P/L
+												</span>
+												<span
+													class="font-700 text-sm"
+													style="color: {bt.result.net_pnl >= 0
+														? 'var(--success)'
+														: 'var(--danger)'}"
+												>
+													{formatPnl(bt.result.net_pnl, bt.result.net_pnl_percentage)}
+												</span>
+											</div>
+										{/if}
+
+										<Icon
+											icon="lucide:chevron-right"
+											width="16"
+											height="16"
+											class="transition-transform duration-150 group-hover:translate-x-0.5"
+											style="color: var(--fg-muted);"
+										/>
+									</div>
+								</a>
+							{/each}
+						</div>
+					{:else}
+						<div
+							class="rounded-xl border border-dashed p-8 text-center"
+							style="border-color: var(--border);"
+						>
+							<p class="font-500 text-sm" style="color: var(--fg-muted)">
+								No backtests run for this strategy yet.
+							</p>
+							<a
+								href="/dashboard/backtests/new"
+								class="btn-interactive font-600 mt-3 inline-flex items-center gap-1.5 text-xs"
+								style="color: var(--accent);"
+							>
+								<Icon icon="lucide:play" width="13" height="13" />
+								<span>Launch Backtest</span>
+							</a>
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
 {/if}
 

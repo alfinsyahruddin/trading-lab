@@ -99,7 +99,7 @@
 		if (namePristine && formStrategyId) {
 			const strat = strategies.find((s) => s.id === formStrategyId);
 			if (strat) {
-				formName = `Backtest ${strat.name} - ${formYear}`;
+				formName = `Backtest ${strat.name}`;
 			}
 		}
 	});
