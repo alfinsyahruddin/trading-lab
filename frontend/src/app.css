@@ -40,10 +40,10 @@
 :root.dark {
 	--bg: #2a344c;
 	--bg-card: #303b5a;
-	--bg-card-2: #38476c; /* nested card */
+	--bg-card-2: #364365; /* nested card */
 	--bg-card-hover: #354163;
 	--bg-input: #384365;
-	--bg-input-disabled: #2d364f;
+	--bg-input-disabled: #475376;
 	--fg: #f1f5f9;
 	--fg-muted: #94a3b8;
 	--border: rgba(255, 255, 255, 0.1);

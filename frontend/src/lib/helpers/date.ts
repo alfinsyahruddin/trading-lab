@@ -52,3 +52,22 @@ export function formatDateShort(d: Date): string {
 export function formatBacktestDateRange(startDate: Date, endDate: Date): string {
 	return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
 }
+
+/**
+ * Formats a Date instance as "YYYY-MM-DD" in local time.
+ */
+export function formatDateISO(d: Date): string {
+	const year = d.getFullYear();
+	const month = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calculates inclusive calendar days between two dates.
+ */
+export function calculateDaysBetween(startDate: Date, endDate: Date): number {
+	const utcStart = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+	const utcEnd = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+	return Math.max(1, Math.round((utcEnd - utcStart) / 86_400_000) + 1);
+}

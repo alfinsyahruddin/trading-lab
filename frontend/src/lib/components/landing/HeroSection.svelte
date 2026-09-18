@@ -17,7 +17,7 @@
 		statsDuration?: number;
 	}
 
-	let { isLoggedIn, oncomingsoon, statsDuration = 3600 }: Props = $props();
+	let { isLoggedIn, oncomingsoon, statsDuration = 1500 }: Props = $props();
 
 	let heroVisible = $state(false);
 	let displayedWord = $state<string>(LANDING_TYPEWRITER_WORDS[0]);

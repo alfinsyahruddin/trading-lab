@@ -5,10 +5,15 @@
 	import SelectField from '$lib/components/SelectField.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import TextField from '$lib/components/TextField.svelte';
+	import DateRangePicker from '$lib/components/DateRangePicker.svelte';
 	import { listTradingStrategies, createBacktest, ApiError } from '$lib/api';
 	import { getToken } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
-	import { calculateBacktestDateRange } from '$lib/helpers/date';
+	import {
+		calculateBacktestDateRange,
+		calculateDaysBetween,
+		formatDateISO
+	} from '$lib/helpers/date';
 	import type { TradingStrategy, CreateBacktestPayload } from '$lib/types';
 
 	let strategies = $state<TradingStrategy[]>([]);
@@ -39,8 +44,38 @@
 		{ value: '1', label: '1 Month' },
 		{ value: '3', label: '3 Months' },
 		{ value: '6', label: '6 Months' },
-		{ value: '12', label: '1 Year' }
+		{ value: '12', label: '1 Year' },
+		{ value: 'custom', label: 'Custom' }
 	];
+
+	const minBacktestDate = $derived(new Date(formYear + 1, 0, 1));
+	const maxBacktestDate = $derived(new Date());
+
+	let customStartDate = $state<Date | null>(new Date(2026, 0, 1));
+	let customEndDate = $state<Date | null>(new Date(2026, 2, 31));
+
+	$effect(() => {
+		if (formDuration !== 'custom') {
+			const range = calculateBacktestDateRange(formYear, Number(formDuration) || 3);
+			customStartDate = range.startDate;
+			customEndDate = range.endDate;
+		} else {
+			const minD = new Date(formYear + 1, 0, 1);
+			if (!customStartDate || customStartDate < minD) {
+				customStartDate = new Date(minD);
+			}
+			if (!customEndDate || customEndDate < minD) {
+				customEndDate = calculateBacktestDateRange(formYear, 3).endDate;
+			}
+		}
+	});
+
+	const activeDays = $derived.by(() => {
+		if (customStartDate && customEndDate) {
+			return calculateDaysBetween(customStartDate, customEndDate);
+		}
+		return 0;
+	});
 
 	onMount(async () => {
 		try {
@@ -76,8 +111,6 @@
 	function formatRupiah(val: number): string {
 		return new Intl.NumberFormat('id-ID').format(val || 0);
 	}
-
-	const backtestDateRange = $derived(calculateBacktestDateRange(formYear, Number(formDuration)));
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -116,10 +149,37 @@
 			return;
 		}
 
+		if (formDuration === 'custom') {
+			if (!customStartDate || !customEndDate) {
+				toast.error('Please select both a start date and an end date.');
+				return;
+			}
+			if (customStartDate > customEndDate) {
+				toast.error('Start date cannot be after end date.');
+				return;
+			}
+			const minD = new Date(formYear + 1, 0, 1);
+			if (customStartDate < minD) {
+				toast.error(`Start date cannot be earlier than 1 Jan ${formYear + 1}.`);
+				return;
+			}
+			const now = new Date();
+			const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+			if (customEndDate > todayEnd) {
+				toast.error('End date cannot be in the future.');
+				return;
+			}
+		}
+
 		loading = true;
 		try {
 			const token = getToken();
 			if (!token) return goto('/login');
+
+			const isCustom = formDuration === 'custom';
+			const durationMonths = isCustom
+				? Math.max(1, Math.ceil(activeDays / 30))
+				: Number(formDuration);
 
 			const payload: CreateBacktestPayload = {
 				strategy_id: formStrategyId,
@@ -128,10 +188,12 @@
 				initial_cash: initialCashNum,
 				max_holding_stocks: maxHoldingNum,
 				max_stocks: maxStocksNum,
-				backtest_duration_months: Number(formDuration),
+				backtest_duration_months: durationMonths,
 				buy_fee_percentage: buyFeeNum,
 				sell_fee_percentage: sellFeeNum,
-				is_public: isPublic
+				is_public: isPublic,
+				start_date: isCustom && customStartDate ? formatDateISO(customStartDate) : null,
+				end_date: isCustom && customEndDate ? formatDateISO(customEndDate) : null
 			};
 
 			await createBacktest(token, payload);
@@ -266,16 +328,15 @@
 					required
 				/>
 
-				<div class="flex flex-col gap-1.5">
-					<span class="font-500 text-sm" style="color: var(--fg-muted)">Backtest Date</span>
-					<div class="font-500 flex h-[42px] items-center gap-2 text-sm" style="color: var(--fg)">
-						<Icon icon="lucide:calendar" width="16" height="16" style="color: var(--fg-muted)" />
-						<span>{backtestDateRange.formatted}</span>
-						<span class="text-xs font-normal opacity-60" style="color: var(--fg-muted)">
-							({backtestDateRange.days}
-							{backtestDateRange.days === 1 ? 'Day' : 'Days'})
-						</span>
-					</div>
+				<div class="flex flex-col gap-1">
+					<DateRangePicker
+						label={'Backtest Date Range (' + activeDays + ' days)'}
+						bind:startDate={customStartDate}
+						bind:endDate={customEndDate}
+						minDate={minBacktestDate}
+						maxDate={maxBacktestDate}
+						disabled={formDuration !== 'custom'}
+					/>
 				</div>
 			</div>
 

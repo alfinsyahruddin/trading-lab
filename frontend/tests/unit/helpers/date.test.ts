@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
 	calculateBacktestDateRange,
 	formatDateShort,
-	formatBacktestDateRange
+	formatBacktestDateRange,
+	formatDateISO,
+	calculateDaysBetween
 } from '$lib/helpers/date';
 
 describe('date helper', () => {
@@ -114,5 +116,22 @@ describe('date helper', () => {
 		const d1 = new Date(2026, 0, 1);
 		const d2 = new Date(2026, 4, 31);
 		expect(formatBacktestDateRange(d1, d2)).toBe('1 Jan 2026 - 31 May 2026');
+	});
+
+	it('formats date to ISO string (YYYY-MM-DD) with formatDateISO', () => {
+		const d = new Date(2026, 0, 15);
+		expect(formatDateISO(d)).toBe('2026-01-15');
+
+		const d2 = new Date(2026, 11, 31);
+		expect(formatDateISO(d2)).toBe('2026-12-31');
+	});
+
+	it('calculates days between two dates with calculateDaysBetween', () => {
+		const d1 = new Date(2026, 0, 1);
+		const d2 = new Date(2026, 0, 10);
+		expect(calculateDaysBetween(d1, d2)).toBe(10);
+
+		const sameDay = new Date(2026, 0, 1);
+		expect(calculateDaysBetween(sameDay, sameDay)).toBe(1);
 	});
 });

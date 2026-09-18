@@ -13,6 +13,8 @@ interface CapturedBacktestPayload {
 	year?: number;
 	is_public?: boolean;
 	backtest_duration_months?: number;
+	start_date?: string | null;
+	end_date?: string | null;
 }
 
 test.describe('Backtest Flow', () => {
@@ -56,6 +58,63 @@ test.describe('Backtest Flow', () => {
 		await expect(
 			page.getByText(/initial cash must be between rp 1\.000\.000 and rp 100\.000\.000\.000/i)
 		).toBeVisible();
+	});
+
+	test('allows selecting custom duration and picking custom date range', async ({ page }) => {
+		let capturedPayload: CapturedBacktestPayload | null = null;
+
+		await page.route('**/api/backtests', async (route) => {
+			const req = route.request();
+			if (req.method() === 'POST') {
+				capturedPayload = JSON.parse(req.postData() || '{}');
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify(
+						jsonEnvelope({
+							...mockBacktest,
+							id: 'bt-custom-dates',
+							name: capturedPayload?.name || 'Custom Dates Test',
+							status: 'PENDING'
+						})
+					)
+				});
+			}
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(jsonEnvelope([mockBacktest]))
+			});
+		});
+
+		await page.goto('/dashboard/backtests/new');
+
+		// Check DateRangePicker is initially disabled
+		const datePickerBtn = page.getByRole('button', { name: 'Backtest Date Range' });
+		await expect(datePickerBtn).toBeDisabled();
+
+		// Select "Custom" duration from Backtest Duration select field
+		const durationCombobox = page.locator('#select-backtest-duration');
+		await durationCombobox.click();
+		await page.getByRole('option', { name: /^Custom$/i }).click();
+
+		// DateRangePicker should now be enabled
+		await expect(datePickerBtn).toBeEnabled();
+
+		// Open calendar
+		await datePickerBtn.click();
+		await expect(page.getByLabel('Previous Month')).toBeVisible();
+
+		// Submit form
+		const runBtn = page.getByRole('button', { name: /run backtest/i });
+		await runBtn.click();
+
+		await expect(page).toHaveURL(/\/dashboard\/backtests$/);
+
+		const payload = capturedPayload as unknown as CapturedBacktestPayload;
+		expect(payload).not.toBeNull();
+		expect(payload.start_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+		expect(payload.end_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 	});
 
 	test('configures parameters and successfully submits backtest simulation', async ({ page }) => {

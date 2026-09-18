@@ -33,8 +33,9 @@ impl BacktestRepository {
             r#"
             INSERT INTO backtest_jobs (
                 user_id, strategy_id, strategy_name, name, year, initial_cash, max_holding_stocks,
-                max_stocks, backtest_duration_months, buy_fee_percentage, sell_fee_percentage, is_public, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                max_stocks, backtest_duration_months, buy_fee_percentage, sell_fee_percentage, is_public, status,
+                start_date, end_date
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             RETURNING *
             "#,
         )
@@ -51,6 +52,8 @@ impl BacktestRepository {
         .bind(params.sell_fee_percentage)
         .bind(params.is_public)
         .bind(BacktestStatus::Pending)
+        .bind(params.start_date)
+        .bind(params.end_date)
         .fetch_one(&self.pool)
         .await
         .map_err(|e| {
@@ -118,6 +121,8 @@ impl BacktestRepository {
                 b.error_message,
                 b.created_at,
                 b.updated_at,
+                b.start_date,
+                b.end_date,
                 u.name as owner_name,
                 u.email as owner_email
             FROM backtest_jobs b

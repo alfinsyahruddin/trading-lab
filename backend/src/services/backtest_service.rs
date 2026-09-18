@@ -89,6 +89,8 @@ impl BacktestService {
                 top_gainers: None,
                 top_losers: None,
                 trade_history: None,
+                start_date: job.start_date,
+                end_date: job.end_date,
                 created_at: job.created_at,
                 updated_at: job.updated_at,
             };
@@ -224,6 +226,8 @@ impl BacktestService {
                     .collect(),
             ),
             trade_history: Some(trade_history),
+            start_date: job.start_date,
+            end_date: job.end_date,
             created_at: job.created_at,
             updated_at: job.updated_at,
         })
@@ -327,12 +331,42 @@ impl BacktestService {
         req.validate()
             .map_err(|e| AppError::bad_request(e.to_string()))?;
 
-        let valid_durations = [1, 3, 6, 12];
-        if !valid_durations.contains(&req.backtest_duration_months) {
-            return Err(AppError::BadRequest(
-                "backtest_duration_months must be 1, 3, 6, or 12".into(),
-            ));
-        }
+        let (duration_months, start_date, end_date) =
+            if let (Some(start), Some(end)) = (req.start_date, req.end_date) {
+                let min_date = chrono::NaiveDate::from_ymd_opt(req.year + 1, 1, 1)
+                    .ok_or_else(|| AppError::bad_request("Invalid backtest data year"))?;
+                let today = chrono::Utc::now().date_naive();
+
+                if start < min_date {
+                    return Err(AppError::bad_request(format!(
+                        "start_date cannot be earlier than {}",
+                        min_date
+                    )));
+                }
+                if start > end {
+                    return Err(AppError::bad_request("start_date cannot be after end_date"));
+                }
+                if end > today {
+                    return Err(AppError::bad_request("end_date cannot exceed current date"));
+                }
+
+                let days = (end - start).num_days() + 1;
+                let calculated_months = ((days as f64) / 30.0).ceil().max(1.0) as i32;
+                let duration = if req.backtest_duration_months > 0 {
+                    req.backtest_duration_months
+                } else {
+                    calculated_months
+                };
+                (duration, Some(start), Some(end))
+            } else {
+                let valid_durations = [1, 3, 6, 12];
+                if !valid_durations.contains(&req.backtest_duration_months) {
+                    return Err(AppError::BadRequest(
+                        "backtest_duration_months must be 1, 3, 6, or 12".into(),
+                    ));
+                }
+                (req.backtest_duration_months, None, None)
+            };
 
         let strategy = self
             .strategy_repo
@@ -349,10 +383,12 @@ impl BacktestService {
             initial_cash: req.initial_cash,
             max_holding_stocks: req.max_holding_stocks,
             max_stocks: req.max_stocks,
-            backtest_duration_months: req.backtest_duration_months,
+            backtest_duration_months: duration_months,
             buy_fee_percentage: req.buy_fee_percentage,
             sell_fee_percentage: req.sell_fee_percentage,
             is_public,
+            start_date,
+            end_date,
         };
 
         let job = self.repo.create(params).await?;
@@ -412,6 +448,8 @@ impl BacktestService {
             top_gainers: None,
             top_losers: None,
             trade_history: None,
+            start_date: job.start_date,
+            end_date: job.end_date,
             created_at: job.created_at,
             updated_at: job.updated_at,
         })
@@ -453,6 +491,8 @@ impl BacktestService {
             backtest_duration_months: job.backtest_duration_months,
             buy_fee_percentage: job.buy_fee_percentage,
             sell_fee_percentage: job.sell_fee_percentage,
+            start_date: job.start_date,
+            end_date: job.end_date,
         };
 
         tokio::spawn(async move {
@@ -501,6 +541,8 @@ impl BacktestService {
             top_gainers: None,
             top_losers: None,
             trade_history: None,
+            start_date: job.start_date,
+            end_date: job.end_date,
             created_at: job.created_at,
             updated_at: chrono::Utc::now(),
         })
@@ -690,10 +732,13 @@ async fn run_backtest(
             .await;
     }
 
-    let (start_date, end_date) = crate::helpers::date_helper::calculate_backtest_date_range(
-        req.year,
-        req.backtest_duration_months as u32,
-    );
+    let (start_date, end_date) = match (req.start_date, req.end_date) {
+        (Some(start), Some(end)) => (start, end),
+        _ => crate::helpers::date_helper::calculate_backtest_date_range(
+            req.year,
+            req.backtest_duration_months as u32,
+        ),
+    };
     let start_str = start_date.format("%Y-%m-%d").to_string();
     let end_str = end_date.format("%Y-%m-%d").to_string();
     eprintln!(

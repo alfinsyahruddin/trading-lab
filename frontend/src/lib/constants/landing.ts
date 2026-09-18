@@ -14,7 +14,7 @@ export interface LandingHeroStat {
 
 export const LANDING_HERO_STATS: LandingHeroStat[] = [
 	{ value: '100+', label: 'IDX Indicators', target: 100, suffix: '+' },
-	{ value: '4 Years', label: 'Historical Data', target: 4, suffix: ' Years' },
+	{ value: '5 Years', label: 'Historical Data', target: 5, suffix: ' Years' },
 	{ value: '8+', label: 'Performance Metrics', target: 8, suffix: '+' }
 ];
 

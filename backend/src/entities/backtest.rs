@@ -36,6 +36,10 @@ pub struct BacktestJobRecord {
     pub owner_name: Option<String>,
     #[sqlx(default)]
     pub owner_email: Option<String>,
+    #[sqlx(default)]
+    pub start_date: Option<NaiveDate>,
+    #[sqlx(default)]
+    pub end_date: Option<NaiveDate>,
 }
 
 #[derive(Debug, FromRow)]
@@ -111,6 +115,8 @@ pub struct CreateBacktestParams {
     pub buy_fee_percentage: f64,
     pub sell_fee_percentage: f64,
     pub is_public: bool,
+    pub start_date: Option<NaiveDate>,
+    pub end_date: Option<NaiveDate>,
 }
 
 #[derive(Debug, FromRow)]
@@ -168,6 +174,8 @@ pub struct BacktestJobResponse {
     pub top_gainers: Option<Vec<TopEntryResponse>>,
     pub top_losers: Option<Vec<TopEntryResponse>>,
     pub trade_history: Option<Vec<TradeHistoryResponse>>,
+    pub start_date: Option<NaiveDate>,
+    pub end_date: Option<NaiveDate>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -267,6 +275,8 @@ pub struct CreateBacktestJobRequest {
     pub buy_fee_percentage: f64,
     #[validate(range(min = 0.0, max = 10.0))]
     pub sell_fee_percentage: f64,
+    pub start_date: Option<NaiveDate>,
+    pub end_date: Option<NaiveDate>,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -372,6 +382,8 @@ mod tests {
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,
+            start_date: None,
+            end_date: None,
         };
         assert!(valid.validate().is_ok());
 
@@ -476,6 +488,8 @@ mod tests {
             top_gainers: None,
             top_losers: None,
             trade_history: None,
+            start_date: None,
+            end_date: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };

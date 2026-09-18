@@ -119,6 +119,8 @@ export interface BacktestJob {
 	top_gainers: TopEntry[] | null;
 	top_losers: TopEntry[] | null;
 	trade_history: TradeHistoryEntry[] | null;
+	start_date?: string | null;
+	end_date?: string | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -200,6 +202,8 @@ export interface CreateBacktestPayload {
 	buy_fee_percentage: number;
 	sell_fee_percentage: number;
 	is_public?: boolean;
+	start_date?: string | null;
+	end_date?: string | null;
 }
 
 export interface CaptchaResponse {
