@@ -19,7 +19,7 @@ use crate::{
             BacktestResultResponse, CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
             TradeHistoryResponse, UpdateBacktestJobRequest,
         },
-        sectors::ScreenerCompany,
+        sectors::{DailyTransaction, ScreenerCompany},
     },
     enums::backtest_status::BacktestStatus,
     helpers::prompt_helper,
@@ -521,6 +521,123 @@ fn build_trade_info_map(companies: &[ScreenerCompany]) -> HashMap<String, serde_
     map
 }
 
+/// Builds the Redis cache keys for a stock across all date chunks.
+pub fn build_daily_chunk_keys(symbol: &str, chunks: &[(NaiveDate, NaiveDate)]) -> Vec<String> {
+    let clean_symbol = symbol.trim_end_matches(".JK");
+    chunks
+        .iter()
+        .map(|(chunk_start, chunk_end)| {
+            format!(
+                "sectors:daily:{}:{}:{}",
+                clean_symbol,
+                chunk_start.format("%Y-%m-%d"),
+                chunk_end.format("%Y-%m-%d")
+            )
+        })
+        .collect()
+}
+
+/// Retrieves cached daily transactions for screened stocks from Redis.
+/// Returns:
+/// - A map of `(symbol -> Vec<DailyTransaction>)` for stocks where ALL date chunks were found in cache.
+/// - A vector of `ScreenerCompany` for stocks that were NOT completely found in Redis.
+pub async fn get_cached_stock_transactions(
+    redis: &ConnectionManager,
+    stocks: &[ScreenerCompany],
+    chunks: &[(NaiveDate, NaiveDate)],
+) -> (HashMap<String, Vec<DailyTransaction>>, Vec<ScreenerCompany>) {
+    if stocks.is_empty() {
+        return (HashMap::new(), Vec::new());
+    }
+    if chunks.is_empty() {
+        return (HashMap::new(), stocks.to_vec());
+    }
+
+    let mut all_keys: Vec<String> = Vec::with_capacity(stocks.len() * chunks.len());
+    for stock in stocks {
+        all_keys.extend(build_daily_chunk_keys(&stock.symbol, chunks));
+    }
+
+    let mut redis_conn = redis.clone();
+    let mget_result: Option<Vec<Option<String>>> = redis::cmd("MGET")
+        .arg(&all_keys)
+        .query_async(&mut redis_conn)
+        .await
+        .ok();
+
+    let mut cached_stocks_data = HashMap::new();
+    let mut stocks_to_fetch = Vec::new();
+    let chunk_count = chunks.len();
+
+    if let Some(all_cached_chunks) = mget_result {
+        if all_cached_chunks.len() == all_keys.len() {
+            for (stock_idx, stock) in stocks.iter().enumerate() {
+                let start_idx = stock_idx * chunk_count;
+                let end_idx = start_idx + chunk_count;
+                let stock_chunks = &all_cached_chunks[start_idx..end_idx];
+
+                let mut stock_data = Vec::new();
+                let mut all_found = true;
+
+                for chunk_opt in stock_chunks {
+                    if let Some(json_str) = chunk_opt {
+                        if let Ok(transactions) =
+                            serde_json::from_str::<Vec<DailyTransaction>>(json_str)
+                        {
+                            stock_data.extend(transactions);
+                        } else {
+                            all_found = false;
+                            break;
+                        }
+                    } else {
+                        all_found = false;
+                        break;
+                    }
+                }
+
+                if all_found {
+                    eprintln!(
+                        "[Backtest] Stock {} retrieved from Redis cache ({} transactions)",
+                        stock.symbol,
+                        stock_data.len()
+                    );
+                    cached_stocks_data.insert(stock.symbol.clone(), stock_data);
+                } else {
+                    eprintln!(
+                        "[Backtest] Stock {} not found in Redis, queued for API fetch",
+                        stock.symbol
+                    );
+                    stocks_to_fetch.push(stock.clone());
+                }
+            }
+            return (cached_stocks_data, stocks_to_fetch);
+        }
+    }
+
+    eprintln!("[Backtest] Redis cache lookup failed or returned mismatched count; fetching all stocks via API");
+    (HashMap::new(), stocks.to_vec())
+}
+
+/// Converts a raw [`DailyTransaction`] list into filtered, sorted `(date, close, volume)` triples.
+fn process_transactions(
+    data: Vec<DailyTransaction>,
+    manual_filter_groups: &[crate::entities::trading_strategy::StrategyRuleGroup],
+) -> Vec<(NaiveDate, f64, u64)> {
+    let mut valid = Vec::new();
+    for d in data {
+        let Some(date) = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() else {
+            continue;
+        };
+        let vol = d.volume as f64;
+        let val = d.close * vol * 100.0;
+        if evaluate_manual_rules(manual_filter_groups, d.close, vol, val) {
+            valid.push((date, d.close, d.volume));
+        }
+    }
+    valid.sort_by_key(|&(date, _, _)| date);
+    valid
+}
+
 #[allow(clippy::too_many_arguments)]
 async fn run_backtest(
     repo: &BacktestRepository,
@@ -587,110 +704,52 @@ async fn run_backtest(
     // ── Rate-aware parallel fetch ─────────────────────────────────────────────
     // Sectors API limit: 25 requests / minute.
     // Each stock needs `chunks_per_stock` HTTP calls (one per 90-day window).
-    // • total_api_calls ≤ 25 → fire everything in parallel at once.
-    // • total_api_calls >  25 → split into batches of ≤25 calls (parallel
-    //   within each batch), then wait 60 s before the next batch.
+    // Before batching stocks to process, check Redis first for cached transactions.
     use crate::clients::sectors_client::compute_date_chunks;
     use futures_util::future::join_all;
 
     const RATE_LIMIT: usize = 25;
     const RATE_LIMIT_WINDOW_SECS: u64 = 60;
 
-    let chunks_per_stock = compute_date_chunks(start_date, end_date).len().max(1);
-    let total_api_calls = stocks.len() * chunks_per_stock;
-    let stocks_per_batch = (RATE_LIMIT / chunks_per_stock).max(1);
+    let chunks = compute_date_chunks(start_date, end_date);
+    let chunks_per_stock = chunks.len().max(1);
+
+    let (mut cached_stocks_data, stocks_to_fetch) =
+        get_cached_stock_transactions(redis, &stocks, &chunks).await;
 
     eprintln!(
-        "[Backtest] {} stocks × {} chunk(s) = {} total API call(s) | batch size: {} stock(s)",
+        "[Backtest] Screener returned {} stock(s): {} found in Redis, {} to fetch from API",
         stocks.len(),
-        chunks_per_stock,
-        total_api_calls,
-        if total_api_calls <= RATE_LIMIT {
-            stocks.len() // single batch
-        } else {
-            stocks_per_batch
-        }
+        cached_stocks_data.len(),
+        stocks_to_fetch.len()
     );
 
-    /// Converts a raw [`DailyTransaction`] list into filtered, sorted `(date, close, volume)` triples.
-    fn process_transactions(
-        data: Vec<crate::entities::sectors::DailyTransaction>,
-        manual_filter_groups: &[crate::entities::trading_strategy::StrategyRuleGroup],
-    ) -> Vec<(NaiveDate, f64, u64)> {
-        let mut valid = Vec::new();
-        for d in data {
-            let Some(date) = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() else {
-                continue;
-            };
-            let vol = d.volume as f64;
-            let val = d.close * vol * 100.0;
-            if evaluate_manual_rules(manual_filter_groups, d.close, vol, val) {
-                valid.push((date, d.close, d.volume));
-            }
-        }
-        valid.sort_by_key(|&(date, _, _)| date);
-        valid
-    }
+    let mut fetched_stocks_data: HashMap<String, Vec<DailyTransaction>> = HashMap::new();
 
-    let mut stock_data_list: Vec<StockData> = Vec::new();
+    if !stocks_to_fetch.is_empty() {
+        let total_api_calls = stocks_to_fetch.len() * chunks_per_stock;
+        let stocks_per_batch = (RATE_LIMIT / chunks_per_stock).max(1);
 
-    if total_api_calls <= RATE_LIMIT {
-        // ── All calls fit within one rate-limit window: full parallel ──────
         eprintln!(
-            "[Backtest] Firing all {} API call(s) in parallel (≤ {} limit)",
-            total_api_calls, RATE_LIMIT
+            "[Backtest] {} stock(s) to fetch × {} chunk(s) = {} total API call(s) | batch size: {} stock(s)",
+            stocks_to_fetch.len(),
+            chunks_per_stock,
+            total_api_calls,
+            if total_api_calls <= RATE_LIMIT {
+                stocks_to_fetch.len() // single batch
+            } else {
+                stocks_per_batch
+            }
         );
 
-        let futures = stocks.iter().map(|stock| {
-            let s = sectors_arc.clone();
-            let symbol = stock.symbol.clone();
-            let start = start_str.clone();
-            let end = end_str.clone();
-            async move {
-                let result = s.daily_transactions(&symbol, &start, &end).await;
-                (symbol, result)
-            }
-        });
-
-        for (symbol, data_result) in join_all(futures).await {
-            if let Ok(data) = data_result {
-                let valid = process_transactions(data, &manual_filter_groups);
-                if !valid.is_empty() {
-                    stock_data_list.push(StockData {
-                        code: symbol,
-                        daily_data: valid,
-                    });
-                }
-            }
-        }
-    } else {
-        // ── More than 25 calls needed: batched parallel ────────────────────
-        let total_batches = stocks.len().div_ceil(stocks_per_batch);
-        eprintln!(
-            "[Backtest] {} batches of ≤{} stock(s) with {}s pause between batches",
-            total_batches, stocks_per_batch, RATE_LIMIT_WINDOW_SECS
-        );
-
-        for (batch_idx, batch) in stocks.chunks(stocks_per_batch).enumerate() {
-            if batch_idx > 0 {
-                eprintln!(
-                    "[Backtest] Rate-limit pause: waiting {}s before batch {}/{}...",
-                    RATE_LIMIT_WINDOW_SECS,
-                    batch_idx + 1,
-                    total_batches
-                );
-                tokio::time::sleep(std::time::Duration::from_secs(RATE_LIMIT_WINDOW_SECS)).await;
-            }
-
+        if total_api_calls <= RATE_LIMIT {
+            // ── All calls fit within one rate-limit window: full parallel ──────
             eprintln!(
-                "[Backtest] Fetching batch {}/{} ({} stock(s), {} API call(s))",
-                batch_idx + 1,
-                total_batches,
-                batch.len(),
-                batch.len() * chunks_per_stock
+                "[Backtest] Firing all {} API call(s) in parallel (≤ {} limit)",
+                total_api_calls, RATE_LIMIT
             );
 
-            let futures = batch.iter().map(|stock| {
+            let futures = stocks_to_fetch.iter().map(|stock| {
                 let s = sectors_arc.clone();
                 let symbol = stock.symbol.clone();
                 let start = start_str.clone();
@@ -703,18 +762,78 @@ async fn run_backtest(
 
             for (symbol, data_result) in join_all(futures).await {
                 if let Ok(data) = data_result {
-                    let valid = process_transactions(data, &manual_filter_groups);
-                    if !valid.is_empty() {
-                        stock_data_list.push(StockData {
-                            code: symbol,
-                            daily_data: valid,
-                        });
+                    fetched_stocks_data.insert(symbol, data);
+                }
+            }
+        } else {
+            // ── More than 25 calls needed: batched parallel ────────────────────
+            let total_batches = stocks_to_fetch.len().div_ceil(stocks_per_batch);
+            eprintln!(
+                "[Backtest] {} batches of ≤{} stock(s) with {}s pause between batches",
+                total_batches, stocks_per_batch, RATE_LIMIT_WINDOW_SECS
+            );
+
+            for (batch_idx, batch) in stocks_to_fetch.chunks(stocks_per_batch).enumerate() {
+                if batch_idx > 0 {
+                    eprintln!(
+                        "[Backtest] Rate-limit pause: waiting {}s before batch {}/{}...",
+                        RATE_LIMIT_WINDOW_SECS,
+                        batch_idx + 1,
+                        total_batches
+                    );
+                    tokio::time::sleep(std::time::Duration::from_secs(RATE_LIMIT_WINDOW_SECS))
+                        .await;
+                }
+
+                eprintln!(
+                    "[Backtest] Fetching batch {}/{} ({} stock(s), {} API call(s))",
+                    batch_idx + 1,
+                    total_batches,
+                    batch.len(),
+                    batch.len() * chunks_per_stock
+                );
+
+                let futures = batch.iter().map(|stock| {
+                    let s = sectors_arc.clone();
+                    let symbol = stock.symbol.clone();
+                    let start = start_str.clone();
+                    let end = end_str.clone();
+                    async move {
+                        let result = s.daily_transactions(&symbol, &start, &end).await;
+                        (symbol, result)
+                    }
+                });
+
+                for (symbol, data_result) in join_all(futures).await {
+                    if let Ok(data) = data_result {
+                        fetched_stocks_data.insert(symbol, data);
                     }
                 }
             }
         }
+    } else {
+        eprintln!("[Backtest] All stocks found in Redis cache; skipping API batches");
     }
-    // ─────────────────────────────────────────────────────────────────────────
+
+    let mut stock_data_list: Vec<StockData> = Vec::new();
+    for stock in &stocks {
+        let clean_symbol = stock.symbol.trim_end_matches(".JK");
+        let transactions_opt = cached_stocks_data
+            .remove(&stock.symbol)
+            .or_else(|| cached_stocks_data.remove(clean_symbol))
+            .or_else(|| fetched_stocks_data.remove(&stock.symbol))
+            .or_else(|| fetched_stocks_data.remove(clean_symbol));
+
+        if let Some(transactions) = transactions_opt {
+            let valid = process_transactions(transactions, &manual_filter_groups);
+            if !valid.is_empty() {
+                stock_data_list.push(StockData {
+                    code: stock.symbol.clone(),
+                    daily_data: valid,
+                });
+            }
+        }
+    }
 
     if stock_data_list.is_empty() {
         return Err(AppError::bad_request(
@@ -842,5 +961,96 @@ mod tests {
 
         assert_eq!(summary.len(), 4);
         assert_eq!(summary[0], "Point 1: Strong performance.");
+    }
+
+    #[test]
+    fn should_build_daily_chunk_keys_correctly() {
+        let chunks = vec![
+            (
+                NaiveDate::from_ymd_opt(2025, 1, 1).unwrap(),
+                NaiveDate::from_ymd_opt(2025, 3, 31).unwrap(),
+            ),
+            (
+                NaiveDate::from_ymd_opt(2025, 4, 1).unwrap(),
+                NaiveDate::from_ymd_opt(2025, 6, 29).unwrap(),
+            ),
+        ];
+
+        let keys_jk = build_daily_chunk_keys("BBCA.JK", &chunks);
+        assert_eq!(
+            keys_jk,
+            vec![
+                "sectors:daily:BBCA:2025-01-01:2025-03-31",
+                "sectors:daily:BBCA:2025-04-01:2025-06-29"
+            ]
+        );
+
+        let keys_plain = build_daily_chunk_keys("BBCA", &chunks);
+        assert_eq!(keys_plain, keys_jk);
+    }
+
+    #[tokio::test]
+    async fn should_partition_cached_and_uncached_stocks_with_redis() {
+        let redis_url = std::env::var("REDIS_URL")
+            .unwrap_or_else(|_| "redis://:tradinglab123@127.0.0.1:6379".to_string());
+        let client = match redis::Client::open(redis_url) {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+        let mut conn = match redis::aio::ConnectionManager::new(client).await {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+
+        let chunk = (
+            NaiveDate::from_ymd_opt(2099, 1, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2099, 3, 31).unwrap(),
+        );
+        let chunks = vec![chunk];
+
+        let key_cached = "sectors:daily:TESTCACHED:2099-01-01:2099-03-31";
+        let mock_tx = vec![DailyTransaction {
+            symbol: "TESTCACHED.JK".to_string(),
+            date: "2099-01-05".to_string(),
+            close: 1000.0,
+            volume: 500,
+            market_cap: 10_000_000_000.0,
+        }];
+        let tx_json = serde_json::to_string(&mock_tx).unwrap();
+
+        let _: Result<(), _> = redis::cmd("SET")
+            .arg(key_cached)
+            .arg(&tx_json)
+            .query_async(&mut conn)
+            .await;
+
+        let stocks = vec![
+            ScreenerCompany {
+                symbol: "TESTCACHED.JK".to_string(),
+                company_name: "Test Cached Co".to_string(),
+                query_values: None,
+            },
+            ScreenerCompany {
+                symbol: "TESTUNCACHED.JK".to_string(),
+                company_name: "Test Uncached Co".to_string(),
+                query_values: None,
+            },
+        ];
+
+        let (cached_map, uncached) = get_cached_stock_transactions(&conn, &stocks, &chunks).await;
+
+        // Cleanup
+        let _: Result<(), _> = redis::cmd("DEL")
+            .arg(key_cached)
+            .query_async(&mut conn)
+            .await;
+
+        assert_eq!(cached_map.len(), 1);
+        assert!(cached_map.contains_key("TESTCACHED.JK"));
+        assert_eq!(cached_map["TESTCACHED.JK"].len(), 1);
+        assert_eq!(cached_map["TESTCACHED.JK"][0].close, 1000.0);
+
+        assert_eq!(uncached.len(), 1);
+        assert_eq!(uncached[0].symbol, "TESTUNCACHED.JK");
     }
 }

@@ -164,6 +164,7 @@ All API endpoints strictly adhere to the unified envelope:
 4. **Rule Parsing & Simulation Engine** ([`src/services/backtest/`](../backend/src/services/backtest)):
    - Fundamental metrics and market cap are converted into Sectors API screener queries (`{variable}[{year}]`, `last_close_price`, `market_cap`).
    - Daily variables (`volume`, `value`, `price`) cannot be screened via the Sectors company API and are separated into manual filter groups evaluated dynamically during the daily simulation loop ([`rules.rs`](../backend/src/services/backtest/rules.rs)).
+   - Before creating batch requests for daily transactions, the backtest engine retrieves cached chunks from Redis first via `get_cached_stock_transactions`; only stocks with missing chunks are queued into rate-limited API batches.
    - Simulation runs asynchronously in a Tokio background task, updating job status from `PROCESSING` to `DONE` or `FAILED`.
 
 **Endpoints**:

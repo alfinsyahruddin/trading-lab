@@ -49,7 +49,7 @@
 			if (!pollInterval) {
 				pollInterval = setInterval(async () => {
 					await loadBacktests(true);
-				}, 5000);
+				}, 1000);
 			}
 		} else {
 			stopPolling();
