@@ -57,4 +57,20 @@ describe('VariablePickerModal', () => {
 		await user.click(saveBtn);
 		expect(onselect).toHaveBeenCalledWith('volume');
 	});
+
+	it('allows selecting market_cap and passes market_cap to onselect', async () => {
+		const user = userEvent.setup();
+		const onselect = vi.fn();
+		render(VariablePickerModal, {
+			props: { open: true, selectedVariable: 'price', onselect }
+		});
+
+		const marketCapBtn = screen.getByRole('button', { name: /market cap/i });
+		expect(marketCapBtn).toBeInTheDocument();
+		await user.click(marketCapBtn);
+
+		const saveBtn = screen.getByRole('button', { name: /save/i });
+		await user.click(saveBtn);
+		expect(onselect).toHaveBeenCalledWith('market_cap');
+	});
 });

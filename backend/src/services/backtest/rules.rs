@@ -19,12 +19,15 @@ pub fn build_where_query(
                 continue;
             }
 
-            let variable = if cond.variable.eq_ignore_ascii_case("price") {
+            let var_trimmed = cond.variable.trim();
+            let variable = if var_trimmed.eq_ignore_ascii_case("price") {
                 "last_close_price".to_string()
-            } else if cond.variable.eq_ignore_ascii_case("market_cap") {
+            } else if var_trimmed.eq_ignore_ascii_case("market_cap")
+                || var_trimmed.to_ascii_lowercase().starts_with("market_cap[")
+            {
                 "market_cap".to_string()
             } else {
-                format!("{}[{}]", cond.variable, year)
+                format!("{}[{}]", var_trimmed, year)
             };
 
             let cond_str = format!("{}{}{}", variable, cond.operator, cond.value);
@@ -287,19 +290,44 @@ mod tests {
 
     #[test]
     fn should_format_market_cap_without_year_in_screener_query() {
-        let groups = vec![StrategyRuleGroup {
-            id: "g1".to_string(),
-            connector_to_next: None,
-            conditions: vec![StrategyRuleCondition {
-                id: "c1".to_string(),
-                variable: "market_cap".to_string(),
-                operator: ">=".to_string(),
-                value: "1000000000".to_string(),
+        let groups = vec![
+            StrategyRuleGroup {
+                id: "g1".to_string(),
+                connector_to_next: Some("AND".to_string()),
+                conditions: vec![
+                    StrategyRuleCondition {
+                        id: "c1".to_string(),
+                        variable: "market_cap".to_string(),
+                        operator: ">=".to_string(),
+                        value: "1000000000".to_string(),
+                        connector_to_next: Some("AND".to_string()),
+                    },
+                    StrategyRuleCondition {
+                        id: "c2".to_string(),
+                        variable: "pe".to_string(),
+                        operator: "<".to_string(),
+                        value: "15".to_string(),
+                        connector_to_next: None,
+                    },
+                ],
+            },
+            StrategyRuleGroup {
+                id: "g2".to_string(),
                 connector_to_next: None,
-            }],
-        }];
+                conditions: vec![StrategyRuleCondition {
+                    id: "c3".to_string(),
+                    variable: "market_cap[2024]".to_string(),
+                    operator: ">".to_string(),
+                    value: "500000000".to_string(),
+                    connector_to_next: None,
+                }],
+            },
+        ];
 
         let (where_query, _) = build_where_query(&groups, 2025);
-        assert_eq!(where_query, "(market_cap>=1000000000)");
+        assert_eq!(
+            where_query,
+            "(market_cap>=1000000000 and pe[2025]<15) and (market_cap>500000000)"
+        );
     }
 }

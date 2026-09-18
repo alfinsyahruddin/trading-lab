@@ -330,7 +330,9 @@
 			onclick={toggleDropdown}
 			class="group flex h-[42px] w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-base transition-all duration-150 outline-none disabled:cursor-not-allowed sm:text-sm"
 			style="
-				background-color: {disabled ? 'var(--bg-input-disabled, var(--bg))' : 'var(--bg-input, var(--bg))'}; 
+				background-color: {disabled
+				? 'var(--bg-input-disabled, var(--bg))'
+				: 'var(--bg-input, var(--bg))'}; 
 				border-color: {error
 				? 'var(--danger)'
 				: isOpen
@@ -428,7 +430,9 @@
 								{day.isEnd ? 'font-600 rounded-r-lg text-white' : ''}
 								{day.isStart && day.isEnd ? 'rounded-lg' : ''}
 								{!day.isStart && !day.isEnd && (day.isInRange || day.isInHoverRange) ? 'rounded-none' : ''}
-								{!day.isStart && !day.isEnd && !day.isInRange && !day.isInHoverRange && day.isCurrentMonth ? 'rounded-lg hover:opacity-80' : ''}
+								{!day.isStart && !day.isEnd && !day.isInRange && !day.isInHoverRange && day.isCurrentMonth
+								? 'rounded-lg hover:opacity-80'
+								: ''}
 								{day.isDisabled ? 'cursor-not-allowed opacity-25' : 'cursor-pointer'}
 							"
 							style="
@@ -452,10 +456,15 @@
 				</div>
 
 				<!-- Selection hint -->
-				<div class="mt-2.5 flex items-center gap-1.5 border-t pt-2.5" style="border-color: var(--border);">
+				<div
+					class="mt-2.5 flex items-center gap-1.5 border-t pt-2.5"
+					style="border-color: var(--border);"
+				>
 					<div
 						class="size-1.5 rounded-full"
-						style="background-color: {selectionStep === 'end' ? 'var(--accent)' : 'var(--fg-muted)'};"
+						style="background-color: {selectionStep === 'end'
+							? 'var(--accent)'
+							: 'var(--fg-muted)'};"
 					></div>
 					<span class="text-xs" style="color: var(--fg-muted)">{selectionHint}</span>
 					{#if selectionStep === 'end' && startDate}

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
 	STRATEGY_OPERATORS,
 	STRATEGY_VARIABLES,
-	VARIABLE_CATEGORIES,
 	formatRiskReward,
 	formatTimeAgo
 } from '$lib/constants';
@@ -14,10 +13,19 @@ describe('Strategy Constants', () => {
 		expect(values).toEqual(['=', '!=', '>', '<', '>=', '<=', '~~', 'in', 'is']);
 	});
 
-	it('strictly contains only price, volume, and value in Price & Market category', () => {
+	it('contains price, market_cap, volume, and value in Price & Market category', () => {
 		const priceMarketVars = STRATEGY_VARIABLES.filter((v) => v.category === 'Price & Market');
-		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'volume', 'value']);
+		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'market_cap', 'volume', 'value']);
 		expect(priceMarketVars.every((v) => !v.isHistorical)).toBe(true);
+
+		const marketCapVar = priceMarketVars.find((v) => v.code === 'market_cap');
+		expect(marketCapVar).toEqual({
+			code: 'market_cap',
+			name: 'Market Cap',
+			description: 'Total market capitalization in IDR.',
+			category: 'Price & Market',
+			isHistorical: false
+		});
 
 		const valueVar = priceMarketVars.find((v) => v.code === 'value');
 		expect(valueVar).toEqual({

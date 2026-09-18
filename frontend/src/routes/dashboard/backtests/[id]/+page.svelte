@@ -708,7 +708,7 @@
 								</span>
 							</div>
 
-							<h2 class="font-700 sm:text-md text-base leading-snug" style="color: var(--fg)">
+							<h2 class="font-700 sm:text-md mt-2 text-base leading-snug" style="color: var(--fg)">
 								{strategy.name}
 							</h2>
 						</div>

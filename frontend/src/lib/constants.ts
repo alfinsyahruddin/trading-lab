@@ -43,7 +43,7 @@ export interface StrategyVariableOption {
 }
 
 export const STRATEGY_VARIABLES: StrategyVariableOption[] = [
-	// ── 1. Price & Market ── (Strictly price, volume, and value)
+	// ── 1. Price & Market ──
 	{
 		code: 'price',
 		name: 'Price',
@@ -62,6 +62,13 @@ export const STRATEGY_VARIABLES: StrategyVariableOption[] = [
 		code: 'value',
 		name: 'Value',
 		description: 'Daily transaction value in IDR.',
+		category: 'Price & Market',
+		isHistorical: false
+	},
+	{
+		code: 'market_cap',
+		name: 'Market Cap',
+		description: 'Total market capitalization in IDR.',
 		category: 'Price & Market',
 		isHistorical: false
 	},
