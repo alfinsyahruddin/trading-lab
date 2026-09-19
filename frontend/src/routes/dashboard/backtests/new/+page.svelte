@@ -26,7 +26,7 @@
 	let namePristine = $state(true);
 	let formInitialCash = $state('100000000');
 	let formMaxHoldingStocks = $state('4');
-	let formMaxStocks = $state('12');
+	let formMaxStocks = $state('24');
 	let formDuration = $state('3');
 	let formBuyFee = $state('0.15');
 	let formSellFee = $state('0.25');
@@ -253,7 +253,7 @@
 						required
 					/>
 					<span class="font-500 text-xs" style="color: var(--fg-muted)">
-						Screener candidate limit (default: 12)
+						Screener candidate limit (default: 24)
 					</span>
 				</div>
 			</div>

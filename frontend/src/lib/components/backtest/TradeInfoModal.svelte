@@ -30,7 +30,8 @@
 		return symbol.replace(/\.JK$/i, '');
 	}
 
-	function formatEntryDate(dateStr: string): string {
+	function formatDate(dateStr?: string): string {
+		if (!dateStr) return '-';
 		const safeStr = dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`;
 		const d = new Date(safeStr);
 		if (isNaN(d.getTime())) return dateStr;
@@ -41,6 +42,54 @@
 			year: 'numeric'
 		});
 	}
+
+	function formatEntryDate(dateStr: string): string {
+		return formatDate(dateStr);
+	}
+
+	function formatRupiah(value: number): string {
+		const abs = Math.abs(value);
+		const formatted = new Intl.NumberFormat('id-ID').format(Math.round(abs));
+		const sign = value < 0 ? '-' : '';
+		return `${sign}Rp ${formatted}`;
+	}
+
+	function formatHoldingDays(buyDate?: string, sellDate?: string): string {
+		if (!buyDate || !sellDate) return '-';
+		const safeBuy = buyDate.includes('T') ? buyDate : `${buyDate}T00:00:00`;
+		const safeSell = sellDate.includes('T') ? sellDate : `${sellDate}T00:00:00`;
+		const millisecondsPerDay = 1000 * 60 * 60 * 24;
+		const days = Math.max(
+			0,
+			Math.round((new Date(safeSell).getTime() - new Date(safeBuy).getTime()) / millisecondsPerDay)
+		);
+		return `${days} ${days === 1 ? 'Day' : 'Days'}`;
+	}
+
+	function getExitReasonBadge(reason?: string) {
+		if (reason === 'STOP_LOSS')
+			return {
+				bg: 'rgba(239, 68, 68, 0.14)',
+				color: 'var(--danger)',
+				label: 'Stop loss',
+				icon: 'lucide:shield-alert'
+			};
+		if (reason === 'TAKE_PROFIT')
+			return {
+				bg: 'rgba(34, 197, 94, 0.14)',
+				color: 'var(--success)',
+				label: 'Take profit',
+				icon: 'lucide:circle-check'
+			};
+		return {
+			bg: 'rgba(245, 158, 11, 0.14)',
+			color: 'var(--warning)',
+			label: 'Max hold',
+			icon: 'lucide:clock-3'
+		};
+	}
+
+	const badge = $derived(getExitReasonBadge(trade?.exit_reason));
 
 	function getVariableInfo(code: string): {
 		name: string;
@@ -93,12 +142,26 @@
 		return null;
 	}
 
+	function formatDecimal(val: number, maxDigits = 2): string {
+		const num = Math.abs(val) < 1e-9 ? 0 : val;
+		const fixed = num.toFixed(maxDigits);
+		return fixed.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+	}
+
+	function parseNumericValue(valStr: string): number {
+		const clean = valStr.replace(/['"]/g, '').trim();
+		if (/^-?\d+,\d+$/.test(clean)) {
+			return parseFloat(clean.replace(',', '.'));
+		}
+		return parseFloat(clean.replace(/,/g, ''));
+	}
+
 	function formatCompactNumber(value: number): string {
 		const abs = Math.abs(value);
-		if (abs >= 1e12) return `${(value / 1e12).toFixed(2)} T`;
-		if (abs >= 1e9) return `${(value / 1e9).toFixed(2)} B`;
-		if (abs >= 1e6) return `${(value / 1e6).toFixed(2)} M`;
-		if (abs >= 1e3) return `${(value / 1e3).toFixed(2)} K`;
+		if (abs >= 1e12) return `${formatDecimal(value / 1e12)} T`;
+		if (abs >= 1e9) return `${formatDecimal(value / 1e9)} B`;
+		if (abs >= 1e6) return `${formatDecimal(value / 1e6)} M`;
+		if (abs >= 1e3) return `${formatDecimal(value / 1e3)} K`;
 		return value.toLocaleString('id-ID');
 	}
 
@@ -164,42 +227,52 @@
 		if (val === null || val === undefined) return { formatted: '-' };
 		const vClean = variable.replace(/\[\d+\]$/, '').toLowerCase();
 
+		let numVal: number | null = null;
 		if (typeof val === 'number') {
+			numVal = val;
+		} else if (typeof val === 'string') {
+			const parsed = parseNumericValue(val);
+			if (!isNaN(parsed) && /^-?\d+([.,]\d+)?$/.test(val.trim())) {
+				numVal = parsed;
+			}
+		}
+
+		if (numVal !== null) {
 			if (CURRENCY_VARS.has(vClean)) {
-				if (Math.abs(val) >= 1_000_000) {
+				if (Math.abs(numVal) >= 1_000_000) {
 					return {
-						formatted: `Rp ${formatCompactNumber(val)}`,
-						raw: `Rp ${val.toLocaleString('id-ID')}`
+						formatted: `Rp ${formatCompactNumber(numVal)}`,
+						raw: `Rp ${numVal.toLocaleString('id-ID')}`
 					};
 				}
-				return { formatted: `Rp ${val.toLocaleString('id-ID')}` };
+				return { formatted: `Rp ${numVal.toLocaleString('id-ID')}` };
 			}
 			if (RATIO_VARS.has(vClean)) {
-				return { formatted: `${val.toFixed(2)}x` };
+				return { formatted: `${formatDecimal(numVal)}x` };
 			}
 			if (PERCENT_VARS.has(vClean)) {
-				const pct = Math.abs(val) <= 1.0 ? val * 100 : val;
-				return { formatted: `${pct.toFixed(2)}%` };
+				const pct = Math.abs(numVal) <= 1.0 ? numVal * 100 : numVal;
+				return { formatted: `${formatDecimal(pct)}%` };
 			}
 			if (vClean === 'volume') {
 				return {
-					formatted: `${formatCompactNumber(val)} shares`,
-					raw: `${val.toLocaleString('id-ID')} shares (${Math.round(val / 100).toLocaleString('id-ID')} Lot)`
+					formatted: `${formatCompactNumber(numVal)} shares`,
+					raw: `${numVal.toLocaleString('id-ID')} shares (${Math.round(numVal / 100).toLocaleString('id-ID')} Lot)`
 				};
 			}
-			if (Math.abs(val) >= 1_000_000) {
+			if (Math.abs(numVal) >= 1_000_000) {
 				return {
-					formatted: formatCompactNumber(val),
-					raw: val.toLocaleString('id-ID')
+					formatted: formatCompactNumber(numVal),
+					raw: numVal.toLocaleString('id-ID')
 				};
 			}
-			return { formatted: val.toLocaleString('id-ID', { maximumFractionDigits: 2 }) };
+			return { formatted: formatDecimal(numVal) };
 		}
 		return { formatted: String(val) };
 	}
 
 	function formatTargetRule(variable: string, operator: string, value: string): string {
-		const num = parseFloat(value.replace(/['",]/g, ''));
+		const num = parseNumericValue(value);
 		if (!isNaN(num)) {
 			const disp = formatDisplayValue(variable, num);
 			return `${operator} ${disp.formatted}`;
@@ -211,23 +284,33 @@
 		if (actual === null || actual === undefined) return null;
 		const cleanTarget = targetStr.replace(/['"]/g, '').trim();
 
+		let actNum: number | null = null;
 		if (typeof actual === 'number') {
-			const targetNum = parseFloat(cleanTarget);
+			actNum = actual;
+		} else if (typeof actual === 'string') {
+			const parsed = parseNumericValue(actual);
+			if (!isNaN(parsed) && /^-?\d+([.,]\d+)?$/.test(actual.trim())) {
+				actNum = parsed;
+			}
+		}
+
+		if (actNum !== null) {
+			const targetNum = parseNumericValue(cleanTarget);
 			if (!isNaN(targetNum)) {
 				switch (operator) {
 					case '>':
-						return actual > targetNum;
+						return actNum > targetNum;
 					case '>=':
-						return actual >= targetNum;
+						return actNum >= targetNum;
 					case '<':
-						return actual < targetNum;
+						return actNum < targetNum;
 					case '<=':
-						return actual <= targetNum;
+						return actNum <= targetNum;
 					case '=':
 					case '==':
-						return Math.abs(actual - targetNum) < 1e-6;
+						return Math.abs(actNum - targetNum) < 1e-6;
 					case '!=':
-						return Math.abs(actual - targetNum) >= 1e-6;
+						return Math.abs(actNum - targetNum) >= 1e-6;
 					default:
 						return null;
 				}
@@ -348,37 +431,90 @@
 
 			<!-- Body -->
 			<div class="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
-				<!-- Trade Context Pill Bar -->
+				<!-- Trade Execution Summary Card -->
 				<div
-					class="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-xs"
+					class="rounded-xl border p-3 text-xs"
 					style="background-color: var(--bg-card-hover, var(--bg)); border-color: var(--border);"
 				>
-					<div class="flex items-center gap-1.5">
-						<Icon icon="lucide:calendar" width="14" height="14" style="color: var(--fg-muted);" />
-						<span style="color: var(--fg-muted)">Entry Date:</span>
-						<span class="font-700" style="color: var(--fg)">{formatEntryDate(trade.buy_date)}</span>
+					<!-- Top Row: Exit Reason Badge, Lots, Holding Duration, PnL -->
+					<div
+						class="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5"
+						style="border-color: var(--border);"
+					>
+						<div class="flex flex-wrap items-center gap-2">
+							<span
+								class="font-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]"
+								style="background-color: {badge.bg}; color: {badge.color};"
+							>
+								<Icon icon={badge.icon} width="11" height="11" />
+								{badge.label}
+							</span>
+							<span class="font-600 text-xs" style="color: var(--fg-muted)">
+								{trade.lot.toLocaleString('id-ID')} Lot
+							</span>
+							<span
+								class="font-700 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px]"
+								style="background-color: var(--bg-card); color: var(--fg-muted);"
+							>
+								<Icon icon="lucide:timer" width="11" height="11" />
+								{formatHoldingDays(trade.buy_date, trade.sell_date)}
+							</span>
+						</div>
+
+						<div class="text-right">
+							<span
+								class="font-800 text-xs sm:text-sm"
+								style="color: {trade.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
+							>
+								{trade.pnl > 0 ? '+' : ''}{formatRupiah(trade.pnl)}
+								(<span class="font-700"
+									>{trade.pnl_percentage >= 0 ? '+' : ''}{trade.pnl_percentage.toFixed(2)}%</span
+								>)
+							</span>
+						</div>
 					</div>
-					<div class="flex items-center gap-1.5">
-						<Icon icon="lucide:coins" width="14" height="14" style="color: var(--fg-muted);" />
-						<span style="color: var(--fg-muted)">Entry Price:</span>
-						<span class="font-700" style="color: var(--fg)"
-							>Rp {trade.buy_price.toLocaleString('id-ID')}</span
-						>
-					</div>
-					<div class="flex items-center gap-1.5">
-						<Icon icon="lucide:layers" width="14" height="14" style="color: var(--fg-muted);" />
-						<span style="color: var(--fg-muted)">Lots:</span>
-						<span class="font-700" style="color: var(--fg)"
-							>{trade.lot.toLocaleString('id-ID')}</span
-						>
-					</div>
-					<div class="flex items-center gap-1.5">
-						<span
-							class="font-700"
-							style="color: {trade.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-						>
-							{trade.pnl >= 0 ? '+' : ''}{trade.pnl_percentage.toFixed(2)}%
-						</span>
+
+					<!-- Bottom Row: Entry vs Exit Grid -->
+					<div class="mt-2.5 grid grid-cols-2 gap-3 text-xs">
+						<!-- Entry -->
+						<div class="space-y-1">
+							<div class="flex items-center justify-between gap-1 text-[10px]">
+								<span class="font-600 tracking-wide uppercase" style="color: var(--fg-muted)"
+									>Entry</span
+								>
+								<span style="color: var(--fg-muted)">{formatDate(trade.buy_date)}</span>
+							</div>
+							<div class="flex flex-wrap items-baseline justify-between gap-x-2">
+								<span class="font-700 text-xs sm:text-sm" style="color: var(--fg)">
+									{formatRupiah(trade.buy_price)}
+								</span>
+								<span class="text-[10px]" style="color: var(--fg-muted)">
+									Buy <span class="font-700" style="color: var(--success)"
+										>{formatRupiah(trade.buy_value)}</span
+									>
+								</span>
+							</div>
+						</div>
+
+						<!-- Exit -->
+						<div class="space-y-1 border-l pl-3" style="border-color: var(--border);">
+							<div class="flex items-center justify-between gap-1 text-[10px]">
+								<span class="font-600 tracking-wide uppercase" style="color: var(--fg-muted)"
+									>Exit</span
+								>
+								<span style="color: var(--fg-muted)">{formatDate(trade.sell_date)}</span>
+							</div>
+							<div class="flex flex-wrap items-baseline justify-between gap-x-2">
+								<span class="font-700 text-xs sm:text-sm" style="color: var(--fg)">
+									{formatRupiah(trade.sell_price)}
+								</span>
+								<span class="text-[10px]" style="color: var(--fg-muted)">
+									Sell <span class="font-700" style="color: var(--danger)"
+										>{formatRupiah(trade.sell_value)}</span
+									>
+								</span>
+							</div>
+						</div>
 					</div>
 				</div>
 

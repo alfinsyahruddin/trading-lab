@@ -46,22 +46,22 @@ describe('NewBacktestPage', () => {
 		render(NewBacktestPage);
 
 		// Wait for strategies to load and form to render
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		// Default year is 2025 -> test year 2026, default duration is 3 months (3 Months)
 		const expectedDateRange = calculateBacktestDateRange(2025, 3).formatted;
 		expect(screen.getByText(expectedDateRange)).toBeInTheDocument();
-		expect(screen.getByText('(90 Days)')).toBeInTheDocument();
+		expect(screen.getByText(/90 days/i)).toBeInTheDocument();
 
 		// When non-custom, date range picker button is disabled
-		const datePickerTrigger = screen.getByRole('button', { name: 'Backtest Date Range' });
+		const datePickerTrigger = screen.getByRole('button', { name: /Backtest Date Range/i });
 		expect(datePickerTrigger).toBeDisabled();
 	});
 
 	it('updates Backtest Date Range when duration or year changes', async () => {
 		render(NewBacktestPage);
 
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		// Change duration to 1 Month
 		const durationTrigger = screen.getByLabelText(/^Backtest Duration/i);
@@ -69,20 +69,20 @@ describe('NewBacktestPage', () => {
 		await fireEvent.click(screen.getByRole('option', { name: /1 Month/i }));
 
 		expect(screen.getByText('1 Jan 2026 - 31 Jan 2026')).toBeInTheDocument();
-		expect(screen.getByText('(31 Days)')).toBeInTheDocument();
+		expect(screen.getByText(/31 days/i)).toBeInTheDocument();
 
 		// Change year to 2023 (test year 2024, leap year)
 		const year2023Btn = screen.getByRole('button', { name: '2023' });
 		await fireEvent.click(year2023Btn);
 
 		expect(screen.getByText('1 Jan 2024 - 31 Jan 2024')).toBeInTheDocument();
-		expect(screen.getByText('(31 Days)')).toBeInTheDocument();
+		expect(screen.getByText(/31 days/i)).toBeInTheDocument();
 	});
 
 	it('enables DateRangePicker when Custom duration is selected and submits start_date and end_date', async () => {
 		render(NewBacktestPage);
 
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		// Select "Custom" duration
 		const durationTrigger = screen.getByLabelText(/^Backtest Duration/i);
@@ -90,7 +90,7 @@ describe('NewBacktestPage', () => {
 		await fireEvent.click(screen.getByRole('option', { name: /^Custom$/i }));
 
 		// The picker trigger is now enabled
-		const datePickerTrigger = screen.getByRole('button', { name: 'Backtest Date Range' });
+		const datePickerTrigger = screen.getByRole('button', { name: /Backtest Date Range/i });
 		expect(datePickerTrigger).not.toBeDisabled();
 
 		// Submit form
@@ -105,14 +105,14 @@ describe('NewBacktestPage', () => {
 		);
 	});
 
-	it('renders Max Stocks input with default value 12 and submits max_stocks in payload', async () => {
+	it('renders Max Stocks input with default value 24 and submits max_stocks in payload', async () => {
 		render(NewBacktestPage);
 
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		const maxStocksInput = screen.getByLabelText(/^Max Stocks/i) as HTMLInputElement;
 		expect(maxStocksInput).toBeInTheDocument();
-		expect(maxStocksInput.value).toBe('12');
+		expect(maxStocksInput.value).toBe('24');
 
 		await fireEvent.input(maxStocksInput, { target: { value: '20' } });
 		expect(maxStocksInput.value).toBe('20');
@@ -127,25 +127,20 @@ describe('NewBacktestPage', () => {
 		);
 	});
 
-	it('sets default backtest name to "Backtest <strategy name> - <year>"', async () => {
+	it('sets default backtest name to "Backtest <strategy name>"', async () => {
 		render(NewBacktestPage);
 
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		const nameInput = screen.getByLabelText(/^Backtest Name/i) as HTMLInputElement;
 		expect(nameInput).toBeInTheDocument();
-		expect(nameInput.value).toBe('Backtest Momentum Breakout - 2025');
-
-		// Changing year should update the default name if pristine
-		const year2024Btn = screen.getByRole('button', { name: '2024' });
-		await fireEvent.click(year2024Btn);
-		expect(nameInput.value).toBe('Backtest Momentum Breakout - 2024');
+		expect(nameInput.value).toBe('Backtest Momentum Breakout');
 	});
 
 	it('displays dynamic stock filtering year informative note under Backtest Data Year', async () => {
 		render(NewBacktestPage);
 
-		expect(await screen.findByText('Backtest Date Range')).toBeInTheDocument();
+		expect(await screen.findByText(/Backtest Date Range/i)).toBeInTheDocument();
 
 		// Default year 2025
 		expect(

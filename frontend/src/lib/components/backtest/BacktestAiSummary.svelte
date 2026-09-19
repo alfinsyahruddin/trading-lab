@@ -234,7 +234,7 @@
 								iconColor: 'var(--accent)'
 							}}
 							<div
-								class="group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-200 hover:shadow-xs"
+								class="group relative flex flex-col justify-start rounded-xl border p-4 transition-all duration-200 hover:shadow-xs"
 								style="background-color: transparent; border-color: var(--border);"
 							>
 								<!-- Card Top Header -->

@@ -31,7 +31,7 @@ describe('HeroSection', () => {
 		await vi.advanceTimersByTimeAsync(1200);
 
 		expect(screen.getByText('100+')).toBeInTheDocument();
-		expect(screen.getByText('4 Years')).toBeInTheDocument();
+		expect(screen.getByText('5 Years')).toBeInTheDocument();
 		expect(screen.getByText('8+')).toBeInTheDocument();
 	});
 
@@ -51,7 +51,7 @@ describe('HeroSection', () => {
 		render(HeroSection, { isLoggedIn: false });
 
 		expect(screen.getByText('100+')).toBeInTheDocument();
-		expect(screen.getByText('4 Years')).toBeInTheDocument();
+		expect(screen.getByText('5 Years')).toBeInTheDocument();
 		expect(screen.getByText('8+')).toBeInTheDocument();
 
 		window.matchMedia = originalMatchMedia;

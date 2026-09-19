@@ -15,7 +15,7 @@ describe('Strategy Constants', () => {
 
 	it('contains price, market_cap, volume, and value in Price & Market category', () => {
 		const priceMarketVars = STRATEGY_VARIABLES.filter((v) => v.category === 'Price & Market');
-		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'market_cap', 'volume', 'value']);
+		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'volume', 'value', 'market_cap']);
 		expect(priceMarketVars.every((v) => !v.isHistorical)).toBe(true);
 
 		const marketCapVar = priceMarketVars.find((v) => v.code === 'market_cap');

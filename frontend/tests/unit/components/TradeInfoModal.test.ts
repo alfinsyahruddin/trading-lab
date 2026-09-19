@@ -103,12 +103,20 @@ describe('TradeInfoModal', () => {
 		expect(screen.getByText('BBCA')).toBeInTheDocument();
 		expect(screen.getByText('PT Bank Central Asia Tbk.')).toBeInTheDocument();
 		expect(screen.getByText('Mon, 15 Jan 2024')).toBeInTheDocument();
+		expect(screen.getByText('Thu, 1 Feb 2024')).toBeInTheDocument();
+		expect(screen.getByText('Take profit')).toBeInTheDocument();
+		expect(screen.getByText('10 Lot')).toBeInTheDocument();
+		expect(screen.getByText('17 Days')).toBeInTheDocument();
+		expect(screen.getByText('Rp 9.000')).toBeInTheDocument();
+		expect(screen.getByText('Rp 9.495')).toBeInTheDocument();
+		expect(screen.getByText('Rp 9.000.000')).toBeInTheDocument();
+		expect(screen.getByText('Rp 9.495.000')).toBeInTheDocument();
 		expect(screen.getByText('+5.50%')).toBeInTheDocument();
 
 		// Check formatted actual market cap
 		expect(screen.getByText('Rp 753.61 T')).toBeInTheDocument();
-		// Check formatted P/E ratio
-		expect(screen.getByText('18.50x')).toBeInTheDocument();
+		// Check formatted P/E ratio without trailing zero (18.50 -> 18.5)
+		expect(screen.getByText('18.5x')).toBeInTheDocument();
 		// Check sub_sector strings (both target rule and actual screened value)
 		expect(screen.getAllByText('Banks').length).toBe(2);
 
@@ -157,5 +165,58 @@ describe('TradeInfoModal', () => {
 		});
 
 		expect(screen.getByText('Mon, 8 Jun 2026')).toBeInTheDocument();
+	});
+
+	it('removes trailing zeros in decimal rules and actual values (e.g., 1.00 -> 1, 0.24 -> 0.24)', () => {
+		const tradeWithDecimals: TradeHistoryEntry = {
+			...mockTrade,
+			query_values: {
+				pb: 1.0,
+				roe: 0.24,
+				custom_score: 5.0
+			}
+		};
+
+		const strategyWithDecimals: TradingStrategy = {
+			...mockStrategy,
+			rules: [
+				{
+					id: 'g-1',
+					connector_to_next: null,
+					conditions: [
+						{
+							id: 'c-1',
+							variable: 'pb',
+							operator: '<=',
+							value: '1.00',
+							connector_to_next: 'AND'
+						},
+						{
+							id: 'c-2',
+							variable: 'roe',
+							operator: '>=',
+							value: '0.24',
+							connector_to_next: null
+						}
+					]
+				}
+			]
+		};
+
+		render(TradeInfoModal, {
+			props: {
+				open: true,
+				trade: tradeWithDecimals,
+				strategy: strategyWithDecimals,
+				year: 2024
+			}
+		});
+
+		// Check 1.00 -> 1 in both target rule and actual PB
+		expect(screen.getAllByText('1x').length).toBe(2);
+		// Check 0.24 -> 24% in both target rule and actual ROE
+		expect(screen.getAllByText('24%').length).toBe(2);
+		// Check unmapped metric with trailing zero (5.00 -> 5)
+		expect(screen.getByText('5')).toBeInTheDocument();
 	});
 });

@@ -18,7 +18,8 @@ describe('Landing Constants', () => {
 		expect(LANDING_HERO_STATS[0].value).toBe('100+');
 		expect(LANDING_HERO_STATS[0].target).toBe(100);
 		expect(LANDING_HERO_STATS[0].suffix).toBe('+');
-		expect(LANDING_HERO_STATS[1].target).toBe(4);
+		expect(LANDING_HERO_STATS[1].value).toBe('5 Years');
+		expect(LANDING_HERO_STATS[1].target).toBe(5);
 		expect(LANDING_HERO_STATS[1].suffix).toBe(' Years');
 		expect(LANDING_HERO_STATS[2].target).toBe(8);
 		expect(LANDING_HERO_STATS[2].suffix).toBe('+');

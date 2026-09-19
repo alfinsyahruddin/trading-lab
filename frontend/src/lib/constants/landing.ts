@@ -126,7 +126,7 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		description: 'One-click accept or ignore for AI-generated parameter improvements.',
 		delay: 200,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-2',
-		imageBorderClass: 'border-[rgba(245,200,66,0.2)] shadow-none dark:shadow-xl',
+		imageBorderClass: 'border-none shadow-none dark:shadow-xl',
 		tagClass: 'text-[#f5c842]'
 	},
 	{
@@ -138,7 +138,7 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		description: 'Qualitative breakdown and actionable insights for every backtest.',
 		delay: 300,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-3',
-		imageBorderClass: 'border-[rgba(222,152,254,0.25)] shadow-none dark:shadow-xl',
+		imageBorderClass: 'border-none shadow-none dark:shadow-xl',
 		tagClass:
 			'w-fit bg-[linear-gradient(135deg,#de98fe_0%,#38c1fb_100%)] bg-clip-text text-transparent'
 	}

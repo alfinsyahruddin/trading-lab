@@ -208,4 +208,97 @@ describe('BacktestDetailPage - Run Again', () => {
 		expect(screen.getByText('All-Time Low')).toBeInTheDocument();
 		expect(screen.getByText('Rp400.000 (-4.00%)')).toBeInTheDocument();
 	});
+
+	it('renders compact trade history cards with trade metrics and handles click to open modal', async () => {
+		const mockJobWithTrades: BacktestJob = {
+			id: 'job-trades-1',
+			user_id: 'u-1',
+			strategy_id: 'strat-1',
+			strategy_name: 'Breakout Strategy',
+			name: 'Test with Trades 2025',
+			year: 2025,
+			initial_cash: 10_000_000,
+			max_holding_stocks: 5,
+			max_stocks: 12,
+			backtest_duration_months: 12,
+			buy_fee_percentage: 0.15,
+			sell_fee_percentage: 0.25,
+			is_public: false,
+			status: 'DONE',
+			error_message: null,
+			result: {
+				available_cash: 11_000_000,
+				trades_processed: 1,
+				net_pnl: 500_000,
+				net_pnl_percentage: 5.5,
+				gross_pnl: 520_000,
+				gross_pnl_percentage: 5.7,
+				win_rate: 100,
+				profit_factor: 2.1,
+				wins: 1,
+				losses: 0,
+				sharpe_ratio: 1.5,
+				max_profit: 500_000,
+				max_profit_percentage: 5.5,
+				max_loss: 0,
+				max_loss_percentage: 0,
+				avg_profit: 500_000,
+				avg_profit_percentage: 5.5,
+				avg_loss: 0,
+				avg_loss_percentage: 0,
+				avg_hold_time_days: 17,
+				total_fees: 20_000,
+				avg_win_hold_days: 17,
+				avg_loss_hold_days: 0,
+				portfolio_volatility: 10.2,
+				ai_summary: null
+			},
+			portfolio_history: [
+				{ date: '2025-01-02', net_value: 10_000_000, gross_value: 10_000_000 },
+				{ date: '2025-02-15', net_value: 10_500_000, gross_value: 10_520_000 }
+			],
+			most_traded: [],
+			top_gainers: [],
+			top_losers: [],
+			trade_history: [
+				{
+					code: 'BBCA.JK',
+					buy_date: '2025-01-15',
+					sell_date: '2025-02-01',
+					buy_price: 9000,
+					sell_price: 9495,
+					buy_value: 9000000,
+					sell_value: 9495000,
+					buy_fee: 13500,
+					sell_fee: 23737.5,
+					lot: 10,
+					pnl: 495000,
+					pnl_percentage: 5.5,
+					exit_reason: 'TAKE_PROFIT'
+				}
+			],
+			created_at: '2026-08-30T00:00:00Z',
+			updated_at: '2026-08-30T00:00:00Z'
+		};
+
+		vi.mocked(api.getBacktest).mockResolvedValue(mockJobWithTrades);
+		render(BacktestDetailPage);
+
+		expect(await screen.findByText('Trade history')).toBeInTheDocument();
+		expect(screen.getByText('BBCA')).toBeInTheDocument();
+		expect(screen.getByText('10 Lot')).toBeInTheDocument();
+		expect(screen.getByText('17 Days')).toBeInTheDocument();
+		expect(screen.getByText('Take profit')).toBeInTheDocument();
+
+		const tradeCard = screen.getByRole('button', {
+			name: /View screening entry details for BBCA/i
+		});
+		expect(tradeCard).toBeInTheDocument();
+		await fireEvent.click(tradeCard);
+
+		// TradeInfoModal should open showing trade details
+		expect(
+			screen.getByText('Screening criteria & actual metrics evaluated for entry')
+		).toBeInTheDocument();
+	});
 });

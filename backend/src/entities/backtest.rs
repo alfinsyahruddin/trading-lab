@@ -252,7 +252,7 @@ pub struct TradeHistoryResponse {
 }
 
 const fn default_max_stocks() -> i32 {
-    12
+    24
 }
 
 #[derive(Clone, Debug, Deserialize, Validate)]
@@ -378,7 +378,7 @@ mod tests {
             year: 2024,
             initial_cash: 100_000_000.0,
             max_holding_stocks: 3,
-            max_stocks: 12,
+            max_stocks: 24,
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,
@@ -474,7 +474,7 @@ mod tests {
             year: 2024,
             initial_cash: 100_000_000.0,
             max_holding_stocks: 3,
-            max_stocks: 12,
+            max_stocks: 24,
             backtest_duration_months: 12,
             buy_fee_percentage: 0.15,
             sell_fee_percentage: 0.25,

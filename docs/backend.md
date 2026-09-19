@@ -147,7 +147,7 @@ All API endpoints strictly adhere to the unified envelope:
 
 1. **Data Model**:
    - `backtest_jobs`: Job metadata, configuration (`initial_cash`, `max_holding_stocks`, `max_stocks`, `duration_months`, fees, `is_public`, `status`).
-   - `backtest_results`: Simulation aggregates (PnL, win rate, Sharpe ratio, volatility, max/avg profit & loss, holding times, AI summary).
+   - `backtest_results`: Simulation aggregates (PnL, win rate, Sharpe ratio, volatility, max/avg profit & loss, holding times, AI insights).
    - `backtest_portfolio_history`: Daily net and gross equity values.
    - `backtest_trades`: Individual trade records with entry/exit prices, fees, exit reason, and `query_values` (indicators snapshot at entry).
    - `backtest_stars`: Community stars for public backtests.

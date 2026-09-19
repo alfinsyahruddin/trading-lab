@@ -80,7 +80,7 @@ Because the application runs entirely as a Client-Side Single Page Application (
 - [`VariablePickerModal.svelte`](../frontend/src/lib/components/strategy/VariablePickerModal.svelte): Searchable, categorized financial indicator catalog.
 
 ### C. Backtest Components ([`src/lib/components/backtest/`](../frontend/src/lib/components/backtest))
-- [`BacktestAiSummary.svelte`](../frontend/src/lib/components/backtest/BacktestAiSummary.svelte): 5-dimension qualitative summary card with glowing animated border.
+- [`BacktestAiSummary.svelte`](../frontend/src/lib/components/backtest/BacktestAiSummary.svelte): Actionable AI insights card with glowing animated border.
 - [`StatusBadge.svelte`](../frontend/src/lib/components/backtest/StatusBadge.svelte): Visual status tag for `PENDING`, `PROCESSING`, `DONE`, `FAILED`.
 - [`HalfDoughnutChart.svelte`](../frontend/src/lib/components/backtest/HalfDoughnutChart.svelte): Semicircular SVG win vs loss ratio chart.
 - [`PortfolioChart.svelte`](../frontend/src/lib/components/backtest/PortfolioChart.svelte): Baseline interactive equity curve powered by `lightweight-charts`.

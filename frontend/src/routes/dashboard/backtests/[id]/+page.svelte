@@ -205,8 +205,11 @@
 	}
 
 	function formatDate(dateStr: string): string {
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			weekday: 'short',
+		if (!dateStr) return '-';
+		const safeStr = dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`;
+		const d = new Date(safeStr);
+		if (isNaN(d.getTime())) return dateStr;
+		return d.toLocaleDateString('en-GB', {
 			day: 'numeric',
 			month: 'short',
 			year: 'numeric'
@@ -214,10 +217,12 @@
 	}
 
 	function formatHoldingDays(buyDate: string, sellDate: string): string {
+		const safeBuy = buyDate.includes('T') ? buyDate : `${buyDate}T00:00:00`;
+		const safeSell = sellDate.includes('T') ? sellDate : `${sellDate}T00:00:00`;
 		const millisecondsPerDay = 1000 * 60 * 60 * 24;
 		const days = Math.max(
 			0,
-			Math.round((new Date(sellDate).getTime() - new Date(buyDate).getTime()) / millisecondsPerDay)
+			Math.round((new Date(safeSell).getTime() - new Date(safeBuy).getTime()) / millisecondsPerDay)
 		);
 		return `${days} ${days === 1 ? 'Day' : 'Days'}`;
 	}
@@ -631,7 +636,7 @@
 						</span>
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:filter" width="13" height="13" style="color: var(--fg-muted);" />
-							{job.max_stocks ?? 12} Stocks
+							{job.max_stocks ?? 24} Stocks
 						</span>
 					</div>
 
@@ -681,7 +686,7 @@
 				>
 					<div class="inline-flex items-center gap-1">
 						<Icon icon="lucide:clock" width="11" height="11" />
-						<span>Ran {formatTimeAgo(job.created_at)}</span>
+						<span>{formatTimeAgo(job.created_at)}</span>
 					</div>
 				</div>
 			</div>
@@ -851,21 +856,6 @@
 					{:else}
 						<div class="flex-1"></div>
 					{/if}
-
-					<!-- Right: Timestamps (Edited at & Created at) -->
-					<div
-						class="font-500 flex shrink-0 flex-col gap-0.5 text-left text-[11px] sm:items-end sm:text-right"
-						style="color: var(--fg-muted);"
-					>
-						<div class="inline-flex items-center gap-1">
-							<Icon icon="lucide:clock" width="11" height="11" />
-							<span>Edited {formatTimeAgo(strategy.updated_at)}</span>
-						</div>
-						<div class="inline-flex items-center gap-1">
-							<Icon icon="lucide:calendar" width="11" height="11" />
-							<span>Created {formatTimeAgo(strategy.created_at)}</span>
-						</div>
-					</div>
 				</div>
 			</div>
 		{:else if job.strategy_name}
@@ -1289,84 +1279,86 @@
 								title="View screening entry details for {stripJK(t.code)}"
 								aria-label="View screening entry details for {stripJK(t.code)}"
 							>
-								<div class="flex items-center justify-between gap-2">
-									<div class="flex items-center gap-2">
-										<span class="font-800 text-base" style="color: var(--fg)"
-											>{stripJK(t.code)}</span
-										><span
-											class="font-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]"
-											style="background-color: {badge.bg}; color: {badge.color};"
-											><Icon icon={badge.icon} width="11" height="11" />{badge.label}</span
-										>
-									</div>
-									<div class="text-center">
-										<span class="font-600 text-xs" style="color: var(--fg-muted)">
-											{t.lot.toLocaleString()} Lot
-										</span>
-									</div>
-									<div class="text-right">
-										<p
-											class="font-800 text-sm"
-											style="color: {t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
-										>
-											{formatPnl(t.pnl, t.pnl_percentage)}
-										</p>
-									</div>
-								</div>
+								<!-- Top Row: Stock Code, Exit Reason Badge, Lots, Holding Duration, PnL -->
 								<div
-									class="mt-3 grid grid-cols-2 gap-x-3 border-t pt-2.5 text-xs"
+									class="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5"
 									style="border-color: var(--border);"
 								>
-									<div>
-										<p
-											class="font-600 text-[10px] tracking-wide uppercase"
-											style="color: var(--fg-muted)"
+									<div class="flex flex-wrap items-center gap-2">
+										<span class="font-800 text-sm" style="color: var(--fg)">{stripJK(t.code)}</span>
+										<span
+											class="font-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]"
+											style="background-color: {badge.bg}; color: {badge.color};"
 										>
-											Entry
-										</p>
-										<p class="font-700 mt-0.5" style="color: var(--fg)">
-											{formatRupiah(t.buy_price)}
-										</p>
-										<p class="mt-0.5 text-[10px]" style="color: var(--fg-muted)">
-											{formatDate(t.buy_date)}
-										</p>
+											<Icon icon={badge.icon} width="11" height="11" />
+											{badge.label}
+										</span>
+										<span class="font-600 text-xs" style="color: var(--fg-muted)">
+											{t.lot.toLocaleString('id-ID')} Lot
+										</span>
+										<span
+											class="font-700 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px]"
+											style="background-color: var(--bg-card); color: var(--fg-muted);"
+										>
+											<Icon icon="lucide:timer" width="11" height="11" />
+											{formatHoldingDays(t.buy_date, t.sell_date)}
+										</span>
 									</div>
-									<div class="border-l pl-3 text-right" style="border-color: var(--border);">
-										<p
-											class="font-600 text-[10px] tracking-wide uppercase"
-											style="color: var(--fg-muted)"
+
+									<div class="text-right">
+										<span
+											class="font-800 text-xs sm:text-sm"
+											style="color: {t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}"
 										>
-											Exit
-										</p>
-										<p class="font-700 mt-0.5" style="color: var(--fg)">
-											{formatRupiah(t.sell_price)}
-										</p>
-										<p class="mt-0.5 text-[10px]" style="color: var(--fg-muted)">
-											{formatDate(t.sell_date)}
-										</p>
+											{t.pnl > 0 ? '+' : ''}{formatRupiah(t.pnl)}
+											(<span class="font-700"
+												>{t.pnl_percentage >= 0 ? '+' : ''}{t.pnl_percentage.toFixed(2)}%</span
+											>)
+										</span>
 									</div>
 								</div>
-								<div
-									class="mt-2.5 grid grid-cols-3 items-center text-[10px]"
-									style="color: var(--fg-muted)"
-								>
-									<span
-										>Buy <span class="font-700" style="color: var(--success)"
-											>{formatRupiah(t.buy_value)}</span
-										></span
-									>
-									<span
-										class="font-700 inline-flex items-center justify-center gap-1"
-										style="color: var(--fg-muted)"
-									>
-										<Icon icon="lucide:timer" width="11" height="11" />
-										{formatHoldingDays(t.buy_date, t.sell_date)}
-									</span>
-									<span class="text-right"
-										>Sell <span class="font-700" style="color: var(--danger)"
-											>{formatRupiah(t.sell_value)}</span
-										></span
-									>
+
+								<!-- Bottom Row: Entry vs Exit Grid -->
+								<div class="mt-2.5 grid grid-cols-2 gap-3 text-xs">
+									<!-- Entry -->
+									<div class="space-y-1">
+										<div class="flex items-center justify-between gap-1 text-[10px]">
+											<span class="font-600 tracking-wide uppercase" style="color: var(--fg-muted)"
+												>Entry</span
+											>
+											<span style="color: var(--fg-muted)">{formatDate(t.buy_date)}</span>
+										</div>
+										<div class="flex flex-wrap items-baseline justify-between gap-x-2">
+											<span class="font-700 text-xs sm:text-sm" style="color: var(--fg)">
+												{formatRupiah(t.buy_price)}
+											</span>
+											<span class="text-[10px]" style="color: var(--fg-muted)">
+												Buy <span class="font-700" style="color: var(--success)"
+													>{formatRupiah(t.buy_value)}</span
+												>
+											</span>
+										</div>
+									</div>
+
+									<!-- Exit -->
+									<div class="space-y-1 border-l pl-3" style="border-color: var(--border);">
+										<div class="flex items-center justify-between gap-1 text-[10px]">
+											<span class="font-600 tracking-wide uppercase" style="color: var(--fg-muted)"
+												>Exit</span
+											>
+											<span style="color: var(--fg-muted)">{formatDate(t.sell_date)}</span>
+										</div>
+										<div class="flex flex-wrap items-baseline justify-between gap-x-2">
+											<span class="font-700 text-xs sm:text-sm" style="color: var(--fg)">
+												{formatRupiah(t.sell_price)}
+											</span>
+											<span class="text-[10px]" style="color: var(--fg-muted)">
+												Sell <span class="font-700" style="color: var(--danger)"
+													>{formatRupiah(t.sell_value)}</span
+												>
+											</span>
+										</div>
+									</div>
 								</div>
 							</button>
 						{/each}
