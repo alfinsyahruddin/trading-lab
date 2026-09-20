@@ -13,7 +13,7 @@ For in-depth explanations, refer directly to the specialized guides:
 | Guide | Content Overview |
 | :--- | :--- |
 | 🦀 [**Backend Architecture**](./docs/backend.md) | Layered architecture, Sectors.app 90-day chunking & 60s 429 retries, rule engine, captcha verification, Redis session tracking, and REST endpoints. |
-| ⚡ [**Frontend Architecture**](./docs/frontend.md) | SvelteKit 5 SPA, Svelte 5 Runes conventions, complete UI component catalog (including landing & modals), CSR route guards, and API client. |
+| ⚡ [**Frontend Architecture**](./docs/frontend.md) | SvelteKit 2 SPA, Svelte 5 Runes conventions, complete UI component catalog (including landing & modals), CSR route guards, and API client. |
 | ⚙️ [**Environment & Credentials**](./docs/environment.md) | Complete environment variable reference (host & Docker), default seeded credentials (`admin@mail.com` / `admin123`), and security policies. |
 | 🧪 [**Testing Guide**](./docs/testing.md) | Rust unit & HTTP contract tests, Vitest unit/component suites, and Playwright E2E testing workflows. |
 | 🛠️ [**Contributor Workflow**](./docs/workflow.md) | Development workflows, Docker Compose operations, verification checklists, and git commit guidelines. |
@@ -48,7 +48,7 @@ trading-lab/
 │   ├── .env.example          # Local host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
-├── frontend/                 # SvelteKit 5 SPA (CSR-only, Bun, TailwindCSS v4)
+├── frontend/                 # SvelteKit 2 SPA (CSR-only, Bun, TailwindCSS v4)
 │   ├── src/
 │   │   ├── app.css           # Tailwind v4 theme tokens & CSS variables
 │   │   ├── app.html          # Shell HTML template
@@ -96,32 +96,15 @@ When contributing or modifying code, agents and contributors MUST adhere to thes
 5. **Pure CSR Mode**: The frontend is strictly a single-page application (`export const ssr = false;` in [`src/routes/+layout.ts`](./frontend/src/routes/+layout.ts)). Never create SvelteKit server routes (`+page.server.ts`).
 
 ### Domain & Security Invariants
-1. **Redis Session Tracking**: User sessions are mapped in Redis as `auth:session:{session_id}` $\rightarrow$ `user_id` and tracked in `auth:user-sessions:{user_id}`. Password changes, role changes, and account deletions must revoke all active sessions via `revoke_all_user_sessions`.
+1. **Redis Session Tracking**: User sessions are mapped in Redis as `auth:session:{session_id}` → `user_id` and tracked in `auth:user-sessions:{user_id}`. Password changes, role changes, and account deletions must revoke all active sessions via `revoke_all_user_sessions`.
 2. **Registration Captcha**: `POST /api/users/register` requires `captcha_id` and `captcha_code` (generated via `GET /api/users/captcha`). Automated tests may use the `TEST_CAPTCHA` bypass code.
-3. **Sectors.app Resilience**: [`SectorsClient`](./backend/src/clients/sectors_client.rs) retries HTTP 429 rate limits with a **60-second delay** (matching Sectors quota resets) and chunks daily transaction queries into segments of $\le$ 90 days.
+3. **Sectors.app Resilience**: [`SectorsClient`](./backend/src/clients/sectors_client.rs) retries HTTP 429 rate limits with a **60-second delay** (matching Sectors quota resets) and chunks daily transaction queries into segments of ≤ 90 days.
 4. **Database Migrations**: Never modify existing migrations that have already run. Always create a new sequential file under [`backend/migrations/`](./backend/migrations/).
 5. **Git Commit Guidelines**: **Do NOT use Conventional Commits** (never use prefixes like `feat:`, `fix:`, `chore:`); write concise, descriptive natural language summaries in title or sentence case.
 
 ---
 
-## 4. Quick Verification Commands
+## 4. Verification
 
-Before completing any task, run the appropriate verification suite:
+Before completing any task, run the verification commands documented in [**Contributor Workflow → Verification Checklist**](./docs/workflow.md#2-verification-checklist-for-tasks).
 
-### Backend Verification
-Run from `backend/`:
-```sh
-cargo fmt --check
-cargo test
-cargo clippy --all-targets --all-features --locked -- -D warnings
-```
-
-### Frontend Verification
-Run from `frontend/`:
-```sh
-bun run check
-bun run lint
-bun run test:unit
-bun run format:check
-bun run test:e2e
-```

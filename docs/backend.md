@@ -1,22 +1,10 @@
 # Backend Architecture & Engineering Guidelines
 
-This document provides a comprehensive reference for the Rust backend of Trading Lab, built with [Actix-web 4](https://actix.rs/), [SQLx 0.8](https://github.com/launchbadge/sqlx), PostgreSQL 16, and Redis 7.
+This document provides the in-depth architectural reference for the Rust backend of Trading Lab. For golden rules and invariants, see [AGENTS.md §3](../AGENTS.md#3-golden-rules).
 
 ---
 
-## 1. Tech Stack
-
-- **Framework**: [Actix-web 4](https://actix.rs/)
-- **Database**: PostgreSQL 16 via [SQLx 0.8](https://github.com/launchbadge/sqlx) (async, compile-time checked / parameterized queries)
-- **Cache & Session Store**: Redis 7 via [`redis-rs`](https://docs.rs/redis) (Tokio `ConnectionManager`)
-- **Market Data Integration**: [`reqwest`](https://docs.rs/reqwest/) with Redis caching, 90-day chunking, and 60s rate limit backoff (Sectors.app API)
-- **AI Engine**: Google Gemini API (`gemini-3.1-flash-lite`) via `LLMTrait` / `GeminiLLM`
-- **Security**: Argon2id (`argon2`) for password hashing, `jsonwebtoken` for access/refresh tokens, and `captcha` for registration bot mitigation
-- **Validation**: `validator` crate for request payload validation
-
----
-
-## 2. Layered Architecture
+## 1. Layered Architecture
 
 Backend code strictly separates concerns into distinct layers under [`backend/src/`](../backend/src):
 
@@ -50,7 +38,7 @@ Backend code strictly separates concerns into distinct layers under [`backend/sr
 
 ---
 
-## 3. API Contract & Envelope
+## 2. API Contract & Envelope
 
 All API endpoints strictly adhere to the unified envelope:
 
@@ -72,7 +60,7 @@ All API endpoints strictly adhere to the unified envelope:
 
 ---
 
-## 4. Error Handling & Invariants
+## 3. Error Handling
 
 - Fallible operations return `Result<T, AppError>` and propagate with `?`.
 - [`AppError`](../backend/src/entities/app_error.rs) maps domain errors to standard HTTP status codes:
@@ -83,11 +71,10 @@ All API endpoints strictly adhere to the unified envelope:
   - `Conflict` (409)
   - `Internal` (500)
 - Database (`sqlx::Error`), Redis (`redis::RedisError`), and JWT errors implement `From<...>` for `AppError`, logging error traces to stderr while masking internal implementation details from clients as `AppError::Internal`.
-- Production code must never call `unwrap()` or `expect()`.
 
 ---
 
-## 5. Domain Implementations
+## 4. Domain Implementations
 
 ### A. Authentication & Users ([`routes/user_route.rs`](../backend/src/routes/user_route.rs))
 
@@ -99,8 +86,8 @@ All API endpoints strictly adhere to the unified envelope:
 3. **Session Lifecycle in Redis**:
    - On login, a new session UUID (`sid`) is embedded in the JWT access and refresh token claims.
    - The session is stored in Redis:
-     - `auth:session:{session_id}` $\rightarrow$ stores `user_id` string with refresh TTL.
-     - `auth:user-sessions:{user_id}` $\rightarrow$ Redis `SET` tracking all active `session_id`s for that user.
+     - `auth:session:{session_id}` → stores `user_id` string with refresh TTL.
+     - `auth:user-sessions:{user_id}` → Redis `SET` tracking all active `session_id`s for that user.
 4. **Session Revocation**:
    - Single session logout: deletes `auth:session:{session_id}` and removes `session_id` from `auth:user-sessions:{user_id}`.
    - Batch revocation: Any password update, role change, or user deletion invokes `revoke_all_user_sessions(user_id)` to invalidate all active client sessions immediately.
@@ -156,7 +143,7 @@ All API endpoints strictly adhere to the unified envelope:
    - `max_stocks` (default 12): Top screener candidates considered for purchase on any given day.
 3. **Sectors.app Client Architecture** ([`src/clients/sectors_client.rs`](../backend/src/clients/sectors_client.rs)):
    - **Rate Limiting**: HTTP 429 errors trigger a 60-second backoff (`RETRY_DELAY_SECS = 60`) with up to 2 retries, aligning with the Sectors.app 60s quota window.
-   - **Date Chunking**: Daily transaction requests spanning more than 90 days are chunked into $\le$ 90-day segments via [`compute_date_chunks`](../backend/src/clients/sectors_client.rs).
+   - **Date Chunking**: Daily transaction requests spanning more than 90 days are chunked into ≤ 90-day segments via [`compute_date_chunks`](../backend/src/clients/sectors_client.rs).
    - **Caching**:
      - Screener responses cached under `sectors:screener:{where_query}:{limit}`.
      - Daily transaction chunks cached under `sectors:daily:{symbol}:{chunk_start}:{chunk_end}`.
@@ -202,4 +189,5 @@ All API endpoints strictly adhere to the unified envelope:
 **Endpoints**:
 - `GET /api/settings`: Retrieve platform settings.
 - `PATCH /api/settings`: Update settings (Admin only).
-- `POST /api/strategies/ai-suggestions`: Request AI strategy recommendations.
+
+> Strategy AI recommendations (`POST /api/strategies/ai-suggestions`) are routed via [`trading_strategy_route.rs`](../backend/src/routes/trading_strategy_route.rs) and documented under Section B above.

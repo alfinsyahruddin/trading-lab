@@ -100,6 +100,8 @@ Before completing any task, run the following verification steps:
 
 ## 3. Git & Commit Guidelines
 
+> The canonical rule is defined in [AGENTS.md §3 — Domain & Security Invariants](../AGENTS.md#3-golden-rules). The practical guidance and examples below expand on it.
+
 - **Do NOT Use Conventional Commits**: Never use prefixes such as `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `style:`, or `test:`.
 - **Message Style**: Write concise, descriptive, natural language summaries in title or sentence case.
 - **Examples**:

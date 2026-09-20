@@ -3,10 +3,10 @@
 > Preview: [https://trading-lab-alphabyte.vercel.app](https://trading-lab-alphabyte.vercel.app)
 
 ### Video Links
-- 1-min Teaser: [https://youtu.be/lYqQeRFIpz4](https://youtu.be/lYqQeRFIpz4)
-- 3-min Demo: [https://youtu.be/UUKFV3u80GM](https://youtu.be/UUKFV3u80GM)
+- 1-min Teaser: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
+- 3-min Demo: [https://youtu.be/pqEO3HtPNvs](https://youtu.be/pqEO3HtPNvs)
 
-![Trading Lab](./frontend/static/backtest-dark.png)
+![Trading Lab](./frontend/static/backtest.png)
 
 Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX) traders. It enables traders to easily build custom multi-condition strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
 
@@ -98,21 +98,27 @@ trading-lab/
 │   ├── .env.example          # Host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
-├── frontend/                 # SvelteKit 5 SPA
+├── frontend/                 # SvelteKit 2 SPA (CSR-only, Bun, TailwindCSS v4)
 │   ├── src/
+│   │   ├── app.css           # Tailwind v4 theme tokens & CSS variables
+│   │   ├── app.html          # Shell HTML template
 │   │   ├── lib/
 │   │   │   ├── api.ts        # Typed API client with auto-refresh deduplication
-│   │   │   ├── constants.ts  # Financial indicator definitions & storage keys
-│   │   │   ├── types.ts      # TypeScript interfaces and domain models
-│   │   │   ├── components/   # UI components (dashboard, strategy, backtest, common)
-│   │   │   └── helpers/      # Client session, theme, and reactive toast helpers
-│   │   └── routes/           # CSR page routes (Dashboard, Strategies, Backtests, Settings, Users)
-│   ├── tests/unit/           # Vitest component and unit test suites
-│   ├── Dockerfile            # Multi-stage Bun build -> Nginx Alpine container
+│   │   │   ├── constants/    # Landing content & metadata constants
+│   │   │   ├── constants.ts  # Shared financial indicators & storage keys
+│   │   │   ├── types.ts      # Domain TypeScript interfaces
+│   │   │   ├── components/   # Svelte 5 UI components (dashboard, strategy, backtest, landing, shared)
+│   │   │   └── helpers/      # Client session, theme, date, config, reveal, and toast helpers
+│   │   └── routes/           # CSR client routes (+layout.svelte, +page.svelte)
+│   ├── tests/
+│   │   ├── unit/             # Vitest unit and Svelte 5 component tests (jsdom)
+│   │   └── e2e/              # Playwright browser end-to-end user journey tests
+│   ├── playwright.config.ts  # Playwright test configuration
+│   ├── Dockerfile            # Multi-stage production build (Bun -> Nginx Alpine)
 │   ├── nginx.conf            # Nginx SPA fallback configuration
-│   ├── package.json          # Frontend dependencies & scripts
-│   ├── .env.example          # Frontend environment template
-│   └── .env.docker.example   # Frontend Docker environment template
+│   ├── package.json          # Frontend dependencies & Bun scripts
+│   ├── .env.example          # Local host environment template
+│   └── .env.docker.example   # Docker container environment template
 │
 ├── docker-compose.yml        # Root Docker Compose (PostgreSQL, Redis, Backend, Frontend)
 ├── AGENTS.md                 # Developer & AI Agent architectural guidelines
@@ -216,47 +222,13 @@ A default administrator account is seeded upon initial database migration:
 
 ---
 
-## Development & Verification Commands
+## Development & Verification
 
-### Backend
-```sh
-cd backend
-
-# Check formatting
-cargo fmt --check
-
-# Run test suite
-cargo test
-
-# Run strict Clippy lints
-cargo clippy --all-targets --all-features --locked -- -D warnings
-```
-
-### Frontend
-```sh
-cd frontend
-
-# Svelte & TypeScript type checks
-bun run check
-
-# Run ESLint
-bun run lint
-
-# Auto-fix linting issues
-bun run lint:fix
-
-# Run unit and component tests
-bun run test:unit
-
-# Check Prettier formatting
-bun run format:check
-
-# Format code & Tailwind class order
-bun run format
-```
+For development workflows, verification checklists, and testing commands, see the [Contributor Workflow Guide](./docs/workflow.md) and [Testing Guide](./docs/testing.md).
 
 ---
 
 ## Contributor & Agent Guidelines
 
-For detailed architectural principles, coding conventions, domain invariants, and API response structures, refer to [`AGENTS.md`](AGENTS.md).
+For architectural principles, coding conventions, domain invariants, and inviolable rules, refer to [`AGENTS.md`](AGENTS.md).
+

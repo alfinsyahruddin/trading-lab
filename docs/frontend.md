@@ -1,22 +1,12 @@
 # Frontend Architecture & Component Guidelines
 
-This document provides a comprehensive reference for the frontend application of Trading Lab, built with [SvelteKit 2](https://kit.svelte.dev/), [Svelte 5 Runes](https://svelte.dev/docs/svelte/v5-migration-guide), [Bun](https://bun.sh/), and [Tailwind CSS v4](https://tailwindcss.com/).
+This document provides the in-depth architectural reference for the frontend application of Trading Lab. For golden rules and invariants, see [AGENTS.md §3](../AGENTS.md#3-golden-rules).
 
 ---
 
-## 1. Tech Stack & Execution Mode
+## 1. Svelte 5 Runes & State Conventions
 
-- **Framework**: [SvelteKit 2](https://kit.svelte.dev/) with **Svelte 5 Runes**
-- **Mode**: Pure Client-Side Rendering (CSR / SPA mode: `export const ssr = false;` in [`src/routes/+layout.ts`](../frontend/src/routes/+layout.ts))
-- **Runtime & Package Manager**: [Bun](https://bun.sh/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with CSS design token variables in [`src/app.css`](../frontend/src/app.css)
-- **Charts**: [TradingView Lightweight Charts](https://tradingview.github.io/lightweight-charts/) (`PortfolioChart.svelte`) and native SVG charts (`HalfDoughnutChart.svelte`, `BacktestResultPreview.svelte`)
-- **Icons**: Lucide icons via [`@iconify/svelte`](https://iconify.design/)
-- **Testing**: [Vitest](https://vitest.dev/) for unit/component tests and [Playwright](https://playwright.dev/) for end-to-end integration tests
-
----
-
-## 2. Svelte 5 Runes & State Conventions
+> See [AGENTS.md §3 — Architecture & Layering](../AGENTS.md#3-golden-rules) for the inviolable constraint. This section provides the implementation details.
 
 All components strictly use **Svelte 5 Runes**:
 - `$props()`: Strongly-typed component property definitions.
@@ -28,7 +18,7 @@ All components strictly use **Svelte 5 Runes**:
 
 ---
 
-## 3. Client-Side Routing & Feature Gating
+## 2. Client-Side Routing & Feature Gating
 
 Because the application runs entirely as a Client-Side Single Page Application (CSR), authentication checks and feature flags execute in client-side guards:
 
@@ -56,7 +46,7 @@ Because the application runs entirely as a Client-Side Single Page Application (
 
 ---
 
-## 4. UI Component Catalog
+## 3. UI Component Catalog
 
 ### A. Common & Shared UI ([`src/lib/components/`](../frontend/src/lib/components))
 - [`TopBar.svelte`](../frontend/src/lib/components/TopBar.svelte): Global app navigation, user menu, profile edit modal, password reset modal, theme toggle.
@@ -102,7 +92,7 @@ Because the application runs entirely as a Client-Side Single Page Application (
 
 ---
 
-## 5. Helpers & API Client
+## 4. Helpers & API Client
 
 - **API Client** ([`src/lib/api.ts`](../frontend/src/lib/api.ts)):
   - Attaches `Authorization: Bearer <token>` to requests.
@@ -122,7 +112,7 @@ Because the application runs entirely as a Client-Side Single Page Application (
 
 ---
 
-## 6. Styling & Design Tokens
+## 5. Styling & Design Tokens
 
 Defined in [`src/app.css`](../frontend/src/app.css) using Tailwind CSS v4 `@theme` variables:
 - Primary Accent: `--color-brand-cyan` (`#30B4C9`)

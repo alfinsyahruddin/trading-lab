@@ -1,33 +1,10 @@
-# Testing Guide: Unit, Integration & E2E
+# Testing Guide
 
-This guide documents the testing strategies, frameworks, test suites, and execution commands for both the backend and frontend of Trading Lab.
-
----
-
-## 1. Testing Architecture Overview
-
-```
-trading-lab/
-├── backend/
-│   ├── src/                    # Inline Rust unit tests (#[cfg(test)])
-│   └── tests/                  # Integration and HTTP contract test suite
-│       └── http_contract.rs    # Actix HTTP service integration tests
-│
-└── frontend/
-    ├── tests/
-    │   ├── unit/               # Vitest unit & Svelte 5 component tests (jsdom)
-    │   └── e2e/                # Playwright end-to-end user journey tests
-    │       ├── backtest-flow.spec.ts
-    │       ├── dashboard-navigation.spec.ts
-    │       ├── landing-and-auth.spec.ts
-    │       ├── strategy-flow.spec.ts
-    │       └── helpers/mock-api.ts
-    └── playwright.config.ts    # Playwright configuration
-```
+This guide documents the testing strategies, frameworks, and execution commands for Trading Lab. For the full project layout, see [AGENTS.md §2](../AGENTS.md#2-repository-layout).
 
 ---
 
-## 2. Backend Testing (Rust)
+## 1. Backend Testing (Rust)
 
 Backend tests verify domain math, JWT lifecycle, Redis caching, serialization, and HTTP contracts.
 
@@ -59,7 +36,7 @@ cargo test --test http_contract
 
 ---
 
-## 3. Frontend Unit & Component Testing (Vitest)
+## 2. Frontend Unit & Component Testing (Vitest)
 
 Vitest executes unit tests for helper modules and component tests using `@testing-library/svelte` and `jsdom`.
 
@@ -88,7 +65,7 @@ bun run test:unit:coverage
 
 ---
 
-## 4. Frontend End-to-End Testing (Playwright)
+## 3. Frontend End-to-End Testing (Playwright)
 
 Playwright runs full browser simulations against the SPA configured in [`frontend/playwright.config.ts`](../frontend/playwright.config.ts).
 
