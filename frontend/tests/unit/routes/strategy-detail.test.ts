@@ -108,7 +108,7 @@ describe('StrategyDetailPage', () => {
 				avg_win_hold_days: 12,
 				avg_loss_hold_days: 6,
 				portfolio_volatility: 12,
-				ai_summary: null
+				ai_insights: null
 			},
 			portfolio_history: null,
 			most_traded: null,

@@ -75,7 +75,7 @@ export const mockBacktest = {
 		total_fees_paid: 1_500_000,
 		annualized_return: 18.5,
 		annualized_volatility: 11.2,
-		ai_summary: null
+		ai_insights: null
 	},
 	portfolio_history: [
 		{ date: '2024-01-02', net_value: 100_000_000, gross_value: 100_000_000 },

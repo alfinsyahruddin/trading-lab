@@ -31,8 +31,8 @@ pub fn format_strategy_rules(rules: Option<&[StrategyRuleGroup]>) -> String {
     }
 }
 
-/// Generates the prompt string for backtest AI executive summary.
-pub fn get_backtest_ai_summary_prompt(
+/// Generates the prompt string for backtest AI insights.
+pub fn get_backtest_ai_insights_prompt(
     job_name: &str,
     strategy_name: &str,
     year: i32,
@@ -56,7 +56,7 @@ Key Backtest Metrics:
 - Avg Profit: Rp{avg_profit:.0} ({avg_profit_pct:.2}%), Avg Loss: Rp{avg_loss:.0} ({avg_loss_pct:.2}%)
 - Avg Holding Time: {avg_hold:.1} days (Avg Win Hold: {win_hold:.1} days, Avg Loss Hold: {loss_hold:.1} days)
 
-Generate a high-impact executive summary consisting of a JSON array of up to 4 clear, insightful keypoint strings (maximum 4 strings).
+Generate high-impact AI insights consisting of a JSON array of up to 4 clear, insightful keypoint strings (maximum 4 strings).
 Each keypoint should be 1-2 concise sentences addressing one of the following 4 dimensions:
 1. Overall Profitability & Return: Net return vs duration, capital growth vs initial cash, win rate vs profit factor, and fee drag impact.
 2. Risk & Volatility Profile: Sharpe ratio evaluation, risk-adjusted performance, and downside/drawdown risk.
@@ -288,7 +288,7 @@ mod tests {
     }
 
     #[test]
-    fn should_generate_backtest_ai_summary_prompt() {
+    fn should_generate_backtest_ai_insights_prompt() {
         let result = BacktestResultRecord {
             id: Uuid::new_v4(),
             backtest_job_id: Uuid::new_v4(),
@@ -316,10 +316,10 @@ mod tests {
             avg_win_hold_days: 8.0,
             avg_loss_hold_days: 4.0,
             portfolio_volatility: 14.2,
-            ai_summary: None,
+            ai_insights: None,
         };
 
-        let prompt = get_backtest_ai_summary_prompt(
+        let prompt = get_backtest_ai_insights_prompt(
             "Backtest Job 1",
             "Strategy Alpha",
             2024,

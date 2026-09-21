@@ -8,13 +8,13 @@
 
 ![Trading Lab](./frontend/static/backtest.png)
 
-Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX) traders. It enables traders to easily build custom multi-condition strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
+Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (IDX). It enables traders to easily build custom multi-condition trading strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
 
 ## Features
 
 ### 🛠️ Visual Strategy Builder
 - **Visual Condition Builder**: Construct dynamic, multi-group screening rules with customizable intra-group and inter-group logical connectors (`AND` / `OR`).
-- **Comprehensive IDX Indicator Catalog**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
+- **Comprehensive IDX Metrics**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
 - **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
 - **One-Click Strategy Duplication**: Easily duplicate existing strategies with automated unique naming (`{Name} (Copy)`) to rapidly iterate on rule variations.
 
@@ -55,7 +55,7 @@ Trading Lab is a backtesting platform designed for Indonesia Stock Exchange (IDX
 - **Database**: PostgreSQL 16 via [SQLx 0.8](https://github.com/launchbadge/sqlx) (async, parameterized queries)
 - **Session Cache**: Redis 7 via `redis-rs` (Tokio connection manager)
 - **Market Data**: [Reqwest](https://docs.rs/reqwest/) client with Redis caching and 429 retry backoff (Sectors.app API)
-- **AI Intelligence**: Google Gemini API (`gemini-3.1-flash-lite`) via `LLMTrait` / `GeminiLLM`
+- **AI Intelligence**: LLM Agnostic via `LLMTrait`
 - **Security**: Argon2id (`argon2`), JWT (`jsonwebtoken`)
 - **Validation**: `validator` crate
 
@@ -77,7 +77,7 @@ trading-lab/
 ├── backend/                  # Rust API service
 │   ├── migrations/           # SQLx migration files (PostgreSQL schema)
 │   ├── src/
-│   │   ├── clients/          # Sectors.app financial market data & Gemini LLM clients
+│   │   ├── clients/          # Sectors.app financial market data & LLM clients
 │   │   ├── constants/        # Global constants & financial indicator definitions
 │   │   ├── entities/         # Domain models, requests, responses, errors, settings
 │   │   ├── enums/            # System enums (UserRole, BacktestStatus, TokenType)

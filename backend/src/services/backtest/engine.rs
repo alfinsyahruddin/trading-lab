@@ -355,7 +355,7 @@ pub fn simulate_backtest(
         avg_win_hold_days,
         avg_loss_hold_days,
         portfolio_volatility,
-        ai_summary: None,
+        ai_insights: None,
     };
 
     (result_record, portfolio_history, completed_trades)

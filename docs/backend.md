@@ -182,7 +182,7 @@ All API endpoints strictly adhere to the unified envelope:
 ### E. App Settings & AI Intelligence ([`routes/settings_route.rs`](../backend/src/routes/settings_route.rs))
 
 - **Master AI Toggle**: `app_settings` table and Redis key `app_setting:ai_enabled` allow admins to enable/disable AI features platform-wide.
-- **AI Insights**: Generates a 4-point qualitative performance analysis on completed backtests, cached permanently in `backtest_results.ai_summary`.
+- **AI Insights**: Generates a 4-point qualitative performance analysis on completed backtests, cached permanently in `backtest_results.ai_insights`.
 - **Strategy Refinement**: Analyzes TP/SL, holding duration, and rule condition trees against IDX market behaviors, offering "Accept" / "Ignore" adjustments.
 - **Prompt Helper**: Centralized prompt templates in [`helpers/prompt_helper.rs`](../backend/src/helpers/prompt_helper.rs).
 

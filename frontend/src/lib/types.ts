@@ -150,7 +150,7 @@ export interface BacktestResult {
 	avg_win_hold_days: number;
 	avg_loss_hold_days: number;
 	portfolio_volatility: number;
-	ai_summary?: string[] | null;
+	ai_insights?: string[] | null;
 }
 
 export interface PortfolioHistoryEntry {

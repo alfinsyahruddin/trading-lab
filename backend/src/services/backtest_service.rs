@@ -122,11 +122,11 @@ impl BacktestService {
 
         if job.status == BacktestStatus::Done {
             if let Some(ref mut res) = result_resp {
-                if res.ai_summary.as_ref().is_none_or(|s| s.is_empty())
+                if res.ai_insights.as_ref().is_none_or(|s| s.is_empty())
                     && self.settings.get_ai_enabled().await.unwrap_or(false)
                 {
                     if let Ok(Some(rec)) = self.repo.find_result_by_job(id).await {
-                        if let Ok(summary) = generate_backtest_ai_summary(
+                        if let Ok(insights) = generate_backtest_ai_insights(
                             &*self.llm,
                             &job.name,
                             &job.strategy_name,
@@ -137,8 +137,8 @@ impl BacktestService {
                         )
                         .await
                         {
-                            let _ = self.repo.update_ai_summary(id, &summary).await;
-                            res.ai_summary = Some(summary);
+                            let _ = self.repo.update_ai_insights(id, &insights).await;
+                            res.ai_insights = Some(insights);
                         }
                     }
                 }
@@ -904,7 +904,7 @@ async fn run_backtest(
         .await?;
 
     if settings.get_ai_enabled().await.unwrap_or(false) {
-        if let Ok(summary) = generate_backtest_ai_summary(
+        if let Ok(insights) = generate_backtest_ai_insights(
             llm,
             &req.name,
             &strategy.name,
@@ -915,14 +915,14 @@ async fn run_backtest(
         )
         .await
         {
-            let _ = repo.update_ai_summary(job_id, &summary).await;
+            let _ = repo.update_ai_insights(job_id, &insights).await;
         }
     }
 
     Ok(())
 }
 
-pub async fn generate_backtest_ai_summary(
+pub async fn generate_backtest_ai_insights(
     llm: &dyn LLMTrait,
     job_name: &str,
     strategy_name: &str,
@@ -931,7 +931,7 @@ pub async fn generate_backtest_ai_summary(
     initial_cash: f64,
     result: &BacktestResultRecord,
 ) -> Result<Vec<String>, AppError> {
-    let prompt = prompt_helper::get_backtest_ai_summary_prompt(
+    let prompt = prompt_helper::get_backtest_ai_insights_prompt(
         job_name,
         strategy_name,
         year,
@@ -940,9 +940,9 @@ pub async fn generate_backtest_ai_summary(
         result,
     );
 
-    let summary: Vec<String> =
+    let insights: Vec<String> =
         crate::clients::llm_client::generate_structured(llm, &prompt).await?;
-    let truncated: Vec<String> = summary.into_iter().take(4).collect();
+    let truncated: Vec<String> = insights.into_iter().take(4).collect();
 
     Ok(truncated)
 }
@@ -961,7 +961,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_generate_backtest_ai_summary_with_mock() {
+    async fn should_generate_backtest_ai_insights_with_mock() {
         let result = BacktestResultRecord {
             id: Uuid::new_v4(),
             backtest_job_id: Uuid::new_v4(),
@@ -989,10 +989,10 @@ mod tests {
             avg_win_hold_days: 8.0,
             avg_loss_hold_days: 4.0,
             portfolio_volatility: 14.2,
-            ai_summary: None,
+            ai_insights: None,
         };
 
-        let summary = generate_backtest_ai_summary(
+        let insights = generate_backtest_ai_insights(
             &MockLLM,
             "Momentum 2024",
             "Strategy Alpha",
@@ -1002,10 +1002,10 @@ mod tests {
             &result,
         )
         .await
-        .expect("generates summary");
+        .expect("generates insights");
 
-        assert_eq!(summary.len(), 4);
-        assert_eq!(summary[0], "Point 1: Strong performance.");
+        assert_eq!(insights.len(), 4);
+        assert_eq!(insights[0], "Point 1: Strong performance.");
     }
 
     #[test]

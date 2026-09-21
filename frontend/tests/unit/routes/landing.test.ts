@@ -96,8 +96,8 @@ describe('Landing Page (+page.svelte)', () => {
 		expect(images).toContain('/dashboard-dark.png');
 		expect(images).toContain('/ai-suggestions-light.png');
 		expect(images).toContain('/ai-suggestions-dark.png');
-		expect(images).toContain('/ai-summary-light.png');
-		expect(images).toContain('/ai-summary-dark.png');
+		expect(images).toContain('/ai-insights-light.png');
+		expect(images).toContain('/ai-insights-dark.png');
 	});
 
 	it('renders hero chart widget with animated paths and pulse dots at end of chart data', () => {

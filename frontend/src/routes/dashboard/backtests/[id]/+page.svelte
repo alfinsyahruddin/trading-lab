@@ -7,7 +7,7 @@
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
 	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
-	import BacktestAiSummary from '$lib/components/backtest/BacktestAiSummary.svelte';
+	import BacktestAiInsights from '$lib/components/backtest/BacktestAiInsights.svelte';
 	import TradeInfoModal from '$lib/components/backtest/TradeInfoModal.svelte';
 	import {
 		getBacktest,
@@ -475,8 +475,8 @@
 	</div>
 {:else if job}
 	<!-- AI Insights (when available) -->
-	{#if job.result?.ai_summary && job.result.ai_summary.length > 0}
-		<BacktestAiSummary summary={job.result.ai_summary} />
+	{#if job.result?.ai_insights && job.result.ai_insights.length > 0}
+		<BacktestAiInsights insights={job.result.ai_insights} />
 	{/if}
 
 	<!-- Backtest & Strategy Overview Row (matching PortfolioChart width) -->

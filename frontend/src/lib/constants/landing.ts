@@ -130,9 +130,9 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		tagClass: 'text-[#f5c842]'
 	},
 	{
-		id: 'ai-summary',
-		lightSrc: '/ai-summary-light.png',
-		darkSrc: '/ai-summary-dark.png',
+		id: 'ai-insights',
+		lightSrc: '/ai-insights-light.png',
+		darkSrc: '/ai-insights-dark.png',
 		alt: 'AI insights with qualitative performance breakdown',
 		tag: '✦ AI Insights',
 		description: 'Qualitative breakdown and actionable insights for every backtest.',

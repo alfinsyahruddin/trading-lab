@@ -12,7 +12,7 @@
 	 * - Negative (-20%, -20.5%) -> negative tone (red)
 	 * - Neutral (0%, 0.0%, +0%, -0%) -> neutral tone (muted)
 	 */
-	export function parseSummaryTokens(input: string): TextToken[] {
+	export function parseInsightsTokens(input: string): TextToken[] {
 		if (!input) return [];
 
 		// Step 1: Split into formatting chunks (**bold**, *italic*, plain)
@@ -84,9 +84,9 @@
 	import { cubicInOut } from 'svelte/easing';
 
 	let {
-		summary = []
+		insights = []
 	}: {
-		summary?: string[];
+		insights?: string[];
 	} = $props();
 
 	let isCollapsed = $state(false);
@@ -124,23 +124,23 @@
 
 	// Extract standard grid cards and spotlight recommendation
 	const gridPoints = $derived.by(() => {
-		if (!summary || summary.length === 0) return [];
-		if (summary.length <= 3) {
-			return summary.slice(0, Math.max(0, summary.length - 1));
+		if (!insights || insights.length === 0) return [];
+		if (insights.length <= 3) {
+			return insights.slice(0, Math.max(0, insights.length - 1));
 		}
-		return summary.slice(0, 3);
+		return insights.slice(0, 3);
 	});
 
 	const recommendationPoint = $derived.by(() => {
-		if (!summary || summary.length === 0) return null;
-		return summary[summary.length - 1];
+		if (!insights || insights.length === 0) return null;
+		return insights[insights.length - 1];
 	});
 
-	const isSinglePoint = $derived(summary && summary.length === 1);
+	const isSinglePoint = $derived(insights && insights.length === 1);
 </script>
 
-{#if summary && summary.length > 0}
-	<div class="ai-summary-wrapper relative mb-6 rounded-2xl p-[1.5px]">
+{#if insights && insights.length > 0}
+	<div class="ai-insights-wrapper relative mb-6 rounded-2xl p-[1.5px]">
 		<!-- Subtle ambient base border -->
 		<div class="absolute inset-0 rounded-2xl" style="border: 1px solid var(--border);"></div>
 
@@ -149,7 +149,7 @@
 
 		<!-- Inner container -->
 		<div
-			class="ai-summary-inner relative z-10 flex flex-col rounded-2xl p-5 sm:p-6"
+			class="ai-insights-inner relative z-10 flex flex-col rounded-2xl p-5 sm:p-6"
 			style="background-color: var(--bg-card);"
 		>
 			<!-- Header: AI Gradient Icon + Title + Action Buttons -->
@@ -259,7 +259,7 @@
 									class="font-400 text-[11px] leading-relaxed sm:text-xs"
 									style="color: var(--fg);"
 								>
-									{#each parseSummaryTokens(point) as token, j (j)}
+									{#each parseInsightsTokens(point) as token, j (j)}
 										{#if token.tone === 'positive'}
 											<span
 												class="font-700 py-0.2 inline-block rounded px-1.5 text-[11px] sm:text-xs"
@@ -336,7 +336,7 @@
 
 						<!-- Recommendation Content with Formatted Tokens -->
 						<p class="font-400 text-xs leading-relaxed sm:text-sm" style="color: var(--fg);">
-							{#each parseSummaryTokens(recommendationPoint) as token, j (j)}
+							{#each parseInsightsTokens(recommendationPoint) as token, j (j)}
 								{#if token.tone === 'positive'}
 									<span
 										class="font-700 inline-block rounded px-1.5 py-0.5 text-xs sm:text-sm"
@@ -382,7 +382,7 @@
 {/if}
 
 <style>
-	.ai-summary-wrapper {
+	.ai-insights-wrapper {
 		position: relative;
 		overflow: hidden;
 	}
@@ -411,7 +411,7 @@
 		pointer-events: none;
 	}
 
-	.ai-summary-inner {
+	.ai-insights-inner {
 		background:
 			radial-gradient(circle at 0% 0%, rgba(251, 175, 51, 0.04) 0%, transparent 45%),
 			radial-gradient(circle at 100% 0%, rgba(254, 66, 107, 0.04) 0%, transparent 45%),

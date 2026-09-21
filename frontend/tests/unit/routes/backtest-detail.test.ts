@@ -184,7 +184,7 @@ describe('BacktestDetailPage - Run Again', () => {
 				avg_win_hold_days: 12,
 				avg_loss_hold_days: 16,
 				portfolio_volatility: 10.2,
-				ai_summary: null
+				ai_insights: null
 			},
 			portfolio_history: [
 				{ date: '2025-01-02', net_value: 9_600_000, gross_value: 9_650_000 },
@@ -251,7 +251,7 @@ describe('BacktestDetailPage - Run Again', () => {
 				avg_win_hold_days: 17,
 				avg_loss_hold_days: 0,
 				portfolio_volatility: 10.2,
-				ai_summary: null
+				ai_insights: null
 			},
 			portfolio_history: [
 				{ date: '2025-01-02', net_value: 10_000_000, gross_value: 10_000_000 },

@@ -70,7 +70,7 @@ pub struct BacktestResultRecord {
     pub avg_win_hold_days: f64,
     pub avg_loss_hold_days: f64,
     pub portfolio_volatility: f64,
-    pub ai_summary: Option<sqlx::types::Json<Vec<String>>>,
+    pub ai_insights: Option<sqlx::types::Json<Vec<String>>>,
 }
 
 #[derive(Debug, FromRow)]
@@ -206,7 +206,7 @@ pub struct BacktestResultResponse {
     pub avg_win_hold_days: f64,
     pub avg_loss_hold_days: f64,
     pub portfolio_volatility: f64,
-    pub ai_summary: Option<Vec<String>>,
+    pub ai_insights: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -317,7 +317,7 @@ impl From<BacktestResultRecord> for BacktestResultResponse {
             avg_win_hold_days: record.avg_win_hold_days,
             avg_loss_hold_days: record.avg_loss_hold_days,
             portfolio_volatility: record.portfolio_volatility,
-            ai_summary: record.ai_summary.map(|j| j.0),
+            ai_insights: record.ai_insights.map(|j| j.0),
         }
     }
 }
@@ -454,7 +454,7 @@ mod tests {
             avg_win_hold_days: 6.0,
             avg_loss_hold_days: 3.3,
             portfolio_volatility: 12.5,
-            ai_summary: None,
+            ai_insights: None,
         };
 
         let res = BacktestResultResponse::from(result_record);

@@ -1,24 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import BacktestAiSummary, {
-	parseSummaryTokens
-} from '$lib/components/backtest/BacktestAiSummary.svelte';
+import BacktestAiInsights, {
+	parseInsightsTokens
+} from '$lib/components/backtest/BacktestAiInsights.svelte';
 
-describe('BacktestAiSummary', () => {
-	it('renders summary dimensions, spotlight recommendation, and header', () => {
-		const summary = [
+describe('BacktestAiInsights', () => {
+	it('renders insights dimensions, spotlight recommendation, and header', () => {
+		const insights = [
 			'Net return of +15.2% over 12 months outperformed benchmark.',
 			'Annualized volatility of 14% indicates moderate risk exposure.',
 			'Average winning hold time of 8 days shows disciplined profit capture.',
 			'Consider tightening stop loss to -3.5% to improve risk-reward ratio.'
 		];
 
-		render(BacktestAiSummary, { props: { summary } });
+		render(BacktestAiInsights, { props: { insights } });
 
 		expect(screen.getByText('AI Insights')).toBeInTheDocument();
 		expect(screen.getByText('Backtest Review')).toBeInTheDocument();
-		expect(screen.queryByText('AI Summary')).not.toBeInTheDocument();
-		expect(screen.queryByText('Gemini Insights')).not.toBeInTheDocument();
 
 		// Dimension titles
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
@@ -34,8 +32,8 @@ describe('BacktestAiSummary', () => {
 		expect(screen.getByText('-3.5%')).toBeInTheDocument();
 	});
 
-	it('renders first 3 items in grid and last item as Next Steps when given a legacy 5-item summary', () => {
-		const summary = [
+	it('renders first 3 items in grid and last item as Next Steps when given a legacy 5-item insights', () => {
+		const insights = [
 			'Net return of +15.2% over 12 months.',
 			'Legacy win rate point.',
 			'Annualized volatility of 14%.',
@@ -43,7 +41,7 @@ describe('BacktestAiSummary', () => {
 			'Recommendation to keep stop loss.'
 		];
 
-		render(BacktestAiSummary, { props: { summary } });
+		render(BacktestAiInsights, { props: { insights } });
 
 		// Should have Profitability, Risk, Holding in grid
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
@@ -58,21 +56,21 @@ describe('BacktestAiSummary', () => {
 		expect(screen.queryByText('Average winning hold time of 8 days.')).not.toBeInTheDocument();
 	});
 
-	it('renders nothing when summary is empty', () => {
-		render(BacktestAiSummary, { props: { summary: [] } });
+	it('renders nothing when insights is empty', () => {
+		render(BacktestAiInsights, { props: { insights: [] } });
 		expect(screen.queryByText('AI Insights')).not.toBeInTheDocument();
 		expect(screen.queryByText('AI Summary')).not.toBeInTheDocument();
 	});
 
 	it('toggles collapse and expand modes', async () => {
-		const summary = [
+		const insights = [
 			'Net return of +15.2% over 12 months.',
 			'Volatility of 14%.',
 			'Hold time of 8 days.',
 			'Actionable recommendation point.'
 		];
 
-		render(BacktestAiSummary, { props: { summary } });
+		render(BacktestAiInsights, { props: { insights } });
 
 		// Initially expanded: Bento grid dimension titles are visible
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
@@ -94,10 +92,10 @@ describe('BacktestAiSummary', () => {
 		expect(screen.getByText('Profitability & Return')).toBeInTheDocument();
 	});
 
-	describe('parseSummaryTokens', () => {
+	describe('parseInsightsTokens', () => {
 		it('parses positive (+31%), negative (-20%), and neutral (0%) percentages', () => {
 			const text = 'Achieved +31.5% net return, max drawdown -20.2%, and 0% drift.';
-			const tokens = parseSummaryTokens(text);
+			const tokens = parseInsightsTokens(text);
 
 			const posToken = tokens.find((t) => t.text === '+31.5%');
 			expect(posToken).toBeDefined();
@@ -114,7 +112,7 @@ describe('BacktestAiSummary', () => {
 
 		it('parses markdown bold and italics with nested tones', () => {
 			const text = 'Return of **+31%** and *moderate risk* with **-10%** dip.';
-			const tokens = parseSummaryTokens(text);
+			const tokens = parseInsightsTokens(text);
 
 			const boldPos = tokens.find((t) => t.text === '+31%');
 			expect(boldPos?.bold).toBe(true);
@@ -130,7 +128,7 @@ describe('BacktestAiSummary', () => {
 
 		it('leaves unsigned percentages neutral/plain without green or red', () => {
 			const text = 'Win rate of 65% with 2.1 profit factor.';
-			const tokens = parseSummaryTokens(text);
+			const tokens = parseInsightsTokens(text);
 
 			const pctToken = tokens.find((t) => t.text === '65%');
 			// 65% is not signed with +/- and not 0, so it remains in plain text chunk
