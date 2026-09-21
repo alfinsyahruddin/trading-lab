@@ -232,3 +232,12 @@ For development workflows, verification checklists, and testing commands, see th
 
 For architectural principles, coding conventions, domain invariants, and inviolable rules, refer to [`AGENTS.md`](AGENTS.md).
 
+---
+
+## License
+
+Copyright © 2026 Alphabyte. All rights reserved.
+
+This project is source-available for viewing, and evaluation purposes only. Unauthorized copying, modification, forking, redistribution, or hosting is strictly prohibited. See [`LICENSE`](./LICENSE) for full terms.
+
+
