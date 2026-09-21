@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
 import { readable } from 'svelte/store';
 import BacktestDetailPage from '../../../src/routes/dashboard/backtests/[id]/+page.svelte';
 import * as api from '$lib/api';
@@ -108,6 +108,11 @@ describe('BacktestDetailPage - Run Again', () => {
 			updated_at: '2026-08-30T00:00:00Z'
 		});
 		vi.mocked(api.getTradingStrategy).mockResolvedValue(mockStrategy);
+	});
+
+	afterEach(() => {
+		cleanup();
+		for (let i = 1; i < 1000; i++) clearInterval(i);
 	});
 
 	it('renders Run Again buttons when backtest has failed and user is owner', async () => {
@@ -301,4 +306,15 @@ describe('BacktestDetailPage - Run Again', () => {
 			screen.getByText('Screening criteria & actual metrics evaluated for entry')
 		).toBeInTheDocument();
 	});
+
+	it('renders financial disclaimer at the bottom of the page', async () => {
+		vi.mocked(api.getBacktest).mockResolvedValue(mockFailedJob);
+		render(BacktestDetailPage);
+
+		expect(await screen.findByText('Disclaimer:')).toBeInTheDocument();
+		expect(
+			screen.getByText(/Trading Lab provides informational content only/i)
+		).toBeInTheDocument();
+	});
 });
+

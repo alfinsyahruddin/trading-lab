@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
@@ -69,8 +69,10 @@
 		await loadData();
 	});
 
-	onDestroy(() => {
-		stopPolling();
+	$effect(() => {
+		return () => {
+			stopPolling();
+		};
 	});
 
 	async function loadData() {
@@ -1375,6 +1377,15 @@
 			</div>
 		</div>
 	{/if}
+
+	<!-- Financial Disclaimer -->
+	<div class="mt-8 text-center sm:mt-10">
+		<p class="mx-auto max-w-3xl text-xs leading-relaxed" style="color: var(--fg-muted);">
+			<b>Disclaimer:</b> Trading Lab provides informational content only. Nothing on this platform should
+			be considered financial or investment advice, or a recommendation to buy or sell any financial instrument.
+			You are responsible for your trading decisions.
+		</p>
+	</div>
 
 	{#if job}
 		<TradeInfoModal
