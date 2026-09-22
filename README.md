@@ -1,6 +1,6 @@
 # Trading Lab
 
-> Preview: [https://trading-lab-alphabyte.vercel.app](https://trading-lab-alphabyte.vercel.app)
+> Preview: [https://trading-lab.xyz](https://trading-lab.xyz)
 
 ### Video Links
 - 1-min Teaser: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
@@ -16,21 +16,17 @@ Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (ID
 - **Visual Condition Builder**: Construct dynamic, multi-group screening rules with customizable intra-group and inter-group logical connectors (`AND` / `OR`).
 - **Comprehensive IDX Metrics**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
 - **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
-- **One-Click Strategy Duplication**: Easily duplicate existing strategies with automated unique naming (`{Name} (Copy)`) to rapidly iterate on rule variations.
 
 ### ⚡ Reliable Backtest Engine
 - **Asynchronous Simulation**: High-performance historical simulation engine running in non-blocking Tokio background tasks.
 - **Real Market Data Integration**: Powered by Sectors.app IDX market data with permanent Redis caching, cache-miss telemetry, and 429 rate-limit backoff retries.
 - **Customizable Simulation Parameters**: Configure starting capital, maximum simultaneous portfolio holdings, broker commission fees (buy/sell), and historical durations (1, 3, 6, 12 months).
 
-### 🤖 AI-Powered
-- **AI Strategy Refinement**: Intercepts strategy creation and modification to analyze Take-Profit, Stop-Loss, holding duration, and conditional screening rules against IDX market dynamics, offering one-click "Accept" or "Ignore" suggestions to optimize risk-reward parameters and rule conditions (adding variables, modifying thresholds).
+### ✨ AI-Powered
+- **AI Suggestions**: Offering one-click "Accept" or "Ignore" trading strategy suggestions to optimize risk-reward parameters, holding days, and rule conditions.
 - **AI Insights**: Generates a actionable qualitative breakdown on completed backtests.
-- **Persistent AI Caching**: AI insights are cached directly in PostgreSQL and Redis for zero-latency retrieval without redundant LLM calls.
-- **Platform-Wide Master Toggle**: Administrators can dynamically enable or disable AI capabilities across the entire platform via app settings.
 
 ### 📊 Deep Analytics & Interactive Visualizations
-- **Interactive Equity Curve**: High-performance interactive baseline equity chart powered by **TradingView Lightweight Charts** with Jakarta timezone rendering and Net vs Gross equity toggling.
 - **Key Performance Metrics**: Instant calculation of Total Return %, Win Rate %, Profit Factor, Sharpe Ratio (2% risk-free rate), Portfolio Volatility, and Average Holding Time.
 - **Win/Loss Doughnut & Sparklines**: Semicircular SVG win vs loss distribution chart and mini sparkline equity previews on list cards.
 - **Detailed Trade Telemetry**: In-depth breakdown of Top Gainers, Top Losers, Most Traded Tickers, and a complete trade execution history log with exit reasons (Take-Profit, Stop-Loss, Max Holding Days, or Period End).
@@ -42,7 +38,6 @@ Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (ID
 
 ### 🔒 Enterprise Security & Administration
 - **Stateful JWT Session Management**: JWT access and refresh token pair rotation backed by Redis session tracking with instantaneous revocation on logout or password change.
-- **Role-Based Access Control (RBAC)**: Distinct permissions for `ADMIN` and `MEMBER` roles with route extractors and client-side guards.
 - **Admin Management Console**: Dedicated admin panel for managing registered users, creating accounts with explicit roles, resetting credentials, and moderating content.
 - **Profile & Credential Management**: User self-service modal dialogs for updating profile details and securely changing passwords with Argon2id hashing.
 
