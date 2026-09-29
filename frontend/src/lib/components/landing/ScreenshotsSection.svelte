@@ -29,6 +29,8 @@
 					containerClass={item.containerClass}
 					imageBorderClass={item.imageBorderClass}
 					tagClass={item.tagClass}
+					width={item.width}
+					height={item.height}
 				/>
 			{/each}
 		</div>

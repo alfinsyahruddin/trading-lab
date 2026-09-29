@@ -317,4 +317,3 @@ describe('BacktestDetailPage - Run Again', () => {
 		).toBeInTheDocument();
 	});
 });
-

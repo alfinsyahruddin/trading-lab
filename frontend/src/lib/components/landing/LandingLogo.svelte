@@ -11,10 +11,21 @@
 	const maxWidth = $derived(isSm ? '130px' : '150px');
 </script>
 
-<img src="/logo-dark.svg" {alt} class="logo-dark-theme {imgClass}" style="max-width: {maxWidth};" />
+<img
+	src="/logo-dark.svg"
+	{alt}
+	width="2029"
+	height="310"
+	class="logo-dark-theme {imgClass}"
+	style="max-width: {maxWidth};"
+	decoding="async"
+/>
 <img
 	src="/logo-light.svg"
 	{alt}
+	width="2029"
+	height="310"
 	class="logo-light-theme {imgClass}"
 	style="max-width: {maxWidth};"
+	decoding="async"
 />

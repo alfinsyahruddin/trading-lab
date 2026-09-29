@@ -160,7 +160,7 @@
 		<p
 			class="max-w-lg text-sm leading-relaxed font-light text-(--fg-muted) sm:text-base sm:leading-relaxed lg:text-lg"
 		>
-			Build your strategy. Test it on real IDX history.<br class="hidden sm:inline" />Discover what
+			Build your strategy. Test it on real IDX history. <br class="hidden sm:inline" />Discover what
 			actually works.
 		</p>
 

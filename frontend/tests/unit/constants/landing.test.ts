@@ -34,8 +34,10 @@ describe('Landing Constants', () => {
 	it('has 4 screenshots with light and dark variants', () => {
 		expect(LANDING_SCREENSHOTS).toHaveLength(4);
 		LANDING_SCREENSHOTS.forEach((shot) => {
-			expect(shot.lightSrc).toMatch(/-light\.png$/);
-			expect(shot.darkSrc).toMatch(/-dark\.png$/);
+			expect(shot.lightSrc).toMatch(/-light\.webp$/);
+			expect(shot.darkSrc).toMatch(/-dark\.webp$/);
+			expect(shot.width).toBeGreaterThan(0);
+			expect(shot.height).toBeGreaterThan(0);
 		});
 	});
 

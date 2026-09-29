@@ -90,49 +90,57 @@ export interface LandingScreenshot {
 	containerClass: string;
 	imageBorderClass: string;
 	tagClass: string;
+	width: number;
+	height: number;
 }
 
 export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 	{
 		id: 'backtest-results',
-		lightSrc: '/backtest-light.png',
-		darkSrc: '/backtest-dark.png',
+		lightSrc: '/backtest-light.webp',
+		darkSrc: '/backtest-dark.webp',
 		alt: 'Backtest results showing equity curve, win rate, and performance metrics',
 		tag: 'Backtest Results',
 		description: 'Equity curve, win rate, Sharpe ratio, and full trade log—everything in one view.',
 		delay: 50,
 		containerClass: 'max-md:mb-0 md:col-span-2 md:mb-6',
 		imageBorderClass: 'border-(--border) shadow-none dark:shadow-2xl',
-		tagClass: 'text-(--accent)'
+		tagClass: 'text-(--accent)',
+		width: 2314,
+		height: 1792
 	},
 	{
 		id: 'community-dashboard',
-		lightSrc: '/dashboard-light.png',
-		darkSrc: '/dashboard-dark.png',
+		lightSrc: '/dashboard-light.webp',
+		darkSrc: '/dashboard-dark.webp',
 		alt: 'Dashboard showing community leaderboard and user stats',
 		tag: 'Community Dashboard',
 		description: 'Discover top-performing strategies on the IDX community leaderboard.',
 		delay: 100,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-1 md:row-span-2 md:row-start-2',
 		imageBorderClass: 'border-(--border) shadow-none dark:shadow-xl',
-		tagClass: 'text-(--accent)'
+		tagClass: 'text-(--accent)',
+		width: 2196,
+		height: 1716
 	},
 	{
 		id: 'ai-suggestions',
-		lightSrc: '/ai-suggestions-light.png',
-		darkSrc: '/ai-suggestions-dark.png',
+		lightSrc: '/ai-suggestions-light.webp',
+		darkSrc: '/ai-suggestions-dark.webp',
 		alt: 'AI strategy suggestions with accept or ignore actions',
 		tag: '✦ AI Suggestions',
 		description: 'One-click accept or ignore for AI-generated parameter improvements.',
 		delay: 200,
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-2',
 		imageBorderClass: 'border-none shadow-none dark:shadow-xl',
-		tagClass: 'text-[#f5c842]'
+		tagClass: 'text-[#f5c842]',
+		width: 2104,
+		height: 712
 	},
 	{
 		id: 'ai-insights',
-		lightSrc: '/ai-insights-light.png',
-		darkSrc: '/ai-insights-dark.png',
+		lightSrc: '/ai-insights-light.webp',
+		darkSrc: '/ai-insights-dark.webp',
 		alt: 'AI insights with qualitative performance breakdown',
 		tag: '✦ AI Insights',
 		description: 'Qualitative breakdown and actionable insights for every backtest.',
@@ -140,7 +148,9 @@ export const LANDING_SCREENSHOTS: LandingScreenshot[] = [
 		containerClass: 'flex flex-col md:col-span-1 md:col-start-2 md:row-start-3',
 		imageBorderClass: 'border-none shadow-none dark:shadow-xl',
 		tagClass:
-			'w-fit bg-[linear-gradient(135deg,#de98fe_0%,#38c1fb_100%)] bg-clip-text text-transparent'
+			'w-fit bg-[linear-gradient(135deg,#de98fe_0%,#38c1fb_100%)] bg-clip-text text-transparent',
+		width: 2106,
+		height: 692
 	}
 ];
 

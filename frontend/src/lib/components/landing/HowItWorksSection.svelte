@@ -9,9 +9,13 @@
 	From hypothesis to <span class="relative inline-block whitespace-nowrap">
 		<span class="relative z-10">evidence</span>
 		<img
-			src="/paint-underline.png"
+			src="/paint-underline.webp"
 			alt=""
 			aria-hidden="true"
+			width="800"
+			height="134"
+			loading="lazy"
+			decoding="async"
 			class="pointer-events-none absolute -bottom-1.5 left-0 z-0 h-2.5 w-[104%] max-w-none object-fill select-none sm:-bottom-2.5 sm:h-3.5 lg:-bottom-3.5 lg:h-4.5"
 		/>
 	</span>.

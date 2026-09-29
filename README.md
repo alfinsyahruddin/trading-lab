@@ -6,7 +6,7 @@
 - 1-min Teaser: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
 - 3-min Demo: [https://youtu.be/pqEO3HtPNvs](https://youtu.be/pqEO3HtPNvs)
 
-![Trading Lab](./frontend/static/backtest.png)
+![Trading Lab](./frontend/static/backtest.webp)
 
 Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (IDX). It enables traders to easily build custom multi-condition trading strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
 

@@ -84,20 +84,21 @@ describe('Landing Page (+page.svelte)', () => {
 		expect(screen.getByRole('heading', { name: /analyze and refine/i })).toBeInTheDocument();
 	});
 
-	it('renders screenshot images with light and dark mode variants', () => {
+	it('renders screenshot images with light and dark mode variants in webp format', () => {
 		const { container } = render(LandingPage);
 		const images = Array.from(container.querySelectorAll('img')).map((img) =>
 			img.getAttribute('src')
 		);
 
-		expect(images).toContain('/backtest-light.png');
-		expect(images).toContain('/backtest-dark.png');
-		expect(images).toContain('/dashboard-light.png');
-		expect(images).toContain('/dashboard-dark.png');
-		expect(images).toContain('/ai-suggestions-light.png');
-		expect(images).toContain('/ai-suggestions-dark.png');
-		expect(images).toContain('/ai-insights-light.png');
-		expect(images).toContain('/ai-insights-dark.png');
+		expect(images).toContain('/backtest-light.webp');
+		expect(images).toContain('/backtest-dark.webp');
+		expect(images).toContain('/dashboard-light.webp');
+		expect(images).toContain('/dashboard-dark.webp');
+		expect(images).toContain('/ai-suggestions-light.webp');
+		expect(images).toContain('/ai-suggestions-dark.webp');
+		expect(images).toContain('/ai-insights-light.webp');
+		expect(images).toContain('/ai-insights-dark.webp');
+		expect(images).toContain('/paint-underline.webp');
 	});
 
 	it('renders hero chart widget with animated paths and pulse dots at end of chart data', () => {
@@ -180,5 +181,27 @@ describe('Landing Page (+page.svelte)', () => {
 		await fireEvent.click(registerBtn);
 
 		expect(screen.queryByText(/we're launching soon!/i)).not.toBeInTheDocument();
+	});
+
+	it('provides accessibility landmarks and skip link', () => {
+		const { container } = render(LandingPage);
+		const main = screen.getByRole('main');
+		expect(main).toBeInTheDocument();
+		expect(main).toHaveAttribute('id', 'main-content');
+
+		const skipLink = screen.getByRole('link', { name: /skip to content/i });
+		expect(skipLink).toBeInTheDocument();
+		expect(skipLink).toHaveAttribute('href', '#main-content');
+
+		// Main landmark wraps sections
+		expect(main.querySelector('#features-section')).toBeInTheDocument();
+		expect(main.querySelector('#screenshot-section')).toBeInTheDocument();
+		expect(main.querySelector('#how-section')).toBeInTheDocument();
+		expect(main.querySelector('#cta-section')).toBeInTheDocument();
+
+		// Footer landmark is outside main
+		const footer = container.querySelector('footer');
+		expect(footer).toBeInTheDocument();
+		expect(main.contains(footer)).toBe(false);
 	});
 });
