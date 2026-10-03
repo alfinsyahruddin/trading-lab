@@ -42,11 +42,19 @@ impl AppDependencies {
         let redis = setup_redis(&config).await?;
         let http_client = setup_http_client()?;
 
+        let rate_limiter = Arc::new(
+            crate::clients::sectors_rate_limiter::SectorsRateLimiter::new(
+                config.sectors_rate_limit_per_minute,
+                std::time::Duration::from_secs(60),
+            ),
+        );
+
         let sectors_client: Arc<dyn crate::clients::sectors_client::SectorsClientTrait> =
             Arc::new(SectorsClient::new(
                 http_client.clone(),
                 config.sectors_api_key.clone(),
                 redis.clone(),
+                rate_limiter,
             ));
 
         let llm: Arc<dyn LLMTrait> = Arc::new(GeminiLLM::new(

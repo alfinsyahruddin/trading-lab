@@ -1,8 +1,12 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use async_trait::async_trait;
 use chrono::{Days, NaiveDate};
 use redis::aio::ConnectionManager;
 use reqwest::Client;
 
+use crate::clients::sectors_rate_limiter::SectorsRateLimiter;
 use crate::entities::app_error::AppError;
 
 pub use crate::entities::sectors::{
@@ -35,15 +39,39 @@ pub struct SectorsClient {
     http: Client,
     api_key: String,
     redis: ConnectionManager,
+    rate_limiter: Arc<SectorsRateLimiter>,
 }
 
 impl SectorsClient {
-    pub fn new(http: Client, api_key: String, redis: ConnectionManager) -> Self {
+    pub fn new(
+        http: Client,
+        api_key: String,
+        redis: ConnectionManager,
+        rate_limiter: Arc<SectorsRateLimiter>,
+    ) -> Self {
         Self {
             http,
             api_key,
             redis,
+            rate_limiter,
         }
+    }
+
+    pub fn with_default_rate_limiter(
+        http: Client,
+        api_key: String,
+        redis: ConnectionManager,
+    ) -> Self {
+        Self::new(
+            http,
+            api_key,
+            redis,
+            Arc::new(SectorsRateLimiter::default()),
+        )
+    }
+
+    pub fn rate_limiter(&self) -> &Arc<SectorsRateLimiter> {
+        &self.rate_limiter
     }
 }
 
@@ -108,12 +136,14 @@ impl SectorsClientTrait for SectorsClient {
         let url = "https://api.sectors.app/v2/companies/";
         let limit_str = limit.to_string();
         eprintln!(
-            "[SectorsClient] Cache miss, hitting Sectors API: {}?where={}&limit={}&order_by=symbol&include_query_values=true",
+            "[SectorsClient] Hit Sectors API: {}?where={}&limit={}&order_by=symbol&include_query_values=true",
             url, where_query, limit_str
         );
 
         let mut retries = 0u32;
         let response = loop {
+            self.rate_limiter.acquire().await;
+
             let res = self
                 .http
                 .get(url)
@@ -128,14 +158,18 @@ impl SectorsClientTrait for SectorsClient {
                 .await
                 .map_err(|_e| AppError::Internal)?;
 
-            if res.status().as_u16() == 429 && retries < MAX_RETRIES {
-                retries += 1;
-                eprintln!(
-                    "[SectorsClient] Got 429 for screener, retrying (attempt {}/{}) after {}s...",
-                    retries, MAX_RETRIES, RETRY_DELAY_SECS
-                );
-                tokio::time::sleep(std::time::Duration::from_secs(RETRY_DELAY_SECS)).await;
-                continue;
+            if res.status().as_u16() == 429 {
+                self.rate_limiter
+                    .notify_429(Duration::from_secs(RETRY_DELAY_SECS))
+                    .await;
+                if retries < MAX_RETRIES {
+                    retries += 1;
+                    eprintln!(
+                        "[SectorsClient] Got 429 for screener, paused rate limiter for {}s, retrying (attempt {}/{})...",
+                        RETRY_DELAY_SECS, retries, MAX_RETRIES
+                    );
+                    continue;
+                }
             }
 
             break res;
@@ -230,10 +264,12 @@ impl SectorsClientTrait for SectorsClient {
                 "https://api.sectors.app/v2/daily/{}/?start={}&end={}",
                 clean_symbol, chunk_start_str, chunk_end_str
             );
-            eprintln!("[SectorsClient] Cache miss, hitting Sectors API: {}", url);
+            eprintln!("[SectorsClient] Hit Sectors API: {}", url);
 
             let mut retries = 0u32;
             let response = loop {
+                self.rate_limiter.acquire().await;
+
                 let res = self
                     .http
                     .get(&url)
@@ -245,14 +281,18 @@ impl SectorsClientTrait for SectorsClient {
                         AppError::Internal
                     })?;
 
-                if res.status().as_u16() == 429 && retries < MAX_RETRIES {
-                    retries += 1;
-                    eprintln!(
-                        "[SectorsClient] Got 429 for {}, retrying (attempt {}/{}) after {}s...",
-                        url, retries, MAX_RETRIES, RETRY_DELAY_SECS
-                    );
-                    tokio::time::sleep(std::time::Duration::from_secs(RETRY_DELAY_SECS)).await;
-                    continue;
+                if res.status().as_u16() == 429 {
+                    self.rate_limiter
+                        .notify_429(Duration::from_secs(RETRY_DELAY_SECS))
+                        .await;
+                    if retries < MAX_RETRIES {
+                        retries += 1;
+                        eprintln!(
+                            "[SectorsClient] Got 429 for {}, paused rate limiter for {}s, retrying (attempt {}/{})...",
+                            url, RETRY_DELAY_SECS, retries, MAX_RETRIES
+                        );
+                        continue;
+                    }
                 }
 
                 break res;
@@ -317,10 +357,12 @@ impl SectorsClientTrait for SectorsClient {
             "https://api.sectors.app/v2/foreign-flow/{}/?start={}&end={}",
             clean_symbol, start, end
         );
-        eprintln!("[SectorsClient] Cache miss, hitting Sectors API: {}", url);
+        eprintln!("[SectorsClient] Hit Sectors API: {}", url);
 
         let mut retries = 0u32;
         let response = loop {
+            self.rate_limiter.acquire().await;
+
             let res = self
                 .http
                 .get(&url)
@@ -332,14 +374,18 @@ impl SectorsClientTrait for SectorsClient {
                     AppError::Internal
                 })?;
 
-            if res.status().as_u16() == 429 && retries < MAX_RETRIES {
-                retries += 1;
-                eprintln!(
-                    "[SectorsClient] Got 429 for {}, retrying (attempt {}/{}) after {}s...",
-                    url, retries, MAX_RETRIES, RETRY_DELAY_SECS
-                );
-                tokio::time::sleep(std::time::Duration::from_secs(RETRY_DELAY_SECS)).await;
-                continue;
+            if res.status().as_u16() == 429 {
+                self.rate_limiter
+                    .notify_429(Duration::from_secs(RETRY_DELAY_SECS))
+                    .await;
+                if retries < MAX_RETRIES {
+                    retries += 1;
+                    eprintln!(
+                        "[SectorsClient] Got 429 for {}, paused rate limiter for {}s, retrying (attempt {}/{})...",
+                        url, RETRY_DELAY_SECS, retries, MAX_RETRIES
+                    );
+                    continue;
+                }
             }
 
             break res;

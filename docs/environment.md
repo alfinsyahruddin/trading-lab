@@ -33,6 +33,7 @@ All variables are parsed in [`AppConfig::from_env`](../backend/src/entities/app_
 | `REFRESH_TOKEN_EXPIRATION_SECONDS` | **Yes** | `604800` | Lifetime of JWT refresh tokens and Redis sessions in seconds (7 days). |
 | `CORS_ALLOWED_ORIGIN` | No | `http://localhost:3000` | Allowed origins for CORS headers (comma-separated). |
 | `SECTORS_API_KEY` | **Yes** | — | API key for Sectors.app IDX financial market data. |
+| `SECTORS_RATE_LIMIT_PER_MINUTE` | No | `25` | Maximum requests per minute allowed across all Sectors API endpoints and concurrent backtests. |
 | `GEMINI_API_KEY` | No | `""` | Google Gemini API key for AI executive summaries and strategy recommendations. |
 | `GEMINI_MODEL` | No | `gemini-3.1-flash-lite` | Model identifier for Google Gemini calls. |
 

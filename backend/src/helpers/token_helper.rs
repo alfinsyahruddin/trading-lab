@@ -85,6 +85,7 @@ mod tests {
             refresh_token_expiration_seconds: 86400,
             cors_allowed_origin: "http://localhost:3000".into(),
             sectors_api_key: "test_key".into(),
+            sectors_rate_limit_per_minute: 25,
             gemini_api_key: "test_gemini".into(),
             gemini_model: "gemini-3.1-flash-lite".into(),
         }

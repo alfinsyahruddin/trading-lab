@@ -41,6 +41,25 @@ Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (ID
 - **Admin Management Console**: Dedicated admin panel for managing registered users, creating accounts with explicit roles, resetting credentials, and moderating content.
 - **Profile & Credential Management**: User self-service modal dialogs for updating profile details and securely changing passwords with Argon2id hashing.
 
+## Core Data Source: Sectors API
+
+All historical IDX market data is sourced from the **[Sectors.app API](https://sectors.app)**. Three endpoints power the backtest engine:
+
+| Endpoint | Path | Purpose |
+| :--- | :--- | :--- |
+| **Company Screener** | `GET /v2/companies/` | Screen IDX stocks by fundamental and valuation metrics |
+| **Daily Transactions** | `GET /v2/daily/{symbol}/` | Fetch historical price & volume data per stock |
+| **Foreign Flow** | `GET /v2/foreign-flow/{symbol}/` | Retrieve net foreign buy/sell flow over a date range |
+
+Responses are cached in Redis permanently on first fetch, so repeated backtests over the same period hit the cache instead of the API.
+
+### Rate Limiting
+
+A shared rate limiter enforces Sectors.app's quota (25 req/min) across all endpoints and concurrent backtests. Key behaviors:
+
+- **Date chunking**: Requests spanning more than 90 days are automatically split into ≤ 90-day segments.
+- **429 cooldown**: A 429 response pauses all outbound API calls globally for 60 seconds before retrying (up to 2 retries), matching Sectors.app's quota reset window.
+
 ---
 
 ## Tech Stack

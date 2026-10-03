@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::NaiveDate;
+use futures_util::StreamExt;
 use redis::aio::ConnectionManager;
 use uuid::Uuid;
 use validator::Validate;
@@ -408,8 +409,7 @@ impl BacktestService {
             if let Err(e) = run_backtest(
                 &repo,
                 &strategy_repo,
-                sectors.as_ref(),
-                sectors.clone(),
+                sectors,
                 llm.as_ref(),
                 &settings,
                 &redis,
@@ -501,8 +501,7 @@ impl BacktestService {
             if let Err(e) = run_backtest(
                 &repo,
                 &strategy_repo,
-                sectors.as_ref(),
-                sectors.clone(),
+                sectors,
                 llm.as_ref(),
                 &settings,
                 &redis,
@@ -733,8 +732,7 @@ fn process_transactions(data: Vec<DailyTransaction>) -> Vec<(NaiveDate, f64, u64
 async fn run_backtest(
     repo: &BacktestRepository,
     strategy_repo: &TradingStrategyRepository,
-    sectors: &dyn SectorsClientTrait,
-    sectors_arc: Arc<dyn SectorsClientTrait>,
+    sectors: Arc<dyn SectorsClientTrait>,
     llm: &dyn LLMTrait,
     settings: &SettingsService,
     redis: &ConnectionManager,
@@ -829,75 +827,30 @@ async fn run_backtest(
         let mut fetched_ff: HashMap<String, ForeignFlowResponse> = HashMap::new();
 
         if !ff_to_fetch.is_empty() {
-            const FF_RATE_LIMIT: usize = 25;
-            const FF_RATE_LIMIT_WINDOW_SECS: u64 = 60;
+            eprintln!(
+                "[Backtest] Fetching foreign flow for {} stock(s) via rate-limited Sectors client",
+                ff_to_fetch.len()
+            );
 
-            if ff_to_fetch.len() <= FF_RATE_LIMIT {
-                eprintln!(
-                    "[Backtest] Firing all {} foreign flow API call(s) in parallel (≤ {} limit)",
-                    ff_to_fetch.len(),
-                    FF_RATE_LIMIT
-                );
-                let futures = ff_to_fetch.iter().map(|stock| {
-                    let s = sectors_arc.clone();
-                    let symbol = stock.symbol.clone();
-                    let start = start_str_ff.clone();
-                    let end = end_str_ff.clone();
-                    async move {
-                        let result = s.foreign_flow(&symbol, &start, &end).await;
-                        (symbol, result)
-                    }
-                });
-
-                for (symbol, data_result) in futures_util::future::join_all(futures).await {
-                    if let Ok(data) = data_result {
-                        fetched_ff.insert(symbol, data);
-                    }
+            let futures = ff_to_fetch.into_iter().map(|stock| {
+                let s = sectors.clone();
+                let symbol = stock.symbol.clone();
+                let start = start_str_ff.clone();
+                let end = end_str_ff.clone();
+                async move {
+                    let result = s.foreign_flow(&symbol, &start, &end).await;
+                    (symbol, result)
                 }
-            } else {
-                let total_batches = ff_to_fetch.len().div_ceil(FF_RATE_LIMIT);
-                eprintln!(
-                    "[Backtest] Foreign flow: {} batches of ≤{} stock(s) with {}s pause between batches",
-                    total_batches, FF_RATE_LIMIT, FF_RATE_LIMIT_WINDOW_SECS
-                );
+            });
 
-                for (batch_idx, batch) in ff_to_fetch.chunks(FF_RATE_LIMIT).enumerate() {
-                    if batch_idx > 0 {
-                        eprintln!(
-                            "[Backtest] Rate-limit pause: waiting {}s before foreign flow batch {}/{}...",
-                            FF_RATE_LIMIT_WINDOW_SECS,
-                            batch_idx + 1,
-                            total_batches
-                        );
-                        tokio::time::sleep(std::time::Duration::from_secs(
-                            FF_RATE_LIMIT_WINDOW_SECS,
-                        ))
-                        .await;
-                    }
+            let results = futures_util::stream::iter(futures)
+                .buffer_unordered(25)
+                .collect::<Vec<_>>()
+                .await;
 
-                    eprintln!(
-                        "[Backtest] Fetching foreign flow batch {}/{} ({} stock(s))",
-                        batch_idx + 1,
-                        total_batches,
-                        batch.len()
-                    );
-
-                    let futures = batch.iter().map(|stock| {
-                        let s = sectors_arc.clone();
-                        let symbol = stock.symbol.clone();
-                        let start = start_str_ff.clone();
-                        let end = end_str_ff.clone();
-                        async move {
-                            let result = s.foreign_flow(&symbol, &start, &end).await;
-                            (symbol, result)
-                        }
-                    });
-
-                    for (symbol, data_result) in futures_util::future::join_all(futures).await {
-                        if let Ok(data) = data_result {
-                            fetched_ff.insert(symbol, data);
-                        }
-                    }
+            for (symbol, data_result) in results {
+                if let Ok(data) = data_result {
+                    fetched_ff.insert(symbol, data);
                 }
             }
         }
@@ -972,15 +925,9 @@ async fn run_backtest(
             .await;
     }
 
-    // ── Rate-aware parallel fetch ─────────────────────────────────────────────
-    // Sectors API limit: 25 requests / minute.
-    // Each stock needs `chunks_per_stock` HTTP calls (one per 90-day window).
-    // Before batching stocks to process, check Redis first for cached transactions.
+    // ── Rate-limited parallel fetch ───────────────────────────────────────────
+    // Before dispatching API requests, check Redis first for cached transactions.
     use crate::clients::sectors_client::compute_date_chunks;
-    use futures_util::future::join_all;
-
-    const RATE_LIMIT: usize = 25;
-    const RATE_LIMIT_WINDOW_SECS: u64 = 60;
 
     let chunks = compute_date_chunks(start_date, end_date);
     let chunks_per_stock = chunks.len().max(1);
@@ -998,92 +945,35 @@ async fn run_backtest(
     let mut fetched_stocks_data: HashMap<String, Vec<DailyTransaction>> = HashMap::new();
 
     if !stocks_to_fetch.is_empty() {
-        let total_api_calls = stocks_to_fetch.len() * chunks_per_stock;
-        let stocks_per_batch = (RATE_LIMIT / chunks_per_stock).max(1);
-
         eprintln!(
-            "[Backtest] {} stock(s) to fetch × {} chunk(s) = {} total API call(s) | batch size: {} stock(s)",
+            "[Backtest] Fetching daily transactions for {} stock(s) ({} chunk(s) per stock) via rate-limited Sectors client",
             stocks_to_fetch.len(),
-            chunks_per_stock,
-            total_api_calls,
-            if total_api_calls <= RATE_LIMIT {
-                stocks_to_fetch.len() // single batch
-            } else {
-                stocks_per_batch
-            }
+            chunks_per_stock
         );
 
-        if total_api_calls <= RATE_LIMIT {
-            // ── All calls fit within one rate-limit window: full parallel ──────
-            eprintln!(
-                "[Backtest] Firing all {} API call(s) in parallel (≤ {} limit)",
-                total_api_calls, RATE_LIMIT
-            );
-
-            let futures = stocks_to_fetch.iter().map(|stock| {
-                let s = sectors_arc.clone();
-                let symbol = stock.symbol.clone();
-                let start = start_str.clone();
-                let end = end_str.clone();
-                async move {
-                    let result = s.daily_transactions(&symbol, &start, &end).await;
-                    (symbol, result)
-                }
-            });
-
-            for (symbol, data_result) in join_all(futures).await {
-                if let Ok(data) = data_result {
-                    fetched_stocks_data.insert(symbol, data);
-                }
+        let futures = stocks_to_fetch.into_iter().map(|stock| {
+            let s = sectors.clone();
+            let symbol = stock.symbol.clone();
+            let start = start_str.clone();
+            let end = end_str.clone();
+            async move {
+                let result = s.daily_transactions(&symbol, &start, &end).await;
+                (symbol, result)
             }
-        } else {
-            // ── More than 25 calls needed: batched parallel ────────────────────
-            let total_batches = stocks_to_fetch.len().div_ceil(stocks_per_batch);
-            eprintln!(
-                "[Backtest] {} batches of ≤{} stock(s) with {}s pause between batches",
-                total_batches, stocks_per_batch, RATE_LIMIT_WINDOW_SECS
-            );
+        });
 
-            for (batch_idx, batch) in stocks_to_fetch.chunks(stocks_per_batch).enumerate() {
-                if batch_idx > 0 {
-                    eprintln!(
-                        "[Backtest] Rate-limit pause: waiting {}s before batch {}/{}...",
-                        RATE_LIMIT_WINDOW_SECS,
-                        batch_idx + 1,
-                        total_batches
-                    );
-                    tokio::time::sleep(std::time::Duration::from_secs(RATE_LIMIT_WINDOW_SECS))
-                        .await;
-                }
+        let results = futures_util::stream::iter(futures)
+            .buffer_unordered(25)
+            .collect::<Vec<_>>()
+            .await;
 
-                eprintln!(
-                    "[Backtest] Fetching batch {}/{} ({} stock(s), {} API call(s))",
-                    batch_idx + 1,
-                    total_batches,
-                    batch.len(),
-                    batch.len() * chunks_per_stock
-                );
-
-                let futures = batch.iter().map(|stock| {
-                    let s = sectors_arc.clone();
-                    let symbol = stock.symbol.clone();
-                    let start = start_str.clone();
-                    let end = end_str.clone();
-                    async move {
-                        let result = s.daily_transactions(&symbol, &start, &end).await;
-                        (symbol, result)
-                    }
-                });
-
-                for (symbol, data_result) in join_all(futures).await {
-                    if let Ok(data) = data_result {
-                        fetched_stocks_data.insert(symbol, data);
-                    }
-                }
+        for (symbol, data_result) in results {
+            if let Ok(data) = data_result {
+                fetched_stocks_data.insert(symbol, data);
             }
         }
     } else {
-        eprintln!("[Backtest] All stocks found in Redis cache; skipping API batches");
+        eprintln!("[Backtest] All stocks found in Redis cache; skipping API fetch");
     }
 
     let mut stock_data_list: Vec<StockData> = Vec::new();

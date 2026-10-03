@@ -143,18 +143,20 @@ All API endpoints strictly adhere to the unified envelope:
    - `max_holding_stocks` (1–50, default 4): Maximum concurrent portfolio holdings.
    - `max_stocks` (default 12): Top screener candidates considered for purchase on any given day.
 3. **Sectors.app Client Architecture** ([`src/clients/sectors_client.rs`](../backend/src/clients/sectors_client.rs)):
-   - **Rate Limiting**: HTTP 429 errors trigger a 60-second backoff (`RETRY_DELAY_SECS = 60`) with up to 2 retries, aligning with the Sectors.app 60s quota window. Requests across batches are capped at 25 calls/minute with 60-second pauses between batches.
+   - **Global Rate Limiting** ([`src/clients/sectors_rate_limiter.rs`](../backend/src/clients/sectors_rate_limiter.rs)): Rate limiting is managed globally across all Sectors API endpoints (`screener`, `daily_transactions`, `foreign_flow`) and across all concurrent backtest runs using a Tokio-synchronized Generic Cell Rate Algorithm (GCRA) token bucket. It allows bursts up to the configured limit (`SECTORS_RATE_LIMIT_PER_MINUTE`, default 25 requests/min) and smoothly throttles subsequent calls (~2.4s per request).
+   - **Global 429 Cooldown**: If an HTTP 429 response is encountered, `SectorsRateLimiter::notify_429` pauses all outbound Sectors API calls globally across all endpoints and backtests for 60 seconds (`RETRY_DELAY_SECS = 60`), preventing request storms while quota windows reset. Requests retry up to 2 times after the cooldown.
    - **Date Chunking**: Daily transaction requests spanning more than 90 days are chunked into ≤ 90-day segments via [`compute_date_chunks`](../backend/src/clients/sectors_client.rs).
    - **Endpoints & Caching**:
      - Screener responses cached under `sectors:screener:{where_query}:{limit}` (`GET /v2/companies/`).
      - Daily transaction chunks cached under `sectors:daily:{symbol}:{chunk_start}:{chunk_end}` (`GET /v2/daily/{symbol}/`).
      - Foreign flow responses cached under `sectors:foreign_flow:{symbol}:{start}:{end}` (`GET /v2/foreign-flow/{symbol}/`).
+     - Cached hits bypass the rate limiter entirely.
    - **Screener Telemetry**: Queries pass `include_query_values=true` and `order_by=last_close_price` to capture indicator values for trade logging.
 4. **Rule Parsing & Simulation Engine** ([`src/services/backtest/`](../backend/src/services/backtest)):
    - Fundamental metrics and market cap are converted into Sectors API screener queries (`{variable}[{year}]`, `last_close_price`, `market_cap`).
    - Daily variables (`volume`, `value`, `price`) cannot be screened via the Sectors company API and are separated into manual filter groups evaluated dynamically during the daily simulation loop ([`rules.rs`](../backend/src/services/backtest/rules.rs)).
    - Foreign flow variables (`last_1_week_foreign_flow`, `last_1_month_foreign_flow`, `last_3_months_foreign_flow`) represent total net foreign inflow over 7, 30, and 90 calendar days prior to the backtest start date (ending on `start_date - 1 day` to avoid lookahead bias). They are separated from the screener query and evaluated as pre-filters immediately after screener results are returned, before fetching daily transactions.
-   - Before creating batch requests for daily transactions or foreign flow, the backtest engine retrieves cached data from Redis first; only stocks with missing data are queued into rate-limited API batches.
+   - Before requesting daily transactions or foreign flow, the backtest engine retrieves cached data from Redis first; uncached items are dispatched concurrently via `futures_util::StreamExt::buffer_unordered`, relying on `SectorsClient`'s global rate limiter for pacing without manual 60s sleep loops.
    - Simulation runs asynchronously in a Tokio background task, updating job status from `PROCESSING` to `DONE` or `FAILED`.
 
 **Endpoints**:

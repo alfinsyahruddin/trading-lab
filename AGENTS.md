@@ -27,7 +27,7 @@ trading-lab/
 ├── backend/                  # Rust API service (Actix-web 4, SQLx, Redis, Reqwest)
 │   ├── migrations/           # SQLx migration files (sequential PostgreSQL schema)
 │   ├── src/
-│   │   ├── clients/          # Sectors.app (60s retry, 90d chunks) & Gemini LLM clients
+│   │   ├── clients/          # Sectors.app (global GCRA rate limiter, 60s retry, 90d chunks) & Gemini LLM clients
 │   │   ├── constants/        # Global constants (Redis prefixes)
 │   │   ├── entities/         # Domain models, requests/responses, errors, configuration
 │   │   ├── enums/            # System enums (UserRole, BacktestStatus, TokenType)
@@ -98,7 +98,7 @@ When contributing or modifying code, agents and contributors MUST adhere to thes
 ### Domain & Security Invariants
 1. **Redis Session Tracking**: User sessions are mapped in Redis as `auth:session:{session_id}` → `user_id` and tracked in `auth:user-sessions:{user_id}`. Password changes, role changes, and account deletions must revoke all active sessions via `revoke_all_user_sessions`.
 2. **Registration Captcha**: `POST /api/users/register` requires `captcha_id` and `captcha_code` (generated via `GET /api/users/captcha`). Automated tests may use the `TEST_CAPTCHA` bypass code.
-3. **Sectors.app Resilience**: [`SectorsClient`](./backend/src/clients/sectors_client.rs) retries HTTP 429 rate limits with a **60-second delay** (matching Sectors quota resets) and chunks daily transaction queries into segments of ≤ 90 days.
+3. **Sectors.app Resilience**: [`SectorsClient`](./backend/src/clients/sectors_client.rs) and [`SectorsRateLimiter`](./backend/src/clients/sectors_rate_limiter.rs) enforce a global GCRA rate limit across all endpoints and concurrent backtests, retrying HTTP 429 rate limits with a **60-second cooldown** (matching Sectors quota resets) and chunking daily transaction queries into segments of ≤ 90 days.
 4. **Database Migrations**: Never modify existing migrations that have already run. Always create a new sequential file under [`backend/migrations/`](./backend/migrations/).
 5. **Git Commit Guidelines**: **Do NOT use Conventional Commits** (never use prefixes like `feat:`, `fix:`, `chore:`); write concise, descriptive natural language summaries in title or sentence case.
 
