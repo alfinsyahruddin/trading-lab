@@ -1,14 +1,36 @@
-# Trading Lab
+<div align="center">
 
-> Preview: [https://trading-lab.xyz](https://trading-lab.xyz)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./frontend/static/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./frontend/static/logo-light.svg">
+  <img src="./frontend/static/logo-light.svg" alt="Trading Lab Logo" height="36" />
+</picture>
 
-### Video Links
-- 1-min Teaser: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
-- 3-min Demo: [https://youtu.be/pqEO3HtPNvs](https://youtu.be/pqEO3HtPNvs)
+---
 
-![Trading Lab](./frontend/static/backtest.webp)
+**AI-powered backtesting platform for the Indonesia Stock Exchange (IDX).**
 
-Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (IDX). It enables traders to easily build custom multi-condition trading strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
+<p align="center">
+    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.80+-orange?logo=rust" alt="Rust"/></a>
+    <a href="https://svelte.dev/"><img src="https://img.shields.io/badge/Svelte-5_Runes-FF3E00?logo=svelte" alt="Svelte 5"/></a>
+    <a href="https://sectors.app"><img src="https://img.shields.io/badge/Data-Sectors.app-ff0000" alt="Sectors.app"/></a>
+</p>
+
+<br />
+
+<img src="./frontend/static/backtest.webp" alt="Trading Lab Quantitative Backtesting Platform" width="100%" />
+
+</div>
+
+---
+
+## Overview
+
+**Trading Lab** is a backtesting platform built for the Indonesia Stock Exchange (IDX). It enables traders to easily build custom multi-condition trading strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
+
+- 🌐 **Live Preview**: [https://trading-lab.xyz](https://trading-lab.xyz)
+- 🎬 **1-min Teaser**: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
+- 🎥 **3-min Demo**: [https://youtu.be/pqEO3HtPNvs](https://youtu.be/pqEO3HtPNvs)
 
 ## Features
 
