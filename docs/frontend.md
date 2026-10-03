@@ -67,7 +67,7 @@ Because the application runs entirely as a Client-Side Single Page Application (
 - [`StrategyForm.svelte`](../frontend/src/lib/components/strategy/StrategyForm.svelte): Core strategy configuration (name, description, TP%, SL%, max holding days, live R:R calculation).
 - [`StrategyAiSuggestionsCard.svelte`](../frontend/src/lib/components/strategy/StrategyAiSuggestionsCard.svelte): Suggestion panel offering one-click "Accept" or "Ignore" recommendations for parameters and rules.
 - [`WhereConditionsBuilder.svelte`](../frontend/src/lib/components/strategy/WhereConditionsBuilder.svelte): Multi-group condition editor with intra-group and inter-group `AND`/`OR` connectors.
-- [`VariablePickerModal.svelte`](../frontend/src/lib/components/strategy/VariablePickerModal.svelte): Searchable, categorized financial indicator catalog.
+- [`VariablePickerModal.svelte`](../frontend/src/lib/components/strategy/VariablePickerModal.svelte): Searchable, categorized financial indicator catalog (including fundamental metrics, valuation ratios, daily market data, and foreign flow metrics `last_1_week_foreign_flow`, `last_1_month_foreign_flow`, and `last_3_months_foreign_flow` under `Price & Market`).
 
 ### C. Backtest Components ([`src/lib/components/backtest/`](../frontend/src/lib/components/backtest))
 - [`BacktestAiInsights.svelte`](../frontend/src/lib/components/backtest/BacktestAiInsights.svelte): Actionable AI insights card with glowing animated border.

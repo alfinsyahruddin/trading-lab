@@ -8,7 +8,9 @@ use validator::Validate;
 
 pub use crate::entities::backtest::{Position, StockData};
 pub use crate::services::backtest::engine::simulate_backtest;
-pub use crate::services::backtest::rules::{build_where_query, evaluate_manual_rules};
+pub use crate::services::backtest::rules::{
+    build_where_query, evaluate_foreign_flow_rules, evaluate_manual_rules, StockForeignFlowValues,
+};
 
 use crate::{
     clients::{llm_client::LLMTrait, sectors_client::SectorsClientTrait},
@@ -19,7 +21,7 @@ use crate::{
             BacktestResultResponse, CreateBacktestJobRequest, MostTradedResponse, TopEntryResponse,
             TradeHistoryResponse, UpdateBacktestJobRequest,
         },
-        sectors::{DailyTransaction, ScreenerCompany},
+        sectors::{DailyTransaction, ForeignFlowResponse, ScreenerCompany},
     },
     enums::backtest_status::BacktestStatus,
     helpers::prompt_helper,
@@ -263,7 +265,7 @@ impl BacktestService {
             .find_by_id_for_user_or_public(strategy_id, user_id)
             .await
         {
-            let (where_query, _) = build_where_query(&strategy.rules.0, year);
+            let (where_query, _, _) = build_where_query(&strategy.rules.0, year);
             if !where_query.is_empty() {
                 let screener_key = format!("sectors:screener:{}:{}", where_query, max_stocks);
                 let screener_cached: Option<String> = redis::cmd("GET")
@@ -660,6 +662,60 @@ pub async fn get_cached_stock_transactions(
     (HashMap::new(), stocks.to_vec())
 }
 
+async fn get_cached_foreign_flow(
+    redis: &ConnectionManager,
+    stocks: &[ScreenerCompany],
+    start: &str,
+    end: &str,
+) -> (HashMap<String, ForeignFlowResponse>, Vec<ScreenerCompany>) {
+    if stocks.is_empty() {
+        return (HashMap::new(), Vec::new());
+    }
+
+    let mut all_keys = Vec::with_capacity(stocks.len());
+    for stock in stocks {
+        let clean = stock.symbol.trim_end_matches(".JK");
+        all_keys.push(format!("sectors:foreign_flow:{}:{}:{}", clean, start, end));
+    }
+
+    let mut redis_conn = redis.clone();
+    let mut cmd = redis::cmd("MGET");
+    for key in &all_keys {
+        cmd.arg(key);
+    }
+
+    let mget_result: Result<Vec<Option<String>>, _> = cmd.query_async(&mut redis_conn).await;
+
+    let mut cached = HashMap::new();
+    let mut to_fetch = Vec::new();
+
+    if let Ok(results) = mget_result {
+        if results.len() == stocks.len() {
+            for (stock, res_opt) in stocks.iter().zip(results) {
+                if let Some(json_str) = res_opt {
+                    if let Ok(data) = serde_json::from_str::<ForeignFlowResponse>(&json_str) {
+                        eprintln!(
+                            "[Backtest] Stock {} foreign flow retrieved from Redis cache ({} data points)",
+                            stock.symbol,
+                            data.data.len()
+                        );
+                        cached.insert(stock.symbol.clone(), data);
+                        continue;
+                    }
+                }
+                eprintln!(
+                    "[Backtest] Stock {} foreign flow not found in Redis, queued for API fetch",
+                    stock.symbol
+                );
+                to_fetch.push(stock.clone());
+            }
+            return (cached, to_fetch);
+        }
+    }
+
+    (HashMap::new(), stocks.to_vec())
+}
+
 /// Converts a raw [`DailyTransaction`] list into sorted `(date, close, volume)` triples.
 fn process_transactions(data: Vec<DailyTransaction>) -> Vec<(NaiveDate, f64, u64)> {
     let mut valid = Vec::new();
@@ -694,10 +750,11 @@ async fn run_backtest(
         .find_by_id_for_user_or_public(strategy_id, user_id)
         .await?;
 
-    let (where_query, manual_filter_groups) = build_where_query(&strategy.rules.0, req.year);
+    let (where_query, manual_filter_groups, foreign_flow_filter_groups) =
+        build_where_query(&strategy.rules.0, req.year);
     eprintln!("[Backtest] Built screener query: {}", where_query);
 
-    let stocks = if where_query.is_empty() {
+    let mut stocks = if where_query.is_empty() {
         return Err(AppError::bad_request("Screener query is empty"));
     } else {
         sectors.screener(&where_query, req.max_stocks).await?
@@ -714,17 +771,6 @@ async fn run_backtest(
         stocks.iter().map(|s| &s.symbol).collect::<Vec<_>>()
     );
 
-    let trade_info_map = build_trade_info_map(&stocks);
-    if let Ok(json_str) = serde_json::to_string(&trade_info_map) {
-        let key = format!("backtest:trade_query_values:{}", job_id);
-        let mut redis_conn = redis.clone();
-        let _: Result<(), _> = redis::cmd("SET")
-            .arg(&key)
-            .arg(&json_str)
-            .query_async(&mut redis_conn)
-            .await;
-    }
-
     let (start_date, end_date) = match (req.start_date, req.end_date) {
         (Some(start), Some(end)) => (start, end),
         _ => crate::helpers::date_helper::calculate_backtest_date_range(
@@ -738,6 +784,193 @@ async fn run_backtest(
         "[Backtest] Backtest date range: {} to {}",
         start_str, end_str
     );
+
+    // ── Foreign Flow Pre-Filtering ───────────────────────────────────────────
+    if !foreign_flow_filter_groups.is_empty() {
+        let mut max_days = 7u64;
+        for group in &foreign_flow_filter_groups {
+            for cond in &group.conditions {
+                let v = cond.variable.trim();
+                if v.eq_ignore_ascii_case("last_3_months_foreign_flow") {
+                    max_days = max_days.max(90);
+                } else if v.eq_ignore_ascii_case("last_1_month_foreign_flow") {
+                    max_days = max_days.max(30);
+                }
+            }
+        }
+
+        let end_date_ff = start_date
+            .checked_sub_days(chrono::Days::new(1))
+            .unwrap_or(start_date);
+        let start_date_ff = start_date
+            .checked_sub_days(chrono::Days::new(max_days))
+            .unwrap_or(end_date_ff);
+        let start_str_ff = start_date_ff.format("%Y-%m-%d").to_string();
+        let end_str_ff = end_date_ff.format("%Y-%m-%d").to_string();
+
+        let cutoff_1w = start_date
+            .checked_sub_days(chrono::Days::new(7))
+            .unwrap_or(end_date_ff);
+        let cutoff_1m = start_date
+            .checked_sub_days(chrono::Days::new(30))
+            .unwrap_or(end_date_ff);
+        let cutoff_3m = start_date
+            .checked_sub_days(chrono::Days::new(90))
+            .unwrap_or(end_date_ff);
+
+        eprintln!(
+            "[Backtest] Foreign flow pre-filtering window: {} to {} (max {} days)",
+            start_str_ff, end_str_ff, max_days
+        );
+
+        let (mut cached_ff, ff_to_fetch) =
+            get_cached_foreign_flow(redis, &stocks, &start_str_ff, &end_str_ff).await;
+
+        let mut fetched_ff: HashMap<String, ForeignFlowResponse> = HashMap::new();
+
+        if !ff_to_fetch.is_empty() {
+            const FF_RATE_LIMIT: usize = 25;
+            const FF_RATE_LIMIT_WINDOW_SECS: u64 = 60;
+
+            if ff_to_fetch.len() <= FF_RATE_LIMIT {
+                eprintln!(
+                    "[Backtest] Firing all {} foreign flow API call(s) in parallel (≤ {} limit)",
+                    ff_to_fetch.len(),
+                    FF_RATE_LIMIT
+                );
+                let futures = ff_to_fetch.iter().map(|stock| {
+                    let s = sectors_arc.clone();
+                    let symbol = stock.symbol.clone();
+                    let start = start_str_ff.clone();
+                    let end = end_str_ff.clone();
+                    async move {
+                        let result = s.foreign_flow(&symbol, &start, &end).await;
+                        (symbol, result)
+                    }
+                });
+
+                for (symbol, data_result) in futures_util::future::join_all(futures).await {
+                    if let Ok(data) = data_result {
+                        fetched_ff.insert(symbol, data);
+                    }
+                }
+            } else {
+                let total_batches = ff_to_fetch.len().div_ceil(FF_RATE_LIMIT);
+                eprintln!(
+                    "[Backtest] Foreign flow: {} batches of ≤{} stock(s) with {}s pause between batches",
+                    total_batches, FF_RATE_LIMIT, FF_RATE_LIMIT_WINDOW_SECS
+                );
+
+                for (batch_idx, batch) in ff_to_fetch.chunks(FF_RATE_LIMIT).enumerate() {
+                    if batch_idx > 0 {
+                        eprintln!(
+                            "[Backtest] Rate-limit pause: waiting {}s before foreign flow batch {}/{}...",
+                            FF_RATE_LIMIT_WINDOW_SECS,
+                            batch_idx + 1,
+                            total_batches
+                        );
+                        tokio::time::sleep(std::time::Duration::from_secs(
+                            FF_RATE_LIMIT_WINDOW_SECS,
+                        ))
+                        .await;
+                    }
+
+                    eprintln!(
+                        "[Backtest] Fetching foreign flow batch {}/{} ({} stock(s))",
+                        batch_idx + 1,
+                        total_batches,
+                        batch.len()
+                    );
+
+                    let futures = batch.iter().map(|stock| {
+                        let s = sectors_arc.clone();
+                        let symbol = stock.symbol.clone();
+                        let start = start_str_ff.clone();
+                        let end = end_str_ff.clone();
+                        async move {
+                            let result = s.foreign_flow(&symbol, &start, &end).await;
+                            (symbol, result)
+                        }
+                    });
+
+                    for (symbol, data_result) in futures_util::future::join_all(futures).await {
+                        if let Ok(data) = data_result {
+                            fetched_ff.insert(symbol, data);
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut surviving_stocks = Vec::new();
+        for stock in stocks {
+            let clean_symbol = stock.symbol.trim_end_matches(".JK");
+            let ff_resp_opt = cached_ff
+                .remove(&stock.symbol)
+                .or_else(|| cached_ff.remove(clean_symbol))
+                .or_else(|| fetched_ff.remove(&stock.symbol))
+                .or_else(|| fetched_ff.remove(clean_symbol));
+
+            let mut sum_1w: f64 = 0.0;
+            let mut sum_1m: f64 = 0.0;
+            let mut sum_3m: f64 = 0.0;
+
+            if let Some(ff_resp) = ff_resp_opt {
+                for point in ff_resp.data {
+                    if let Ok(point_date) =
+                        chrono::NaiveDate::parse_from_str(&point.date, "%Y-%m-%d")
+                    {
+                        if point_date <= end_date_ff {
+                            let inflow = point.net_foreign_inflow.unwrap_or(0) as f64;
+                            if point_date >= cutoff_1w {
+                                sum_1w += inflow;
+                            }
+                            if point_date >= cutoff_1m {
+                                sum_1m += inflow;
+                            }
+                            if point_date >= cutoff_3m {
+                                sum_3m += inflow;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let values = StockForeignFlowValues {
+                last_1_week: sum_1w,
+                last_1_month: sum_1m,
+                last_3_months: sum_3m,
+            };
+
+            if evaluate_foreign_flow_rules(&foreign_flow_filter_groups, &values) {
+                surviving_stocks.push(stock);
+            }
+        }
+
+        eprintln!(
+            "[Backtest] Foreign flow screening passed: {} stock(s)",
+            surviving_stocks.len()
+        );
+
+        if surviving_stocks.is_empty() {
+            return Err(AppError::bad_request(
+                "No stocks matched the foreign flow screening criteria",
+            ));
+        }
+
+        stocks = surviving_stocks;
+    }
+
+    let trade_info_map = build_trade_info_map(&stocks);
+    if let Ok(json_str) = serde_json::to_string(&trade_info_map) {
+        let key = format!("backtest:trade_query_values:{}", job_id);
+        let mut redis_conn = redis.clone();
+        let _: Result<(), _> = redis::cmd("SET")
+            .arg(&key)
+            .arg(&json_str)
+            .query_async(&mut redis_conn)
+            .await;
+    }
 
     // ── Rate-aware parallel fetch ─────────────────────────────────────────────
     // Sectors API limit: 25 requests / minute.
@@ -1091,5 +1324,77 @@ mod tests {
 
         assert_eq!(uncached.len(), 1);
         assert_eq!(uncached[0].symbol, "TESTUNCACHED.JK");
+    }
+
+    #[tokio::test]
+    async fn should_partition_cached_and_uncached_foreign_flow_with_redis() {
+        let redis_url = std::env::var("REDIS_URL")
+            .unwrap_or_else(|_| "redis://:tradinglab123@127.0.0.1:6379".to_string());
+        let client = match redis::Client::open(redis_url) {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+        let mut conn = match redis::aio::ConnectionManager::new(client).await {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+
+        let start_str = "2099-01-01";
+        let end_str = "2099-01-07";
+        let key_cached = "sectors:foreign_flow:TESTCACHEDFF:2099-01-01:2099-01-07";
+
+        let mock_ff = ForeignFlowResponse {
+            symbol: "TESTCACHEDFF".to_string(),
+            start: start_str.to_string(),
+            end: end_str.to_string(),
+            data: vec![crate::entities::sectors::ForeignFlowDailyPoint {
+                date: "2099-01-05".to_string(),
+                net_foreign_inflow: Some(150_000_000),
+                foreign_buy_idr: Some(300_000_000),
+                foreign_sell_idr: Some(150_000_000),
+                foreign_share: Some(0.45),
+            }],
+        };
+        let ff_json = serde_json::to_string(&mock_ff).unwrap();
+
+        let _: Result<(), _> = redis::cmd("SET")
+            .arg(key_cached)
+            .arg(&ff_json)
+            .query_async(&mut conn)
+            .await;
+
+        let stocks = vec![
+            ScreenerCompany {
+                symbol: "TESTCACHEDFF.JK".to_string(),
+                company_name: "Test Cached FF Co".to_string(),
+                query_values: None,
+            },
+            ScreenerCompany {
+                symbol: "TESTUNCACHEDFF.JK".to_string(),
+                company_name: "Test Uncached FF Co".to_string(),
+                query_values: None,
+            },
+        ];
+
+        let (cached_map, uncached) =
+            get_cached_foreign_flow(&conn, &stocks, start_str, end_str).await;
+
+        // Cleanup
+        let _: Result<(), _> = redis::cmd("DEL")
+            .arg(key_cached)
+            .arg("sectors:foreign_flow:TESTCACHEDFF.JK:2099-01-01:2099-01-07")
+            .query_async(&mut conn)
+            .await;
+
+        assert_eq!(cached_map.len(), 1);
+        assert!(cached_map.contains_key("TESTCACHEDFF.JK"));
+        assert_eq!(cached_map["TESTCACHEDFF.JK"].data.len(), 1);
+        assert_eq!(
+            cached_map["TESTCACHEDFF.JK"].data[0].net_foreign_inflow,
+            Some(150_000_000)
+        );
+
+        assert_eq!(uncached.len(), 1);
+        assert_eq!(uncached[0].symbol, "TESTUNCACHEDFF.JK");
     }
 }

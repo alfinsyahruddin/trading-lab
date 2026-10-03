@@ -6,7 +6,8 @@ use reqwest::Client;
 use crate::entities::app_error::AppError;
 
 pub use crate::entities::sectors::{
-    DailyTransaction, DefaultScreenerResponse, ScreenerCompany, ScreenerResponse,
+    DailyTransaction, DefaultScreenerResponse, ForeignFlowDailyPoint, ForeignFlowResponse,
+    ScreenerCompany, ScreenerResponse,
 };
 
 #[async_trait]
@@ -22,6 +23,12 @@ pub trait SectorsClientTrait: Send + Sync {
         start: &str,
         end: &str,
     ) -> Result<Vec<DailyTransaction>, AppError>;
+    async fn foreign_flow(
+        &self,
+        symbol: &str,
+        start: &str,
+        end: &str,
+    ) -> Result<ForeignFlowResponse, AppError>;
 }
 
 pub struct SectorsClient {
@@ -285,6 +292,102 @@ impl SectorsClientTrait for SectorsClient {
         }
 
         Ok(all_data)
+    }
+
+    async fn foreign_flow(
+        &self,
+        symbol: &str,
+        start: &str,
+        end: &str,
+    ) -> Result<ForeignFlowResponse, AppError> {
+        let clean_symbol = symbol.trim_end_matches(".JK");
+
+        let key = format!("sectors:foreign_flow:{}:{}:{}", clean_symbol, start, end);
+        let mut redis = self.redis.clone();
+
+        // Check Redis cache first
+        let cached: Option<String> = redis::cmd("GET").arg(&key).query_async(&mut redis).await?;
+        if let Some(json) = cached {
+            if let Ok(data) = serde_json::from_str::<ForeignFlowResponse>(&json) {
+                return Ok(data);
+            }
+        }
+
+        let url = format!(
+            "https://api.sectors.app/v2/foreign-flow/{}/?start={}&end={}",
+            clean_symbol, start, end
+        );
+        eprintln!("[SectorsClient] Cache miss, hitting Sectors API: {}", url);
+
+        let mut retries = 0u32;
+        let response = loop {
+            let res = self
+                .http
+                .get(&url)
+                .header("Authorization", &self.api_key)
+                .send()
+                .await
+                .map_err(|e| {
+                    eprintln!("[SectorsClient] HTTP request failed for {}: {:?}", url, e);
+                    AppError::Internal
+                })?;
+
+            if res.status().as_u16() == 429 && retries < MAX_RETRIES {
+                retries += 1;
+                eprintln!(
+                    "[SectorsClient] Got 429 for {}, retrying (attempt {}/{}) after {}s...",
+                    url, retries, MAX_RETRIES, RETRY_DELAY_SECS
+                );
+                tokio::time::sleep(std::time::Duration::from_secs(RETRY_DELAY_SECS)).await;
+                continue;
+            }
+
+            break res;
+        };
+
+        if response.status().as_u16() == 404 {
+            eprintln!(
+                "[SectorsClient] Symbol {} not found in broker data (404), returning empty foreign flow",
+                clean_symbol
+            );
+            return Ok(ForeignFlowResponse {
+                symbol: clean_symbol.to_string(),
+                start: start.to_string(),
+                end: end.to_string(),
+                data: Vec::new(),
+            });
+        }
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            eprintln!(
+                "[SectorsClient] Foreign Flow API failed for {} with status {}: {}",
+                clean_symbol, status, body
+            );
+            return Err(AppError::bad_request(format!(
+                "Sectors Foreign Flow API error ({}): {}",
+                status, body
+            )));
+        }
+
+        let data: ForeignFlowResponse = response.json().await.map_err(|e| {
+            eprintln!(
+                "[SectorsClient] Failed to decode foreign flow JSON response for {}: {:?}",
+                clean_symbol, e
+            );
+            AppError::Internal
+        })?;
+
+        if let Ok(json) = serde_json::to_string(&data) {
+            let _: () = redis::cmd("SET")
+                .arg(&key)
+                .arg(&json)
+                .query_async(&mut redis)
+                .await?;
+        }
+
+        Ok(data)
     }
 }
 

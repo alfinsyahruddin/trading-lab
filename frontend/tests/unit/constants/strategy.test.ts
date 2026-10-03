@@ -13,9 +13,17 @@ describe('Strategy Constants', () => {
 		expect(values).toEqual(['=', '!=', '>', '<', '>=', '<=', '~~', 'in', 'is']);
 	});
 
-	it('contains price, market_cap, volume, and value in Price & Market category', () => {
+	it('contains price, market_cap, volume, value, and foreign flow variables in Price & Market category', () => {
 		const priceMarketVars = STRATEGY_VARIABLES.filter((v) => v.category === 'Price & Market');
-		expect(priceMarketVars.map((v) => v.code)).toEqual(['price', 'volume', 'value', 'market_cap']);
+		expect(priceMarketVars.map((v) => v.code)).toEqual([
+			'price',
+			'volume',
+			'value',
+			'market_cap',
+			'last_1_week_foreign_flow',
+			'last_1_month_foreign_flow',
+			'last_3_months_foreign_flow'
+		]);
 		expect(priceMarketVars.every((v) => !v.isHistorical)).toBe(true);
 
 		const marketCapVar = priceMarketVars.find((v) => v.code === 'market_cap');
@@ -32,6 +40,33 @@ describe('Strategy Constants', () => {
 			code: 'value',
 			name: 'Value',
 			description: 'Daily transaction value in IDR.',
+			category: 'Price & Market',
+			isHistorical: false
+		});
+
+		const ff1wVar = priceMarketVars.find((v) => v.code === 'last_1_week_foreign_flow');
+		expect(ff1wVar).toEqual({
+			code: 'last_1_week_foreign_flow',
+			name: 'Last 1 Week Foreign Flow',
+			description: 'Total net foreign inflow in the 7 days prior to backtest start date (IDR).',
+			category: 'Price & Market',
+			isHistorical: false
+		});
+
+		const ff1mVar = priceMarketVars.find((v) => v.code === 'last_1_month_foreign_flow');
+		expect(ff1mVar).toEqual({
+			code: 'last_1_month_foreign_flow',
+			name: 'Last 1 Month Foreign Flow',
+			description: 'Total net foreign inflow in the 30 days prior to backtest start date (IDR).',
+			category: 'Price & Market',
+			isHistorical: false
+		});
+
+		const ff3mVar = priceMarketVars.find((v) => v.code === 'last_3_months_foreign_flow');
+		expect(ff3mVar).toEqual({
+			code: 'last_3_months_foreign_flow',
+			name: 'Last 3 Months Foreign Flow',
+			description: 'Total net foreign inflow in the 90 days prior to backtest start date (IDR).',
 			category: 'Price & Market',
 			isHistorical: false
 		});

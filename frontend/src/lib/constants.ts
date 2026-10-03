@@ -72,6 +72,27 @@ export const STRATEGY_VARIABLES: StrategyVariableOption[] = [
 		category: 'Price & Market',
 		isHistorical: false
 	},
+	{
+		code: 'last_1_week_foreign_flow',
+		name: 'Last 1 Week Foreign Flow',
+		description: 'Total net foreign inflow in the 7 days prior to backtest start date (IDR).',
+		category: 'Price & Market',
+		isHistorical: false
+	},
+	{
+		code: 'last_1_month_foreign_flow',
+		name: 'Last 1 Month Foreign Flow',
+		description: 'Total net foreign inflow in the 30 days prior to backtest start date (IDR).',
+		category: 'Price & Market',
+		isHistorical: false
+	},
+	{
+		code: 'last_3_months_foreign_flow',
+		name: 'Last 3 Months Foreign Flow',
+		description: 'Total net foreign inflow in the 90 days prior to backtest start date (IDR).',
+		category: 'Price & Market',
+		isHistorical: false
+	},
 
 	// ── 2. Valuation Ratios ──
 	{
