@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { mockStrategyMetadata } from '../../fixtures/strategy-metadata';
 
 export const mockUser = {
 	id: 'u-admin-e2e',
@@ -190,6 +191,14 @@ export async function setupDefaultApiMocks(page: Page) {
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify(jsonEnvelope(newStrat))
+			});
+		}
+
+		if (path === '/api/strategies/variables' && method === 'GET') {
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(jsonEnvelope(mockStrategyMetadata))
 			});
 		}
 

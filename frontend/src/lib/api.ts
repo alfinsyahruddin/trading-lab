@@ -14,7 +14,8 @@ import type {
 	AppSettings,
 	StrategyAiSuggestion,
 	StrategyRuleGroup,
-	CaptchaResponse
+	CaptchaResponse,
+	StrategyMetadata
 } from '$lib/types';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -310,6 +311,10 @@ export function duplicateTradingStrategy(
 		{ method: 'POST', body: JSON.stringify({ name }) },
 		token
 	);
+}
+
+export function getStrategyVariables(token?: string): Promise<StrategyMetadata> {
+	return request<StrategyMetadata>('/api/strategies/variables', { method: 'GET' }, token);
 }
 
 // --- Backtests ---

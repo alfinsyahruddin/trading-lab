@@ -1,10 +1,11 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import {
-		STRATEGY_VARIABLES,
-		VARIABLE_CATEGORIES,
-		type StrategyVariableOption
-	} from '$lib/constants';
+		fetchStrategyMetadata,
+		getStrategyVariables,
+		getVariableCategories
+	} from '$lib/helpers/strategy-variables.svelte';
+	import type { StrategyVariable } from '$lib/types';
 
 	let {
 		open = $bindable(false),
@@ -22,6 +23,7 @@
 	// Sync tempSelected whenever the modal opens or selectedVariable changes
 	$effect(() => {
 		if (open) {
+			fetchStrategyMetadata().catch(() => {});
 			tempSelected = selectedVariable;
 			searchQuery = '';
 		}
@@ -31,10 +33,12 @@
 
 	const filteredCategories = $derived.by(() => {
 		const q = searchQuery.trim().toLowerCase();
-		const results: { category: string; variables: StrategyVariableOption[] }[] = [];
+		const results: { category: string; variables: StrategyVariable[] }[] = [];
+		const categories = getVariableCategories();
+		const allVariables = getStrategyVariables();
 
-		for (const category of VARIABLE_CATEGORIES) {
-			const vars = STRATEGY_VARIABLES.filter((v) => {
+		for (const category of categories) {
+			const vars = allVariables.filter((v) => {
 				if (v.category !== category) return false;
 				if (!q) return true;
 				return (

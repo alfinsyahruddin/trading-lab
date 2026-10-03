@@ -121,6 +121,7 @@ All API endpoints strictly adhere to the unified envelope:
 
 **Endpoints**:
 - `GET /api/strategies`: List all strategies owned by the user.
+- `GET /api/strategies/variables`: Retrieve centralized strategy screener variables, categories, and operators metadata.
 - `GET /api/strategies/{id}`: Retrieve strategy details.
 - `POST /api/strategies`: Create a strategy.
 - `PATCH /api/strategies/{id}`: Update an existing strategy.

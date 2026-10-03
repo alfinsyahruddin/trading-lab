@@ -37,6 +37,12 @@ impl TradingStrategyService {
         }
     }
 
+    pub async fn get_metadata(
+        &self,
+    ) -> Result<crate::entities::strategy_variable::StrategyMetadataResponse, AppError> {
+        Ok(crate::constants::strategy_variables::get_strategy_metadata())
+    }
+
     pub async fn list(&self, user_id: Uuid) -> Result<Vec<TradingStrategyResponse>, AppError> {
         let records = self.strategies.list_by_user(user_id).await?;
         Ok(records

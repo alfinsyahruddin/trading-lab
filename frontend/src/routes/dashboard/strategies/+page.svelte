@@ -13,13 +13,8 @@
 	} from '$lib/api';
 	import { getToken } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
-	import {
-		STRATEGY_VARIABLES,
-		formatRiskReward,
-		formatTimeAgo,
-		type StrategyVariableOption
-	} from '$lib/constants';
-	import type { StrategyRuleGroup, TradingStrategy } from '$lib/types';
+	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
+	import type { TradingStrategy } from '$lib/types';
 
 	let strategies = $state<TradingStrategy[]>([]);
 	let loading = $state(true);
@@ -61,11 +56,6 @@
 		} finally {
 			loading = false;
 		}
-	}
-
-	function getVariableName(code: string): string {
-		const found = STRATEGY_VARIABLES.find((v: StrategyVariableOption) => v.code === code);
-		return found ? found.name : code;
 	}
 
 	// ── Duplicate Actions ───────────────────────────────────────────────────

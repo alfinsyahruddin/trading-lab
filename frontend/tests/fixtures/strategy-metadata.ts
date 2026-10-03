@@ -1,0 +1,872 @@
+import type { StrategyMetadata } from '$lib/types';
+
+export const mockStrategyMetadata: StrategyMetadata = {
+	variables: [
+		{
+			code: 'price',
+			name: 'Price',
+			description: 'Current or closing market price.',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'volume',
+			name: 'Volume',
+			description: 'Trading volume in shares.',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'value',
+			name: 'Value',
+			description: 'Daily transaction value in IDR.',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'market_cap',
+			name: 'Market Cap',
+			description: 'Total market capitalization in IDR.',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'last_1_week_foreign_flow',
+			name: 'Last 1 Week Foreign Flow',
+			description: 'Total net foreign inflow in the 7 days prior to backtest start date (IDR).',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'last_1_month_foreign_flow',
+			name: 'Last 1 Month Foreign Flow',
+			description: 'Total net foreign inflow in the 30 days prior to backtest start date (IDR).',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'last_3_months_foreign_flow',
+			name: 'Last 3 Months Foreign Flow',
+			description: 'Total net foreign inflow in the 90 days prior to backtest start date (IDR).',
+			category: 'Price & Market',
+			is_historical: false
+		},
+		{
+			code: 'pe',
+			name: 'P/E Ratio',
+			description: 'Price-to-earnings ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'pb',
+			name: 'P/B Ratio',
+			description: 'Price-to-book ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'ps',
+			name: 'P/S Ratio',
+			description: 'Price-to-sales ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'pcf',
+			name: 'P/CF Ratio',
+			description: 'Price-to-cash-flow ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'peg',
+			name: 'PEG Ratio',
+			description: 'Price/earnings-to-growth ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'enterprise_to_ebitda',
+			name: 'EV / EBITDA',
+			description: 'Enterprise value to EBITDA.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'enterprise_to_revenue',
+			name: 'EV / Revenue',
+			description: 'Enterprise value to revenue.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'pb_peer_avg',
+			name: 'P/B Peer Average',
+			description: 'Peer average price-to-book ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'pe_peer_avg',
+			name: 'P/E Peer Average',
+			description: 'Peer average price-to-earnings ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'ps_peer_avg',
+			name: 'P/S Peer Average',
+			description: 'Peer average price-to-sales ratio.',
+			category: 'Valuation Ratios',
+			is_historical: true
+		},
+		{
+			code: 'revenue',
+			name: 'Revenue',
+			description: 'Annual total revenue in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'cost_of_revenue',
+			name: 'Cost of Revenue',
+			description: 'Cost of goods sold / cost of revenue in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'gross_profit',
+			name: 'Gross Profit',
+			description: 'Revenue minus cost of revenue in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'operating_expense',
+			name: 'Operating Expenses',
+			description: 'Total operating expenses in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'operating_pnl',
+			name: 'Operating PnL',
+			description: 'Operating profit/loss (revenue minus operating expenses) in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'ebit',
+			name: 'EBIT',
+			description: 'Earnings before interest and tax in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'ebitda',
+			name: 'EBITDA',
+			description: 'Earnings before interest, tax, depreciation and amortisation in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'earnings_before_tax',
+			name: 'Earnings Before Tax',
+			description: 'Earnings before income tax in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'tax',
+			name: 'Income Tax',
+			description: 'Income tax expense in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'earnings',
+			name: 'Net Profit / Earnings',
+			description: 'Annual net profit/loss in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'non_operating_income_or_loss',
+			name: 'Non-Operating Income / Loss',
+			description: 'Income or losses outside core operations in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'premium_income',
+			name: 'Premium Income',
+			description: 'Gross insurance premium income in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'net_premium_income',
+			name: 'Net Premium Income',
+			description: 'Net insurance premium income in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'premium_expense',
+			name: 'Premium Expense',
+			description: 'Insurance premium expenses in IDR.',
+			category: 'Income Statement',
+			is_historical: true
+		},
+		{
+			code: 'net_profit_margin',
+			name: 'Net Profit Margin',
+			description: 'Net profit as a percentage of revenue.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'gross_profit_margin',
+			name: 'Gross Profit Margin',
+			description: 'Gross profit as a percentage of revenue.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'operating_profit_margin',
+			name: 'Operating Profit Margin',
+			description: 'Operating profit as a percentage of revenue.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'roa',
+			name: 'ROA',
+			description: 'Return on assets.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'roe',
+			name: 'ROE',
+			description: 'Return on equity.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'operating_cash_flow_margin',
+			name: 'Operating CF Margin',
+			description: 'Operating cash flow as a percentage of revenue.',
+			category: 'Profitability & Returns',
+			is_historical: true
+		},
+		{
+			code: 'eps',
+			name: 'EPS',
+			description: 'Earnings per share.',
+			category: 'Dividends & Per Share',
+			is_historical: true
+		},
+		{
+			code: 'eps_growth',
+			name: 'EPS Growth',
+			description: 'Year-over-year EPS growth rate.',
+			category: 'Dividends & Per Share',
+			is_historical: true
+		},
+		{
+			code: 'total_dividend',
+			name: 'Total Dividend',
+			description: 'Total dividends paid per share.',
+			category: 'Dividends & Per Share',
+			is_historical: true
+		},
+		{
+			code: 'total_yield',
+			name: 'Dividend Yield',
+			description: 'Total dividend yield.',
+			category: 'Dividends & Per Share',
+			is_historical: true
+		},
+		{
+			code: 'outstanding_shares',
+			name: 'Outstanding Shares',
+			description: 'Total shares outstanding.',
+			category: 'Dividends & Per Share',
+			is_historical: true
+		},
+		{
+			code: 'operating_cash_flow',
+			name: 'Operating Cash Flow',
+			description: 'Net cash generated from core operations in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'investing_cash_flow',
+			name: 'Investing Cash Flow',
+			description: 'Net cash from investing activities in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'financing_cash_flow',
+			name: 'Financing Cash Flow',
+			description: 'Net cash from financing activities in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'net_cash_flow',
+			name: 'Net Cash Flow',
+			description: 'Net change in cash for the period in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'free_cash_flow',
+			name: 'Free Cash Flow',
+			description: 'Operating cash flow minus capex in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'capital_expenditure',
+			name: 'Capital Expenditure',
+			description: 'Capital expenditure in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'cash_inflow',
+			name: 'Cash Inflow',
+			description: 'Total cash inflow in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'cash_outflow',
+			name: 'Cash Outflow',
+			description: 'Total cash outflow in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'end_cash_position',
+			name: 'End Cash Position',
+			description: 'Ending cash position from the cash flow statement in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'cash_and_equivalents',
+			name: 'Cash & Equivalents',
+			description: 'Cash and cash equivalents in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'cash_only',
+			name: 'Cash Only',
+			description: 'Cash excluding equivalents in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'total_cash_and_due_from_banks',
+			name: 'Cash & Due From Banks',
+			description: 'Cash and amounts due from other banks in IDR.',
+			category: 'Cash Flow',
+			is_historical: true
+		},
+		{
+			code: 'total_assets',
+			name: 'Total Assets',
+			description: 'Total assets on the balance sheet in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'current_assets',
+			name: 'Current Assets',
+			description: 'Total current assets in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'fixed_assets',
+			name: 'Fixed Assets',
+			description: 'Net property, plant and equipment in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'inventories',
+			name: 'Inventories',
+			description: 'Inventories on the balance sheet in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'prepaid_assets',
+			name: 'Prepaid Assets',
+			description: 'Prepaid expenses and other current assets in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'non_loan_assets',
+			name: 'Non-Loan Assets',
+			description: 'Total assets excluding loans in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'total_equity',
+			name: 'Total Equity',
+			description: 'Total shareholders equity in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'retained_earnings',
+			name: 'Retained Earnings',
+			description: 'Cumulative retained earnings on balance sheet in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'realized_capital_goods_investment',
+			name: 'Capital Goods Investment',
+			description: 'Realised investment in capital goods in IDR.',
+			category: 'Balance Sheet & Assets',
+			is_historical: true
+		},
+		{
+			code: 'total_liabilities',
+			name: 'Total Liabilities',
+			description: 'Total liabilities on the balance sheet in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'current_liabilities',
+			name: 'Current Liabilities',
+			description: 'Total current liabilities in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'non_current_liabilities',
+			name: 'Non-Current Liabilities',
+			description: 'Long-term liabilities in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'total_debt',
+			name: 'Total Debt',
+			description: 'Total interest-bearing debt in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'non_interest_bearing_liabilities',
+			name: 'Non-Interest Liabilities',
+			description: 'Liabilities that do not accrue interest in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'other_interest_bearing_liabilities',
+			name: 'Other Interest Liabilities',
+			description: 'Other interest-bearing liabilities excluding deposits in IDR.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'debt_to_asset_ratio',
+			name: 'Debt to Asset Ratio',
+			description: 'Total debt divided by total assets.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'debt_to_equity_ratio',
+			name: 'Debt to Equity Ratio',
+			description: 'Total debt divided by shareholders equity.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'cash_flow_to_debt_ratio',
+			name: 'Cash Flow to Debt',
+			description: 'Operating cash flow divided by total debt.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'interest_coverage_ratio',
+			name: 'Interest Coverage Ratio',
+			description: 'EBIT divided by interest expense.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'current_ratio',
+			name: 'Current Ratio',
+			description: 'Current assets divided by current liabilities.',
+			category: 'Liabilities & Solvency',
+			is_historical: true
+		},
+		{
+			code: 'total_deposit',
+			name: 'Total Deposits',
+			description: 'Total customer deposits in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'current_account',
+			name: 'Current Account Deposits',
+			description: 'Current account deposits in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'savings_account',
+			name: 'Savings Account Deposits',
+			description: 'Savings account deposits in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'time_deposit',
+			name: 'Time Deposits',
+			description: 'Time deposit liabilities in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'gross_loan',
+			name: 'Gross Loans',
+			description: 'Gross loan portfolio before allowances in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'net_loan',
+			name: 'Net Loans',
+			description: 'Net loans after allowances in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'non_loan_earning_assets',
+			name: 'Non-Loan Earning Assets',
+			description: 'Interest-earning assets excluding loans in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'non_loan_non_earning_assets',
+			name: 'Non-Loan Non-Earning Assets',
+			description: 'Non-earning assets excluding loans in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'allowance_for_loans',
+			name: 'Allowance for Loans',
+			description: 'Allowance for loan losses in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'provision',
+			name: 'Loan Loss Provision',
+			description: 'Provision for loan losses or liabilities in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'special_mention_loan',
+			name: 'Special Mention Loans',
+			description: 'Special mention (watch-list) loans in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'non_performing_loan',
+			name: 'NPL (Non-Performing)',
+			description: 'Non-performing loans (NPL) in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'restructured_loan_current',
+			name: 'Restructured Loans (Current)',
+			description: 'Restructured loans currently performing in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'interest_income',
+			name: 'Interest Income',
+			description: 'Total interest income in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'interest_expense',
+			name: 'Interest Expense',
+			description: 'Total interest expense in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'interest_expense_non_operating',
+			name: 'Non-Operating Interest Expense',
+			description: 'Non-operating interest expense in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'net_interest_income',
+			name: 'Net Interest Income',
+			description: 'Interest income minus interest expense in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'non_interest_income',
+			name: 'Non-Interest Income',
+			description: 'Fee and commission income outside of interest in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'net_interest_margin',
+			name: 'Net Interest Margin (NIM)',
+			description: 'Net interest income as a percentage of earning assets.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'cost_to_income_ratio',
+			name: 'Cost to Income Ratio',
+			description: 'Operating costs divided by operating income.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'efficiency_ratio',
+			name: 'Efficiency Ratio',
+			description: 'Operating expenses divided by net revenue.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'loan_to_deposit_ratio',
+			name: 'Loan to Deposit Ratio (LDR)',
+			description: 'Net loans divided by total deposits.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'casa_ratio',
+			name: 'CASA Ratio',
+			description: 'Current and savings account deposits as a share of total deposits.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'high_quality_liquid_asset',
+			name: 'HQLA',
+			description: 'High-quality liquid assets (HQLA) held in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'liquidity_coverage_ratio',
+			name: 'Liquidity Coverage Ratio (LCR)',
+			description: 'HQLA divided by net cash outflows over 30 days.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'core_capital_tier1',
+			name: 'Core Capital (Tier 1)',
+			description: 'Tier 1 core capital in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'supplementary_capital_tier2',
+			name: 'Supplementary Capital (Tier 2)',
+			description: 'Tier 2 supplementary capital in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'total_capital',
+			name: 'Total Capital',
+			description: 'Total regulatory capital in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'credit_rwa',
+			name: 'Credit RWA',
+			description: 'Credit risk-weighted assets in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'market_rwa',
+			name: 'Market RWA',
+			description: 'Market risk-weighted assets in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'operational_rwa',
+			name: 'Operational RWA',
+			description: 'Operational risk-weighted assets in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'total_risk_weighted_asset',
+			name: 'Total RWA',
+			description: 'Total risk-weighted assets in IDR.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'capital_adequacy_ratio',
+			name: 'Capital Adequacy Ratio (CAR)',
+			description: 'Regulatory capital as a percentage of risk-weighted assets.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'leverage_ratio',
+			name: 'Leverage Ratio',
+			description: 'Tier 1 capital divided by total exposure.',
+			category: 'Banking & Regulatory',
+			is_historical: true
+		},
+		{
+			code: 'fixed_asset_turnover',
+			name: 'Fixed Asset Turnover',
+			description: 'Revenue divided by net fixed assets.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		},
+		{
+			code: 'total_asset_turnover',
+			name: 'Total Asset Turnover',
+			description: 'Revenue divided by total assets.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		},
+		{
+			code: 'forecast_eps_growth',
+			name: 'Forecast EPS Growth',
+			description: 'Analyst consensus EPS growth forecast.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		},
+		{
+			code: 'forecast_revenue_growth',
+			name: 'Forecast Revenue Growth',
+			description: 'Analyst consensus revenue growth forecast.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		},
+		{
+			code: 'forecast_eps_estimate',
+			name: 'Forecast EPS Estimate',
+			description: 'Analyst consensus EPS estimate in IDR.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		},
+		{
+			code: 'forecast_revenue_estimate',
+			name: 'Forecast Revenue Estimate',
+			description: 'Analyst consensus revenue estimate in IDR.',
+			category: 'Efficiency & Forecasts',
+			is_historical: true
+		}
+	],
+	categories: [
+		'Price & Market',
+		'Valuation Ratios',
+		'Income Statement',
+		'Profitability & Returns',
+		'Dividends & Per Share',
+		'Cash Flow',
+		'Balance Sheet & Assets',
+		'Liabilities & Solvency',
+		'Banking & Regulatory',
+		'Efficiency & Forecasts'
+	],
+	operators: [
+		{
+			value: '=',
+			symbol: '[=]',
+			label: 'equals',
+			display: '[=] equals'
+		},
+		{
+			value: '!=',
+			symbol: '[!=]',
+			label: 'not equals',
+			display: '[!=] not equals'
+		},
+		{
+			value: '>',
+			symbol: '[>]',
+			label: 'greater than',
+			display: '[>] greater than'
+		},
+		{
+			value: '<',
+			symbol: '[<]',
+			label: 'less than',
+			display: '[<] less than'
+		},
+		{
+			value: '>=',
+			symbol: '[>=]',
+			label: 'greater than or equals',
+			display: '[>=] greater than or equals'
+		},
+		{
+			value: '<=',
+			symbol: '[<=]',
+			label: 'less than or equals',
+			display: '[<=] less than or equals'
+		},
+		{
+			value: '~~',
+			symbol: '[~~]',
+			label: 'like operator',
+			display: '[~~] like operator'
+		},
+		{
+			value: 'in',
+			symbol: '[in]',
+			label: 'in operator',
+			display: '[in] in operator'
+		},
+		{
+			value: 'is',
+			symbol: '[is]',
+			label: 'null / true / false',
+			display: '[is] null / true / false'
+		}
+	]
+};

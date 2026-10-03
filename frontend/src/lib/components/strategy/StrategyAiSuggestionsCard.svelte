@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { STRATEGY_OPERATORS, STRATEGY_VARIABLES } from '$lib/constants';
+	import {
+		findStrategyOperator,
+		findStrategyVariable
+	} from '$lib/helpers/strategy-variables.svelte';
 	import type { StrategyAiSuggestion } from '$lib/types';
 
 	let {
@@ -35,12 +38,12 @@
 	}
 
 	function getVariableLabel(code: string): string {
-		const found = STRATEGY_VARIABLES.find((v) => v.code === code);
+		const found = findStrategyVariable(code);
 		return found ? `${found.name} (${found.code})` : code;
 	}
 
 	function getOperatorDisplay(op: string): string {
-		const found = STRATEGY_OPERATORS.find((o) => o.value === op);
+		const found = findStrategyOperator(op);
 		return found ? found.symbol : op;
 	}
 </script>

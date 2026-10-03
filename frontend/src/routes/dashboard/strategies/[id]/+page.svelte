@@ -16,12 +16,8 @@
 	} from '$lib/api';
 	import { getToken, getUser } from '$lib/helpers/session';
 	import { toast } from '$lib/helpers/toast.svelte';
-	import {
-		STRATEGY_VARIABLES,
-		formatRiskReward,
-		formatTimeAgo,
-		type StrategyVariableOption
-	} from '$lib/constants';
+	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
+	import { findStrategyVariable } from '$lib/helpers/strategy-variables.svelte';
 	import type { BacktestJob, TradingStrategy } from '$lib/types';
 
 	let strategy = $state<TradingStrategy | null>(null);
@@ -79,7 +75,7 @@
 	}
 
 	function getVariableInfo(code: string): { name: string; category?: string } {
-		const found = STRATEGY_VARIABLES.find((v: StrategyVariableOption) => v.code === code);
+		const found = findStrategyVariable(code);
 		return found ? { name: found.name, category: found.category } : { name: code };
 	}
 

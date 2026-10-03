@@ -119,6 +119,10 @@ pub fn get_strategy_ai_suggestions_prompt(
 
     let desc = description.unwrap_or("No description provided");
     let rules_str = format_strategy_rules(rules);
+    let variables_str =
+        crate::constants::strategy_variables::format_strategy_variables_for_ai_prompt();
+    let operators_str =
+        crate::constants::strategy_variables::format_strategy_operators_for_ai_prompt();
 
     format!(
         r#"You are an expert quantitative trading strategist specializing in Indonesia Stock Exchange (IDX) equity trading.
@@ -134,15 +138,9 @@ Current Where Condition Rules:
 {rules_str}
 
 Available Screener Variables for Rules:
-- Price & Market: "price", "volume", "value", "market_cap", "shares_outstanding", "last_1_week_foreign_flow", "last_1_month_foreign_flow", "last_3_months_foreign_flow"
-- Valuation Ratios: "pe", "pb", "ps", "pcf", "peg", "enterprise_to_ebitda", "enterprise_to_revenue"
-- Profitability & Returns: "net_profit_margin", "gross_profit_margin", "operating_profit_margin", "roe", "roa", "roce"
-- Dividends: "dividend_yield", "dividend_payout_ratio", "dps"
-- Financial Health: "der", "debt_to_equity", "debt_to_asset", "current_ratio", "quick_ratio", "total_debt"
-- Cash Flow & Growth: "free_cash_flow", "operating_cash_flow", "revenue_growth_yoy", "net_profit_growth_yoy"
-- Classification: "sector", "sub_sector"
+{variables_str}
 
-Available Rule Operators: "=", "!=", ">", "<", ">=", "<=", "~~", "in", "is"
+Available Rule Operators: {operators_str}
 
 Evaluate these parameters and rules against Indonesia Stock Exchange (IDX) realities:
 1. Risk Parameters: Ensure TP/SL ratio provides a positive expectancy (at least 1:2 to 1:3 R:R), SL accounts for IDX volatility without premature stop-outs, and holding period aligns with swing/trend duration.
@@ -358,6 +356,11 @@ mod tests {
         assert!(prompt.contains("Risk-to-Reward Ratio: 3.00:1"));
         assert!(prompt.contains("Max Holding Period: 30 days"));
         assert!(prompt.contains("No conditional rules defined."));
+        assert!(prompt.contains("Price & Market: price (Price)"));
+        assert!(prompt.contains("Valuation Ratios: pe (P/E Ratio)"));
+        assert!(prompt.contains(
+            "Available Rule Operators: \"=\", \"!=\", \">\", \"<\", \">=\", \"<=\", \"~~\", \"in\", \"is\""
+        ));
     }
 
     #[test]

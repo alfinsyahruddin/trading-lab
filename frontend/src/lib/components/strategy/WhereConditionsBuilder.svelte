@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import {
-		STRATEGY_OPERATORS,
-		STRATEGY_VARIABLES,
-		type StrategyVariableOption
-	} from '$lib/constants';
-	import type { StrategyRuleCondition, StrategyRuleGroup } from '$lib/types';
+		fetchStrategyMetadata,
+		findStrategyVariable,
+		getStrategyOperators
+	} from '$lib/helpers/strategy-variables.svelte';
+	import type { StrategyRuleCondition, StrategyRuleGroup, StrategyVariable } from '$lib/types';
 	import SelectField from '$lib/components/SelectField.svelte';
 	import VariablePickerModal from './VariablePickerModal.svelte';
 
@@ -15,10 +15,16 @@
 		groups?: StrategyRuleGroup[];
 	} = $props();
 
-	const operatorOptions = STRATEGY_OPERATORS.map((op) => ({
-		value: op.value,
-		label: op.display
-	}));
+	$effect(() => {
+		fetchStrategyMetadata().catch(() => {});
+	});
+
+	const operatorOptions = $derived(
+		getStrategyOperators().map((op) => ({
+			value: op.value,
+			label: op.display
+		}))
+	);
 
 	const isValueOptions = [
 		{ value: 'null', label: 'null' },
@@ -32,8 +38,8 @@
 	let activeTarget = $state<{ groupIndex: number; conditionIndex: number } | null>(null);
 
 	// Helper to find variable meta
-	function getVariable(code: string): StrategyVariableOption | undefined {
-		return STRATEGY_VARIABLES.find((v) => v.code === code);
+	function getVariable(code: string): StrategyVariable | undefined {
+		return findStrategyVariable(code);
 	}
 
 	function openVariableModal(groupIndex: number, conditionIndex: number) {

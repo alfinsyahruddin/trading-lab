@@ -278,3 +278,27 @@ export interface StrategyAiSuggestion {
 	rule_payload?: StrategyRulePayload | null;
 	reason: string;
 }
+
+export interface StrategyVariable {
+	code: string;
+	name: string;
+	description: string;
+	category: string;
+	is_historical: boolean;
+}
+
+export interface StrategyOperator {
+	value: string;
+	symbol: string;
+	label: string;
+	display: string;
+}
+
+export interface StrategyMetadata {
+	variables: StrategyVariable[];
+	categories: string[];
+	operators: StrategyOperator[];
+}
+
+export type StrategyVariableOption = StrategyVariable;
+export type StrategyOperatorOption = StrategyOperator;

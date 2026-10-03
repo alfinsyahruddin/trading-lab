@@ -24,6 +24,14 @@ pub async fn list_strategies(
     strategy_service.list(user.claims.sub).await.json()
 }
 
+#[get("/api/strategies/variables")]
+pub async fn get_strategy_variables(
+    _user: AuthenticatedUser,
+    strategy_service: Data<TradingStrategyService>,
+) -> AppResponse<crate::entities::strategy_variable::StrategyMetadataResponse> {
+    strategy_service.get_metadata().await.json()
+}
+
 #[get("/api/strategies/{id}")]
 pub async fn get_strategy(
     strategy_service: Data<TradingStrategyService>,

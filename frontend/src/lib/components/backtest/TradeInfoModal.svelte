@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { STRATEGY_VARIABLES, type StrategyVariableOption } from '$lib/constants';
+	import { findStrategyVariable } from '$lib/helpers/strategy-variables.svelte';
 	import type { TradeHistoryEntry, TradingStrategy } from '$lib/types';
 
 	let {
@@ -96,9 +96,7 @@
 		category?: string;
 		description?: string;
 	} {
-		const found = STRATEGY_VARIABLES.find(
-			(v: StrategyVariableOption) => v.code.toLowerCase() === code.toLowerCase()
-		);
+		const found = findStrategyVariable(code);
 		return found
 			? { name: found.name, category: found.category, description: found.description }
 			: { name: code };

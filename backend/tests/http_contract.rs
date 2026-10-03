@@ -229,3 +229,20 @@ async fn cors_preflight_should_include_allowed_origin() {
         "http://localhost:3000"
     );
 }
+
+#[actix_web::test]
+async fn strategy_variables_without_auth_should_return_401() {
+    let service = test::init_service(App::new().configure(routes::configure)).await;
+    let response = test::call_service(
+        &service,
+        test::TestRequest::get()
+            .uri("/api/strategies/variables")
+            .to_request(),
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    let body = test::read_body(response).await;
+    let envelope: serde_json::Value = serde_json::from_slice(&body).expect("valid response JSON");
+    assert_eq!(envelope["status"], 401);
+}
