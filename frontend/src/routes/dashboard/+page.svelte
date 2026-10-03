@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import StatsCard from '$lib/components/dashboard/StatsCard.svelte';
-	import LeaderboardCard from '$lib/components/dashboard/LeaderboardCard.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import StatsCard from '#lib/components/dashboard/StatsCard.svelte';
+	import LeaderboardCard from '#lib/components/dashboard/LeaderboardCard.svelte';
+	import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 	import {
 		getDashboardStats,
 		getLeaderboard,
@@ -12,10 +12,10 @@
 		starBacktest,
 		unstarBacktest,
 		ApiError
-	} from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import type { DashboardStats, LeaderboardEntry, SegmentOption } from '$lib/types';
+	} from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import type { DashboardStats, LeaderboardEntry, SegmentOption } from '#lib/types.js';
 
 	let loading = $state(true);
 	let stats = $state<DashboardStats | null>(null);

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { reveal } from '$lib/helpers/reveal';
-	import { isComingSoon } from '$lib/helpers/config';
+	import { reveal } from '#lib/helpers/reveal.js';
+	import { isComingSoon } from '#lib/helpers/config.js';
 	import LandingLogo from './LandingLogo.svelte';
 
 	interface Props {

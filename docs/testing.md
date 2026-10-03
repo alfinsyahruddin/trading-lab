@@ -47,7 +47,7 @@ Vitest executes unit tests for helper modules and component tests using `@testin
 
 ### Execution Note
 > [!IMPORTANT]
-> Always execute Vitest via `bun run test:unit` (or `bun run test`). Do **not** run raw `bun test`, as Bun's native test runner does not load the jsdom and `@testing-library/svelte` DOM simulation environment configured in `vite.config.ts`.
+> Always execute Vitest via `bun run test:unit` (or `bun run test`). Do **not** run raw `bun test`, as Bun's native test runner does not load the jsdom and `@testing-library/svelte` DOM simulation environment configured in `vitest.config.ts`.
 
 ### Frontend Unit Test Commands
 Run commands inside the `frontend/` directory:

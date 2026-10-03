@@ -9,8 +9,8 @@
 		type MouseEventParams,
 		type Time
 	} from 'lightweight-charts';
-	import type { PortfolioHistoryEntry } from '$lib/types';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import type { PortfolioHistoryEntry } from '#lib/types.js';
+	import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 
 	let { data, initialCash }: { data: PortfolioHistoryEntry[]; initialCash: number } = $props();
 

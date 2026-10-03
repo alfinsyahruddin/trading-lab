@@ -4,9 +4,9 @@
 		fetchStrategyMetadata,
 		findStrategyVariable,
 		getStrategyOperators
-	} from '$lib/helpers/strategy-variables.svelte';
-	import type { StrategyRuleCondition, StrategyRuleGroup, StrategyVariable } from '$lib/types';
-	import SelectField from '$lib/components/SelectField.svelte';
+	} from '#lib/helpers/strategy-variables.svelte.js';
+	import type { StrategyRuleCondition, StrategyRuleGroup, StrategyVariable } from '#lib/types.js';
+	import SelectField from '#lib/components/SelectField.svelte';
 	import VariablePickerModal from './VariablePickerModal.svelte';
 
 	let {

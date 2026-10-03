@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { isComingSoon } from '$lib/helpers/config';
+	import { isComingSoon } from '#lib/helpers/config.js';
 
 	interface Props {
 		isLoggedIn: boolean;

@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import StrategyForm from '$lib/components/strategy/StrategyForm.svelte';
-	import { getTradingStrategy, updateTradingStrategy, ApiError } from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import type { CreateStrategyPayload, TradingStrategy } from '$lib/types';
+	import StrategyForm from '#lib/components/strategy/StrategyForm.svelte';
+	import { getTradingStrategy, updateTradingStrategy, ApiError } from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import type { CreateStrategyPayload, TradingStrategy } from '#lib/types.js';
 
 	let strategy = $state<TradingStrategy | null>(null);
 	let fetching = $state(true);
 	let loading = $state(false);
 	let error = $state('');
 
-	const strategyId = $derived($page.params.id);
+	const strategyId = $derived(page.params.id);
 
 	onMount(async () => {
 		await loadStrategy();

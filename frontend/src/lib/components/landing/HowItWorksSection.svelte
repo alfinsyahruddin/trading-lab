@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { reveal } from '$lib/helpers/reveal';
+	import { reveal } from '#lib/helpers/reveal.js';
 	import SectionHeader from './SectionHeader.svelte';
 	import WorkflowStep from './WorkflowStep.svelte';
-	import { LANDING_WORKFLOW_STEPS } from '$lib/constants/landing';
+	import { LANDING_WORKFLOW_STEPS } from '#lib/constants/landing.js';
 </script>
 
 {#snippet workflowTitleSnippet()}

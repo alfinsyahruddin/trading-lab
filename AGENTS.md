@@ -13,7 +13,7 @@ For in-depth explanations, refer directly to the specialized guides:
 | Guide | Content Overview |
 | :--- | :--- |
 | 🦀 [**Backend Architecture**](./docs/backend.md) | Layered architecture, Sectors.app 90-day chunking & 60s 429 retries, rule engine, captcha verification, Redis session tracking, and REST endpoints. |
-| ⚡ [**Frontend Architecture**](./docs/frontend.md) | SvelteKit 2 SPA, Svelte 5 Runes conventions, complete UI component catalog (including landing & modals), CSR route guards, and API client. |
+| ⚡ [**Frontend Architecture**](./docs/frontend.md) | SvelteKit 3 SPA, Svelte 5 Runes conventions, complete UI component catalog (including landing & modals), CSR route guards, and API client. |
 | ⚙️ [**Environment & Credentials**](./docs/environment.md) | Complete environment variable reference (host & Docker), default seeded credentials (`admin@mail.com` / `admin123`), and security policies. |
 | 🧪 [**Testing Guide**](./docs/testing.md) | Rust unit & HTTP contract tests, Vitest unit/component suites, and Playwright E2E testing workflows. |
 | 🛠️ [**Contributor Workflow**](./docs/workflow.md) | Development workflows, Docker Compose operations, verification checklists, and git commit guidelines. |
@@ -48,7 +48,7 @@ trading-lab/
 │   ├── .env.example          # Local host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
-├── frontend/                 # SvelteKit 2 SPA (CSR-only, Bun, TailwindCSS v4)
+├── frontend/                 # SvelteKit 3 SPA (CSR-only, Bun, TailwindCSS v4)
 │   ├── src/
 │   │   ├── app.css           # Tailwind v4 theme tokens & CSS variables
 │   │   ├── app.html          # Shell HTML template

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import LandingPage from '../../../src/routes/+page.svelte';
-import * as session from '$lib/helpers/session';
+import * as session from '#lib/helpers/session.js';
 
 // Mock matchMedia
 Object.defineProperty(globalThis, 'matchMedia', {

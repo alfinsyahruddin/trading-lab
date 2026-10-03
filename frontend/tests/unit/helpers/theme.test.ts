@@ -41,7 +41,7 @@ Object.defineProperty(globalThis.document, 'documentElement', {
 	configurable: true
 });
 
-import { initTheme, toggleTheme, getCurrentTheme } from '$lib/helpers/theme';
+import { initTheme, toggleTheme, getCurrentTheme } from '#lib/helpers/theme.js';
 
 describe('theme helper', () => {
 	beforeEach(() => {

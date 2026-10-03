@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { createRawSnippet } from 'svelte';
-import Modal from '$lib/components/Modal.svelte';
+import Modal from '#lib/components/Modal.svelte';
 
 describe('Modal', () => {
 	const dummyChildren = createRawSnippet(() => ({

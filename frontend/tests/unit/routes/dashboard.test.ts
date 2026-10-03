@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import DashboardPage from '../../../src/routes/dashboard/+page.svelte';
-import * as api from '$lib/api';
-import * as session from '$lib/helpers/session';
-import type { DashboardStats, LeaderboardEntry } from '$lib/types';
+import * as api from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import type { DashboardStats, LeaderboardEntry } from '#lib/types.js';
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
@@ -25,8 +25,8 @@ vi.mock('lightweight-charts', () => ({
 	BaselineSeries: 'Baseline'
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		getDashboardStats: vi.fn(),

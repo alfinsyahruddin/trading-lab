@@ -38,8 +38,8 @@ import {
 	saveRememberedAccount,
 	removeRememberedAccount,
 	clearSession
-} from '$lib/helpers/session';
-import type { UserResponse } from '$lib/types';
+} from '#lib/helpers/session.js';
+import type { UserResponse } from '#lib/types.js';
 
 const mockUser: UserResponse = {
 	id: '123e4567-e89b-12d3-a456-426614174000',

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
+import ComingSoonModal from '#lib/components/ComingSoonModal.svelte';
 
 describe('ComingSoonModal', () => {
 	it('does not render dialog when open is false', () => {

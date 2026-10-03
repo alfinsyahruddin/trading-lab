@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import UsersPage from '../../../src/routes/dashboard/users/+page.svelte';
-import * as api from '$lib/api';
-import * as session from '$lib/helpers/session';
-import { toast } from '$lib/helpers/toast.svelte';
-import type { UserResponse } from '$lib/types';
+import * as api from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import { toast } from '#lib/helpers/toast.svelte';
+import type { UserResponse } from '#lib/types.js';
 
 const mockGoto = vi.fn();
 vi.mock('$app/navigation', () => ({
 	goto: (...args: unknown[]) => mockGoto(...args)
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		listUsers: vi.fn(),

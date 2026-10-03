@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import RoleBadge from './RoleBadge.svelte';
 	import EditProfileModal from './EditProfileModal.svelte';
 	import ChangePasswordModal from './ChangePasswordModal.svelte';
-	import { getUser, clearSession, getToken } from '$lib/helpers/session';
-	import { logout } from '$lib/api';
+	import { getUser, clearSession, getToken } from '#lib/helpers/session.js';
+	import { logout } from '#lib/api.js';
 	import { onMount } from 'svelte';
-	import type { UserResponse } from '$lib/types';
+	import type { UserResponse } from '#lib/types.js';
 
 	let user = $state<UserResponse | null>(null);
 	let mobileMenuOpen = $state(false);
@@ -57,7 +57,7 @@
 
 	$effect(() => {
 		// Track route and nav item dependencies
-		const _path = $page.url.pathname;
+		const _path = page.url.pathname;
 		const _items = navItems;
 		if (typeof window !== 'undefined') {
 			requestAnimationFrame(() => {
@@ -98,8 +98,18 @@
 
 	const navItems = $derived([
 		{ href: '/dashboard', label: 'Dashboard', icon: 'lucide:home' },
-		{ href: '/dashboard/strategies', label: 'Trading Strategy', icon: 'lucide:candlestick-chart' },
-		{ href: '/dashboard/backtests', label: 'Backtest', icon: 'lucide:flask-conical' },
+		{
+			href: '/dashboard/strategies',
+			label: 'Trading Strategy',
+			icon: 'lucide:candlestick-chart'
+		},
+
+		{
+			href: '/dashboard/backtests',
+			label: 'Backtest',
+			icon: 'lucide:flask-conical'
+		},
+
 		...(user?.role === 'ADMIN'
 			? [
 					{ href: '/dashboard/users', label: 'Users', icon: 'lucide:users' },
@@ -110,9 +120,9 @@
 
 	function isActive(href: string): boolean {
 		if (href === '/dashboard') {
-			return $page.url.pathname === '/dashboard';
+			return page.url.pathname === '/dashboard';
 		}
-		return $page.url.pathname.startsWith(href);
+		return page.url.pathname.startsWith(href);
 	}
 
 	function toggleMobileMenu(e?: MouseEvent) {

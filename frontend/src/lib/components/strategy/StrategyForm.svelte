@@ -1,17 +1,17 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import TextField from '$lib/components/TextField.svelte';
+	import TextField from '#lib/components/TextField.svelte';
 	import WhereConditionsBuilder from './WhereConditionsBuilder.svelte';
 	import StrategyAiSuggestionsCard from './StrategyAiSuggestionsCard.svelte';
-	import { formatRiskReward } from '$lib/constants';
-	import { getStrategyAiSuggestions } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
+	import { formatRiskReward } from '#lib/constants.js';
+	import { getStrategyAiSuggestions } from '#lib/api.js';
+	import { getToken } from '#lib/helpers/session.js';
 	import type {
 		CreateStrategyPayload,
 		StrategyAiSuggestion,
 		StrategyRuleGroup,
 		TradingStrategy
-	} from '$lib/types';
+	} from '#lib/types.js';
 
 	let {
 		initialData,

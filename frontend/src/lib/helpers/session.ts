@@ -1,5 +1,5 @@
-import { LS_REFRESH, LS_REMEMBERED_ACCOUNTS, LS_TOKEN, LS_USER } from '$lib/constants';
-import type { RememberedAccount, UserResponse } from '$lib/types';
+import { LS_REFRESH, LS_REMEMBERED_ACCOUNTS, LS_TOKEN, LS_USER } from '#lib/constants.js';
+import type { RememberedAccount, UserResponse } from '#lib/types.js';
 
 /**
  * Persists auth session to localStorage for client-side API calls and auth guards.

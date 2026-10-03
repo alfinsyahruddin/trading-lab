@@ -2,19 +2,19 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import SelectField from '$lib/components/SelectField.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
-	import TextField from '$lib/components/TextField.svelte';
-	import DateRangePicker from '$lib/components/DateRangePicker.svelte';
-	import { listTradingStrategies, createBacktest, ApiError } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
+	import SelectField from '#lib/components/SelectField.svelte';
+	import SegmentedControl from '#lib/components/SegmentedControl.svelte';
+	import TextField from '#lib/components/TextField.svelte';
+	import DateRangePicker from '#lib/components/DateRangePicker.svelte';
+	import { listTradingStrategies, createBacktest, ApiError } from '#lib/api.js';
+	import { getToken } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
 	import {
 		calculateBacktestDateRange,
 		calculateDaysBetween,
 		formatDateISO
-	} from '$lib/helpers/date';
-	import type { TradingStrategy, CreateBacktestPayload } from '$lib/types';
+	} from '#lib/helpers/date.js';
+	import type { TradingStrategy, CreateBacktestPayload } from '#lib/types.js';
 
 	let strategies = $state<TradingStrategy[]>([]);
 	let loadingStrats = $state(true);

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import StatsCard from '$lib/components/dashboard/StatsCard.svelte';
+import StatsCard from '#lib/components/dashboard/StatsCard.svelte';
 
 describe('StatsCard', () => {
 	it('renders label and value correctly', () => {

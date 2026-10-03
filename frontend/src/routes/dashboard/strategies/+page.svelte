@@ -2,19 +2,19 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import Modal from '$lib/components/Modal.svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import TextField from '$lib/components/TextField.svelte';
+	import Modal from '#lib/components/Modal.svelte';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import TextField from '#lib/components/TextField.svelte';
 	import {
 		listTradingStrategies,
 		deleteTradingStrategy,
 		duplicateTradingStrategy,
 		ApiError
-	} from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
-	import type { TradingStrategy } from '$lib/types';
+	} from '#lib/api.js';
+	import { getToken } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { formatRiskReward, formatTimeAgo } from '#lib/constants.js';
+	import type { TradingStrategy } from '#lib/types.js';
 
 	let strategies = $state<TradingStrategy[]>([]);
 	let loading = $state(true);

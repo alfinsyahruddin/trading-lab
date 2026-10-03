@@ -2,6 +2,12 @@
 
 This document provides the in-depth architectural reference for the frontend application of Trading Lab. For golden rules and invariants, see [AGENTS.md §3](../AGENTS.md#3-golden-rules).
 
+The app uses **SvelteKit 3** with Svelte 5 and runs as a static, client-rendered SPA. SvelteKit options and the static adapter are configured in [`frontend/vite.config.ts`](../frontend/vite.config.ts); there is no `svelte.config.js`.
+
+Application library imports use the `#lib` package subpath alias declared in [`frontend/package.json`](../frontend/package.json). Include the output extension in imports, for example `#lib/api.js`, `#lib/types.js`, and `#lib/components/TopBar.svelte`.
+
+Use `$app/state` for reactive page state and read `page` directly. `page.url` is readonly, so copy it with `new URL(page.url.href)` before changing its search parameters. Use `refreshAll()` when reloading load data, and reserve `goto()` for URLs that resolve to app routes; use `window.location.href` for external navigation.
+
 ---
 
 ## 1. Svelte 5 Runes & State Conventions

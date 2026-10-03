@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserRole } from '$lib/types';
+	import type { UserRole } from '#lib/types.js';
 
 	let {
 		role,

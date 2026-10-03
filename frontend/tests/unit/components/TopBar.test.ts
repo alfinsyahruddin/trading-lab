@@ -1,16 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import TopBar from '$lib/components/TopBar.svelte';
-import * as session from '$lib/helpers/session';
-import type { UserResponse } from '$lib/types';
+import TopBar from '#lib/components/TopBar.svelte';
+import * as session from '#lib/helpers/session.js';
+import type { UserResponse } from '#lib/types.js';
 
-vi.mock('$app/stores', () => ({
-	page: {
-		subscribe: (fn: (val: { url: URL }) => void) => {
-			fn({ url: new URL('http://localhost/dashboard') });
-			return () => {};
-		}
-	}
+vi.mock('$app/state', () => ({
+	page: { url: new URL('http://localhost/dashboard') }
 }));
 
 vi.mock('$app/navigation', () => ({

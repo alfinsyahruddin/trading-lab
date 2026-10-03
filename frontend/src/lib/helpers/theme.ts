@@ -1,4 +1,4 @@
-import { LS_THEME } from '$lib/constants';
+import { LS_THEME } from '#lib/constants.js';
 
 export type Theme = 'dark' | 'light';
 

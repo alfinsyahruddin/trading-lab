@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { reveal } from '$lib/helpers/reveal';
+	import { reveal } from '#lib/helpers/reveal.js';
 	import SectionHeader from './SectionHeader.svelte';
 	import FeatureCard from './FeatureCard.svelte';
-	import { LANDING_FEATURES } from '$lib/constants/landing';
+	import { LANDING_FEATURES } from '#lib/constants/landing.js';
 </script>
 
 {#snippet strategyBuilderIcon()}

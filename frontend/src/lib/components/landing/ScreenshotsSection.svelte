@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { reveal } from '$lib/helpers/reveal';
+	import { reveal } from '#lib/helpers/reveal.js';
 	import SectionHeader from './SectionHeader.svelte';
 	import ScreenshotCard from './ScreenshotCard.svelte';
-	import { LANDING_SCREENSHOTS } from '$lib/constants/landing';
+	import { LANDING_SCREENSHOTS } from '#lib/constants/landing.js';
 </script>
 
 <section

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import WhereConditionsBuilder from '$lib/components/strategy/WhereConditionsBuilder.svelte';
-import type { StrategyRuleGroup } from '$lib/types';
+import WhereConditionsBuilder from '#lib/components/strategy/WhereConditionsBuilder.svelte';
+import type { StrategyRuleGroup } from '#lib/types.js';
 
 describe('WhereConditionsBuilder', () => {
 	it('renders header and default group', () => {

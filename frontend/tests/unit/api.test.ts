@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { listTradingStrategies, ApiError } from '$lib/api';
-import * as session from '$lib/helpers/session';
-import type { UserResponse } from '$lib/types';
+import { listTradingStrategies, ApiError } from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import type { UserResponse } from '#lib/types.js';
 
 describe('API client auto-refresh and auth handling', () => {
 	const mockUser: UserResponse = {

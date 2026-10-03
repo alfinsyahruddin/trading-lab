@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
+import HalfDoughnutChart from '#lib/components/backtest/HalfDoughnutChart.svelte';
 
 describe('HalfDoughnutChart', () => {
 	it('renders trade totals and win/loss breakdown correctly', () => {

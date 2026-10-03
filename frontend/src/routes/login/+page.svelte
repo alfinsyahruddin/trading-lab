@@ -2,19 +2,19 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import TextField from '$lib/components/TextField.svelte';
-	import RoleBadge from '$lib/components/RoleBadge.svelte';
-	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
-	import { login, ApiError } from '$lib/api';
+	import TextField from '#lib/components/TextField.svelte';
+	import RoleBadge from '#lib/components/RoleBadge.svelte';
+	import ComingSoonModal from '#lib/components/ComingSoonModal.svelte';
+	import { login, ApiError } from '#lib/api.js';
 	import {
 		persistSession,
 		getRememberedAccounts,
 		saveRememberedAccount,
 		removeRememberedAccount
-	} from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { isComingSoon } from '$lib/helpers/config';
-	import type { RememberedAccount } from '$lib/types';
+	} from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { isComingSoon } from '#lib/helpers/config.js';
+	import type { RememberedAccount } from '#lib/types.js';
 
 	let email = $state('');
 	let password = $state('');

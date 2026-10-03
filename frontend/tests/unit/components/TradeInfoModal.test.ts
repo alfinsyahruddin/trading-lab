@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import TradeInfoModal from '$lib/components/backtest/TradeInfoModal.svelte';
-import type { TradeHistoryEntry, TradingStrategy } from '$lib/types';
+import TradeInfoModal from '#lib/components/backtest/TradeInfoModal.svelte';
+import type { TradeHistoryEntry, TradingStrategy } from '#lib/types.js';
 
 describe('TradeInfoModal', () => {
 	const mockTrade: TradeHistoryEntry = {

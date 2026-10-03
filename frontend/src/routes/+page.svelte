@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getToken } from '$lib/helpers/session';
-	import { cleanupRevealEngine } from '$lib/helpers/reveal';
-	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
-	import HeroSection from '$lib/components/landing/HeroSection.svelte';
-	import FeaturesSection from '$lib/components/landing/FeaturesSection.svelte';
-	import ScreenshotsSection from '$lib/components/landing/ScreenshotsSection.svelte';
-	import HowItWorksSection from '$lib/components/landing/HowItWorksSection.svelte';
-	import CtaSection from '$lib/components/landing/CtaSection.svelte';
-	import LandingFooter from '$lib/components/landing/LandingFooter.svelte';
+	import { getToken } from '#lib/helpers/session.js';
+	import { cleanupRevealEngine } from '#lib/helpers/reveal.js';
+	import ComingSoonModal from '#lib/components/ComingSoonModal.svelte';
+	import HeroSection from '#lib/components/landing/HeroSection.svelte';
+	import FeaturesSection from '#lib/components/landing/FeaturesSection.svelte';
+	import ScreenshotsSection from '#lib/components/landing/ScreenshotsSection.svelte';
+	import HowItWorksSection from '#lib/components/landing/HowItWorksSection.svelte';
+	import CtaSection from '#lib/components/landing/CtaSection.svelte';
+	import LandingFooter from '#lib/components/landing/LandingFooter.svelte';
 
 	let isLoggedIn = $state(false);
 	let showComingSoonModal = $state(false);

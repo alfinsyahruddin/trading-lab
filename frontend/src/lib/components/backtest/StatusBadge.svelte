@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BacktestStatus } from '$lib/types';
+	import type { BacktestStatus } from '#lib/types.js';
 
 	let { status }: { status: BacktestStatus } = $props();
 

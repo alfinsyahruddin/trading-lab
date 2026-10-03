@@ -4,8 +4,8 @@
 		fetchStrategyMetadata,
 		getStrategyVariables,
 		getVariableCategories
-	} from '$lib/helpers/strategy-variables.svelte';
-	import type { StrategyVariable } from '$lib/types';
+	} from '#lib/helpers/strategy-variables.svelte.js';
+	import type { StrategyVariable } from '#lib/types.js';
 
 	let {
 		open = $bindable(false),

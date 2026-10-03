@@ -1,4 +1,4 @@
-import { clearSession, getRefreshToken, getToken, persistSession } from '$lib/helpers/session';
+import { clearSession, getRefreshToken, getToken, persistSession } from '#lib/helpers/session.js';
 import type {
 	CreateStrategyPayload,
 	LoginResponse,
@@ -16,7 +16,7 @@ import type {
 	StrategyRuleGroup,
 	CaptchaResponse,
 	StrategyMetadata
-} from '$lib/types';
+} from '#lib/types.js';
 
 const BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 

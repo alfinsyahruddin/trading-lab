@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import NewBacktestPage from '../../../src/routes/dashboard/backtests/new/+page.svelte';
-import * as api from '$lib/api';
-import * as session from '$lib/helpers/session';
-import { calculateBacktestDateRange } from '$lib/helpers/date';
-import type { TradingStrategy } from '$lib/types';
+import * as api from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import { calculateBacktestDateRange } from '#lib/helpers/date.js';
+import type { TradingStrategy } from '#lib/types.js';
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		listTradingStrategies: vi.fn(),

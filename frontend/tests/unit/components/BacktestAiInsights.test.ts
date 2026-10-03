@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import BacktestAiInsights, {
 	parseInsightsTokens
-} from '$lib/components/backtest/BacktestAiInsights.svelte';
+} from '#lib/components/backtest/BacktestAiInsights.svelte';
 
 describe('BacktestAiInsights', () => {
 	it('renders insights dimensions, spotlight recommendation, and header', () => {

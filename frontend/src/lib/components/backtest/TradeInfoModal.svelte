@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { findStrategyVariable } from '$lib/helpers/strategy-variables.svelte';
-	import type { TradeHistoryEntry, TradingStrategy } from '$lib/types';
+	import { findStrategyVariable } from '#lib/helpers/strategy-variables.svelte.js';
+	import type { TradeHistoryEntry, TradingStrategy } from '#lib/types.js';
 
 	let {
 		open = $bindable(false),

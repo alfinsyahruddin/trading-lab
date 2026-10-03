@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import SelectField from '$lib/components/SelectField.svelte';
+import SelectField from '#lib/components/SelectField.svelte';
 
 describe('SelectField', () => {
 	const sampleOptions = [

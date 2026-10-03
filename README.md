@@ -14,7 +14,7 @@ Trading Lab is a backtesting platform built for the Indonesia Stock Exchange (ID
 
 ### 🛠️ Visual Strategy Builder
 - **Visual Condition Builder**: Construct dynamic, multi-group screening rules with customizable intra-group and inter-group logical connectors (`AND` / `OR`).
-- **Comprehensive IDX Metrics**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA, Net Margin), Solvency (DER, Current Ratio), Dividend Yield, and Technical Price/Volume indicators.
+- **Comprehensive IDX Metrics**: Screen stocks across categorized financial metrics, including Valuation (P/E, P/B), Profitability (ROE, ROA), Technical Price, Volume & Value indicators, and Foreign Flow.
 - **Dynamic Comparisons**: Compare variables against fixed numeric thresholds, percentage changes, or cross-metric conditions.
 
 ### ⚡ Reliable Backtest Engine
@@ -74,7 +74,7 @@ A shared rate limiter enforces Sectors.app's quota (25 req/min) across all endpo
 - **Validation**: `validator` crate
 
 ### Frontend (Svelte)
-- **Framework**: [SvelteKit 2](https://kit.svelte.dev/) with **Svelte 5 Runes** (`$state`, `$derived`, `$props`, `$effect`)
+- **Framework**: [SvelteKit 3](https://kit.svelte.dev/) with **Svelte 5 Runes** (`$state`, `$derived`, `$props`, `$effect`)
 - **Mode**: Pure Client-Side Rendering (CSR / SPA)
 - **Runtime & Package Manager**: [Bun](https://bun.sh/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with CSS design token variables
@@ -112,7 +112,7 @@ trading-lab/
 │   ├── .env.example          # Host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
-├── frontend/                 # SvelteKit 2 SPA (CSR-only, Bun, TailwindCSS v4)
+├── frontend/                 # SvelteKit 3 SPA (CSR-only, Bun, TailwindCSS v4)
 │   ├── src/
 │   │   ├── app.css           # Tailwind v4 theme tokens & CSS variables
 │   │   ├── app.html          # Shell HTML template

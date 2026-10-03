@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import HomePage from '../../../src/routes/+page.svelte';
-import * as session from '$lib/helpers/session';
+import * as session from '#lib/helpers/session.js';
 
 describe('HomePage (+page.svelte)', () => {
 	beforeEach(() => {

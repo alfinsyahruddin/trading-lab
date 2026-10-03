@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatRiskReward, formatTimeAgo } from '$lib/constants';
+import { formatRiskReward, formatTimeAgo } from '#lib/constants.js';
 
 describe('Strategy Constants & Formatters', () => {
 	it('formats risk reward ratio as 1 : ratio without redundant trailing zeros (e.g. 1 : 2.00 -> 1 : 2)', () => {

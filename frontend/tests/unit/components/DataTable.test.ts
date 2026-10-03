@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
-import DataTable from '$lib/components/DataTable.svelte';
+import DataTable from '#lib/components/DataTable.svelte';
 
 interface Item {
 	id: string;

@@ -3,8 +3,8 @@
 	import {
 		findStrategyOperator,
 		findStrategyVariable
-	} from '$lib/helpers/strategy-variables.svelte';
-	import type { StrategyAiSuggestion } from '$lib/types';
+	} from '#lib/helpers/strategy-variables.svelte.js';
+	import type { StrategyAiSuggestion } from '#lib/types.js';
 
 	let {
 		suggestions = [],

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/svelte';
-import BacktestResultPreview from '$lib/components/backtest/BacktestResultPreview.svelte';
-import type { PortfolioHistoryEntry } from '$lib/types';
+import BacktestResultPreview from '#lib/components/backtest/BacktestResultPreview.svelte';
+import type { PortfolioHistoryEntry } from '#lib/types.js';
 
 const mockSetData = vi.fn();
 const mockFitContent = vi.fn();

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import IosSwitch from '$lib/components/IosSwitch.svelte';
+import IosSwitch from '#lib/components/IosSwitch.svelte';
 
 describe('IosSwitch', () => {
 	it('renders switch with role="switch" and unchecked state', () => {

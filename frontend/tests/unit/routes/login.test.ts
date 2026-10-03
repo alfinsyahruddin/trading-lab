@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import LoginPage from '../../../src/routes/login/+page.svelte';
-import * as session from '$lib/helpers/session';
-import * as api from '$lib/api';
+import * as session from '#lib/helpers/session.js';
+import * as api from '#lib/api.js';
 import { goto } from '$app/navigation';
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		login: vi.fn()

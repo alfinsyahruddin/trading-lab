@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { redirect } from '@sveltejs/kit';
-import { getToken, persistSession } from '$lib/helpers/session';
-import type { UserResponse } from '$lib/types';
+import { getToken, persistSession } from '#lib/helpers/session.js';
+import type { UserResponse } from '#lib/types.js';
 
 // Mock localStorage
 const localStorageMock = (() => {

@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import Modal from '$lib/components/Modal.svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import TextField from '$lib/components/TextField.svelte';
-	import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
+	import Modal from '#lib/components/Modal.svelte';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import TextField from '#lib/components/TextField.svelte';
+	import StatusBadge from '#lib/components/backtest/StatusBadge.svelte';
 	import {
 		getTradingStrategy,
 		deleteTradingStrategy,
 		duplicateTradingStrategy,
 		listBacktests,
 		ApiError
-	} from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
-	import { findStrategyVariable } from '$lib/helpers/strategy-variables.svelte';
-	import type { BacktestJob, TradingStrategy } from '$lib/types';
+	} from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { formatRiskReward, formatTimeAgo } from '#lib/constants.js';
+	import { findStrategyVariable } from '#lib/helpers/strategy-variables.svelte.js';
+	import type { BacktestJob, TradingStrategy } from '#lib/types.js';
 
 	let strategy = $state<TradingStrategy | null>(null);
 	let backtests = $state<BacktestJob[]>([]);
@@ -32,9 +32,9 @@
 
 	// Delete modal state
 	let deleteOpen = $state(false);
-	let deleteLoading = $state(false);
 
-	const strategyId = $derived($page.params.id);
+	let deleteLoading = $state(false);
+	const strategyId = $derived(page.params.id);
 	const currentUser = $derived(getUser());
 	const isOwner = $derived(currentUser && strategy ? currentUser.id === strategy.user_id : false);
 
@@ -206,6 +206,7 @@
 							>
 								<Icon icon="lucide:user" width="13" height="13" />
 							</div>
+
 							<div class="flex flex-wrap items-center gap-1.5 text-xs">
 								<span class="font-600" style="color: var(--fg)">{strategy.owner.name}</span>
 								<span class="text-[11px]" style="color: var(--fg-muted)"
@@ -317,14 +318,13 @@
 
 				<!-- Max Holding -->
 				<div class="flex flex-col">
-					<span
-						class="font-600 text-[11px] tracking-wider uppercase"
-						style="color: var(--fg-muted)"
+					<span class="font-600 text-[11px] tracking-wider uppercase" style="color: var(--fg-muted)"
+						>Max Holding</span
 					>
-						Max Holding
-					</span>
+
 					<span class="font-700 flex items-center gap-1.5 text-base" style="color: var(--fg)">
 						<Icon icon="lucide:clock" width="14" height="14" style="color: var(--fg-muted);" />
+
 						{strategy.max_holding_period_days} Days
 					</span>
 				</div>
@@ -489,9 +489,10 @@
 								>
 									<div class="flex min-w-0 flex-col gap-1">
 										<div class="flex flex-wrap items-center gap-2">
-											<span class="font-700 truncate text-sm" style="color: var(--fg)">
-												{bt.name}
-											</span>
+											<span class="font-700 truncate text-sm" style="color: var(--fg)"
+												>{bt.name}</span
+											>
+
 											<span
 												class="font-600 inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
 												style="background-color: var(--bg-card); color: var(--fg)"
@@ -630,7 +631,7 @@
 <ConfirmModal
 	bind:open={deleteOpen}
 	title="Delete Trading Strategy"
-	message="Are you sure you want to delete strategy &quot;{strategy?.name}&quot;? This action cannot be undone."
+	message={`Are you sure you want to delete strategy "${strategy?.name}"? This action cannot be undone.`}
 	confirmLabel="Delete Strategy"
 	loading={deleteLoading}
 	onconfirm={handleDelete}

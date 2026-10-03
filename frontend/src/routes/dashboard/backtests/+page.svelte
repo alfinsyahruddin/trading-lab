@@ -2,14 +2,14 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
-	import BacktestResultPreview from '$lib/components/backtest/BacktestResultPreview.svelte';
-	import { listBacktests, deleteBacktest, rerunBacktest, ApiError } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { formatTimeAgo } from '$lib/constants';
-	import type { BacktestJob } from '$lib/types';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import StatusBadge from '#lib/components/backtest/StatusBadge.svelte';
+	import BacktestResultPreview from '#lib/components/backtest/BacktestResultPreview.svelte';
+	import { listBacktests, deleteBacktest, rerunBacktest, ApiError } from '#lib/api.js';
+	import { getToken } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { formatTimeAgo } from '#lib/constants.js';
+	import type { BacktestJob } from '#lib/types.js';
 
 	let backtests = $state<BacktestJob[]>([]);
 	let loading = $state(true);

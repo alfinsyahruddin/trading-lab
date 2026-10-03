@@ -5,7 +5,7 @@ import {
 	formatBacktestDateRange,
 	formatDateISO,
 	calculateDaysBetween
-} from '$lib/helpers/date';
+} from '#lib/helpers/date.js';
 
 describe('date helper', () => {
 	it('calculates 1 month date range for screener year 2025 (matching backend)', () => {

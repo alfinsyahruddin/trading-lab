@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 // Mock toast.svelte.ts for unit testing
-vi.mock('$lib/helpers/toast.svelte', () => {
+vi.mock('#lib/helpers/toast.svelte', () => {
 	const toasts: Array<{ id: number; type: string; message: string }> = [];
 	let nextId = 0;
 
@@ -32,7 +32,7 @@ vi.mock('$lib/helpers/toast.svelte', () => {
 	};
 });
 
-import { toast, toasts, dismissToast } from '$lib/helpers/toast.svelte';
+import { toast, toasts, dismissToast } from '#lib/helpers/toast.svelte';
 
 describe('toast helper', () => {
 	beforeEach(() => {

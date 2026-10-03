@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { tick } from 'svelte';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
-import type { PortfolioHistoryEntry } from '$lib/types';
+import PortfolioChart from '#lib/components/backtest/PortfolioChart.svelte';
+import type { PortfolioHistoryEntry } from '#lib/types.js';
 
 const mockSetData = vi.fn();
 const mockFitContent = vi.fn();

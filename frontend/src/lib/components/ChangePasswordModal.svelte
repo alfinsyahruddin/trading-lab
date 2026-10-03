@@ -3,9 +3,9 @@
 	import Icon from '@iconify/svelte';
 	import Modal from './Modal.svelte';
 	import TextField from './TextField.svelte';
-	import { changePassword, ApiError } from '$lib/api';
-	import { clearSession } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
+	import { changePassword, ApiError } from '#lib/api.js';
+	import { clearSession } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
 
 	let {
 		open = $bindable(false)

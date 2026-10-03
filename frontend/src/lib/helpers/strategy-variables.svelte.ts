@@ -1,5 +1,5 @@
-import { getStrategyVariables as fetchApiVariables } from '$lib/api';
-import type { StrategyMetadata, StrategyOperator, StrategyVariable } from '$lib/types';
+import { getStrategyVariables as fetchApiVariables } from '#lib/api.js';
+import type { StrategyMetadata, StrategyOperator, StrategyVariable } from '#lib/types.js';
 
 let metadata = $state<StrategyMetadata>({
 	variables: [],

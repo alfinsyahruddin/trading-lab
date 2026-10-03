@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import VariablePickerModal from '$lib/components/strategy/VariablePickerModal.svelte';
+import VariablePickerModal from '#lib/components/strategy/VariablePickerModal.svelte';
 
 describe('VariablePickerModal', () => {
 	it('does not render dialog content when open is false', () => {

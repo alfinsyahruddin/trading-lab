@@ -1,26 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
-import { readable } from 'svelte/store';
 import StrategyDetailPage from '../../../src/routes/dashboard/strategies/[id]/+page.svelte';
-import * as api from '$lib/api';
-import * as session from '$lib/helpers/session';
-import { toast } from '$lib/helpers/toast.svelte';
-import type { TradingStrategy, BacktestJob } from '$lib/types';
+import * as api from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import { toast } from '#lib/helpers/toast.svelte';
+import type { TradingStrategy, BacktestJob } from '#lib/types.js';
 
 const mockGoto = vi.fn();
 vi.mock('$app/navigation', () => ({
 	goto: (...args: unknown[]) => mockGoto(...args)
 }));
 
-vi.mock('$app/stores', () => ({
-	page: readable({
+vi.mock('$app/state', () => ({
+	page: {
 		params: { id: 'strat-123' },
 		url: new URL('http://localhost:3000/dashboard/strategies/strat-123')
-	})
+	}
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		getTradingStrategy: vi.fn(),

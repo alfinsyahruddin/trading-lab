@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
-	import { formatDateShort, formatBacktestDateRange } from '$lib/helpers/date';
+	import { formatDateShort, formatBacktestDateRange } from '#lib/helpers/date.js';
 
 	let {
 		label = '',

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import RoleBadge from '$lib/components/RoleBadge.svelte';
+import RoleBadge from '#lib/components/RoleBadge.svelte';
 
 describe('RoleBadge', () => {
 	it('renders ADMIN role', () => {

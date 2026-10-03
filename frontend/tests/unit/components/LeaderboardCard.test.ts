@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import LeaderboardCard from '$lib/components/dashboard/LeaderboardCard.svelte';
-import type { LeaderboardEntry } from '$lib/types';
+import LeaderboardCard from '#lib/components/dashboard/LeaderboardCard.svelte';
+import type { LeaderboardEntry } from '#lib/types.js';
 
 vi.mock('lightweight-charts', () => ({
 	createChart: vi.fn(() => ({

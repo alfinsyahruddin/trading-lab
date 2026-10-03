@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
+import StatusBadge from '#lib/components/backtest/StatusBadge.svelte';
 
 describe('StatusBadge', () => {
 	it('renders PENDING status correctly', () => {

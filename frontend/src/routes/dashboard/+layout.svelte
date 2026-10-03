@@ -1,8 +1,8 @@
 <script lang="ts">
-	import TopBar from '$lib/components/TopBar.svelte';
+	import TopBar from '#lib/components/TopBar.svelte';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
-	import { fetchStrategyMetadata } from '$lib/helpers/strategy-variables.svelte';
+	import { fetchStrategyMetadata } from '#lib/helpers/strategy-variables.svelte.js';
 
 	let { children }: { children: Snippet } = $props();
 

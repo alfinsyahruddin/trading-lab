@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { getToken } from '$lib/helpers/session';
+import { getToken } from '#lib/helpers/session.js';
 
 // Redirect already-authenticated users away from register.
 export const load = () => {

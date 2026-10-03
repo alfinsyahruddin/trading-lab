@@ -1,25 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import StatusBadge from '$lib/components/backtest/StatusBadge.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
-	import PortfolioChart from '$lib/components/backtest/PortfolioChart.svelte';
-	import HalfDoughnutChart from '$lib/components/backtest/HalfDoughnutChart.svelte';
-	import BacktestAiInsights from '$lib/components/backtest/BacktestAiInsights.svelte';
-	import TradeInfoModal from '$lib/components/backtest/TradeInfoModal.svelte';
+	import StatusBadge from '#lib/components/backtest/StatusBadge.svelte';
+	import SegmentedControl from '#lib/components/SegmentedControl.svelte';
+	import PortfolioChart from '#lib/components/backtest/PortfolioChart.svelte';
+	import HalfDoughnutChart from '#lib/components/backtest/HalfDoughnutChart.svelte';
+	import BacktestAiInsights from '#lib/components/backtest/BacktestAiInsights.svelte';
+	import TradeInfoModal from '#lib/components/backtest/TradeInfoModal.svelte';
 	import {
 		getBacktest,
 		getTradingStrategy,
 		updateBacktest,
 		rerunBacktest,
 		ApiError
-	} from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { formatRiskReward, formatTimeAgo } from '$lib/constants';
-	import type { BacktestJob, TradingStrategy, TradeHistoryEntry } from '$lib/types';
+	} from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { formatRiskReward, formatTimeAgo } from '#lib/constants.js';
+	import type { BacktestJob, TradingStrategy, TradeHistoryEntry } from '#lib/types.js';
 
 	let job = $state<BacktestJob | null>(null);
 	let strategy = $state<TradingStrategy | null>(null);
@@ -31,7 +31,7 @@
 	let selectedTradeForInfo = $state<TradeHistoryEntry | null>(null);
 	let showTradeInfoModal = $state(false);
 
-	const id = $derived($page.params.id);
+	const id = $derived(page.params.id);
 	const currentUser = $derived(getUser());
 	const isOwner = $derived(currentUser && job ? currentUser.id === job.user_id : false);
 
@@ -61,7 +61,6 @@
 	const atlPercentage = $derived(
 		job?.initial_cash && job.initial_cash > 0 ? (allTimeLow / job.initial_cash) * 100 : 0
 	);
-
 	const athFormatted = $derived(formatAthAtl(allTimeHigh, athPercentage));
 	const atlFormatted = $derived(formatAthAtl(allTimeLow, atlPercentage));
 
@@ -519,6 +518,7 @@
 								>
 									<Icon icon="lucide:user" width="13" height="13" />
 								</div>
+
 								<div class="flex flex-wrap items-center gap-1.5 text-xs">
 									<span class="font-600" style="color: var(--fg)">{job.owner.name}</span>
 									<span class="text-[11px]" style="color: var(--fg-muted)">({job.owner.email})</span
@@ -599,10 +599,9 @@
 					<div class="flex flex-col">
 						<span
 							class="font-600 text-[11px] tracking-wider uppercase"
-							style="color: var(--fg-muted)"
+							style="color: var(--fg-muted)">Duration</span
 						>
-							Duration
-						</span>
+
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon
 								icon="lucide:calendar-range"
@@ -618,12 +617,12 @@
 					<div class="flex flex-col">
 						<span
 							class="font-600 text-[11px] tracking-wider uppercase"
-							style="color: var(--fg-muted)"
+							style="color: var(--fg-muted)">Max Holding</span
 						>
-							Max Holding
-						</span>
+
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:layers" width="13" height="13" style="color: var(--fg-muted);" />
+
 							{job.max_holding_stocks} Stocks
 						</span>
 					</div>
@@ -632,12 +631,12 @@
 					<div class="flex flex-col">
 						<span
 							class="font-600 text-[11px] tracking-wider uppercase"
-							style="color: var(--fg-muted)"
+							style="color: var(--fg-muted)">Max Stocks</span
 						>
-							Max Stocks
-						</span>
+
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:filter" width="13" height="13" style="color: var(--fg-muted);" />
+
 							{job.max_stocks ?? 24} Stocks
 						</span>
 					</div>
@@ -646,12 +645,12 @@
 					<div class="flex flex-col">
 						<span
 							class="font-600 text-[11px] tracking-wider uppercase"
-							style="color: var(--fg-muted)"
+							style="color: var(--fg-muted)">Buy Fee</span
 						>
-							Buy Fee
-						</span>
+
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
+
 							{job.buy_fee_percentage}%
 						</span>
 					</div>
@@ -660,12 +659,12 @@
 					<div class="flex flex-col">
 						<span
 							class="font-600 text-[11px] tracking-wider uppercase"
-							style="color: var(--fg-muted)"
+							style="color: var(--fg-muted)">Sell Fee</span
 						>
-							Sell Fee
-						</span>
+
 						<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 							<Icon icon="lucide:percent" width="13" height="13" style="color: var(--fg-muted);" />
+
 							{job.sell_fee_percentage}%
 						</span>
 					</div>
@@ -783,12 +782,12 @@
 						<div class="flex flex-col">
 							<span
 								class="font-600 text-[11px] tracking-wider uppercase"
-								style="color: var(--fg-muted)"
+								style="color: var(--fg-muted)">Max Holding</span
 							>
-								Max Holding
-							</span>
+
 							<span class="font-700 flex items-center gap-1 text-sm" style="color: var(--fg)">
 								<Icon icon="lucide:clock" width="13" height="13" style="color: var(--fg-muted);" />
+
 								{strategy.max_holding_period_days} Days
 							</span>
 						</div>
@@ -1295,9 +1294,11 @@
 											<Icon icon={badge.icon} width="11" height="11" />
 											{badge.label}
 										</span>
-										<span class="font-600 text-xs" style="color: var(--fg-muted)">
-											{t.lot.toLocaleString('id-ID')} Lot
-										</span>
+
+										<span class="font-600 text-xs" style="color: var(--fg-muted)"
+											>{t.lot.toLocaleString('id-ID')} Lot</span
+										>
+
 										<span
 											class="font-700 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px]"
 											style="background-color: var(--bg-card); color: var(--fg-muted);"

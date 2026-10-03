@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+import ConfirmModal from '#lib/components/ConfirmModal.svelte';
 
 describe('ConfirmModal', () => {
 	it('does not render dialog when open is false', () => {

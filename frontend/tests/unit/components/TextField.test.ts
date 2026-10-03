@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import TextField from '$lib/components/TextField.svelte';
+import TextField from '#lib/components/TextField.svelte';
 
 describe('TextField', () => {
 	it('renders without label by default', () => {

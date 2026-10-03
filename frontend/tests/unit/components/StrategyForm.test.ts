@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import StrategyForm from '$lib/components/strategy/StrategyForm.svelte';
+import StrategyForm from '#lib/components/strategy/StrategyForm.svelte';
 
 describe('StrategyForm', () => {
 	it('submits valid strategy with default TP and SL values', async () => {
@@ -38,7 +38,7 @@ describe('StrategyForm', () => {
 		const onsubmit = vi.fn();
 		const oncancel = vi.fn();
 
-		vi.spyOn(await import('$lib/api'), 'getStrategyAiSuggestions').mockResolvedValueOnce([
+		vi.spyOn(await import('#lib/api.js'), 'getStrategyAiSuggestions').mockResolvedValueOnce([
 			{
 				id: 'sug-rule-1',
 				suggestion_type: 'RULE',

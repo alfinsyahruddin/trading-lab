@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import LandingLogo from './LandingLogo.svelte';
 	import LandingCtaButtons from './LandingCtaButtons.svelte';
 	import HeroChartWidget from './HeroChartWidget.svelte';
@@ -9,7 +9,7 @@
 		LANDING_HERO_STATS,
 		LANDING_TYPEWRITER_WORDS,
 		type LandingHeroStat
-	} from '$lib/constants/landing';
+	} from '#lib/constants/landing.js';
 
 	interface Props {
 		isLoggedIn: boolean;

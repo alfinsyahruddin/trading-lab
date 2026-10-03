@@ -2,11 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import IosSwitch from '$lib/components/IosSwitch.svelte';
-	import SelectField from '$lib/components/SelectField.svelte';
-	import { getSettings, updateSettings, ApiError } from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
+	import IosSwitch from '#lib/components/IosSwitch.svelte';
+	import SelectField from '#lib/components/SelectField.svelte';
+	import { getSettings, updateSettings, ApiError } from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
 
 	let aiEnabled = $state(false);
 	let loading = $state(true);

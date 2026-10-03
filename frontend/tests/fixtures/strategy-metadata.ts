@@ -1,4 +1,4 @@
-import type { StrategyMetadata } from '$lib/types';
+import type { StrategyMetadata } from '#lib/types.js';
 
 export const mockStrategyMetadata: StrategyMetadata = {
 	variables: [

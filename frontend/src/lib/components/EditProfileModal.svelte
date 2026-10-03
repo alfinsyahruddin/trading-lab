@@ -2,10 +2,10 @@
 	import Icon from '@iconify/svelte';
 	import Modal from './Modal.svelte';
 	import TextField from './TextField.svelte';
-	import { updateProfile, ApiError } from '$lib/api';
-	import { updateUserSession } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import type { UserResponse } from '$lib/types';
+	import { updateProfile, ApiError } from '#lib/api.js';
+	import { updateUserSession } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import type { UserResponse } from '#lib/types.js';
 
 	let {
 		open = $bindable(false),

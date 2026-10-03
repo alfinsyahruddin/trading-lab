@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import BacktestListPage from '../../../src/routes/dashboard/backtests/+page.svelte';
-import * as api from '$lib/api';
-import * as session from '$lib/helpers/session';
-import { toast } from '$lib/helpers/toast.svelte';
-import type { BacktestJob } from '$lib/types';
+import * as api from '#lib/api.js';
+import * as session from '#lib/helpers/session.js';
+import { toast } from '#lib/helpers/toast.svelte';
+import type { BacktestJob } from '#lib/types.js';
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
-vi.mock('$lib/api', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('$lib/api')>();
+vi.mock('#lib/api.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('#lib/api.js')>();
 	return {
 		...actual,
 		listBacktests: vi.fn(),

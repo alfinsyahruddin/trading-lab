@@ -2,11 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import StrategyForm from '$lib/components/strategy/StrategyForm.svelte';
-	import { createTradingStrategy, getSettings, ApiError } from '$lib/api';
-	import { getToken } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import type { CreateStrategyPayload } from '$lib/types';
+	import StrategyForm from '#lib/components/strategy/StrategyForm.svelte';
+	import { createTradingStrategy, getSettings, ApiError } from '#lib/api.js';
+	import { getToken } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import type { CreateStrategyPayload } from '#lib/types.js';
 
 	let loading = $state(false);
 	let error = $state('');

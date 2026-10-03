@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import DateRangePicker from '$lib/components/DateRangePicker.svelte';
+import DateRangePicker from '#lib/components/DateRangePicker.svelte';
 
 describe('DateRangePicker', () => {
 	it('renders without label by default', () => {

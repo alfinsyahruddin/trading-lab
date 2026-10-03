@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/svelte';
 import { afterEach, beforeEach, vi } from 'vitest';
-import { setStrategyMetadata } from '$lib/helpers/strategy-variables.svelte';
+import { setStrategyMetadata } from '#lib/helpers/strategy-variables.svelte';
 import { mockStrategyMetadata } from '../fixtures/strategy-metadata';
 
 class MockIntersectionObserver {

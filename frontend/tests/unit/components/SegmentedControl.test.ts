@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 
 describe('SegmentedControl', () => {
 	const options = [

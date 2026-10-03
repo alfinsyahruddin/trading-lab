@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { reveal } from '$lib/helpers/reveal';
+	import { reveal } from '#lib/helpers/reveal.js';
 
 	interface Props {
 		step: string;

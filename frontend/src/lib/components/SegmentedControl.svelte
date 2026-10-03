@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends string | boolean | number">
 	import Icon from '@iconify/svelte';
-	import type { SegmentOption } from '$lib/types';
+	import type { SegmentOption } from '#lib/types.js';
 
 	let {
 		options,

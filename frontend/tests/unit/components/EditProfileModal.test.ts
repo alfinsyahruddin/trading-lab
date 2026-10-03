@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import EditProfileModal from '$lib/components/EditProfileModal.svelte';
-import type { UserResponse } from '$lib/types';
+import EditProfileModal from '#lib/components/EditProfileModal.svelte';
+import type { UserResponse } from '#lib/types.js';
 
 const mockUser: UserResponse = {
 	id: '123e4567-e89b-12d3-a456-426614174000',

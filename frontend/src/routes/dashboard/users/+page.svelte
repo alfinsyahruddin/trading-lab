@@ -2,17 +2,17 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import DataTable from '$lib/components/DataTable.svelte';
-	import Modal from '$lib/components/Modal.svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import TextField from '$lib/components/TextField.svelte';
-	import SelectField from '$lib/components/SelectField.svelte';
-	import RoleBadge from '$lib/components/RoleBadge.svelte';
-	import { listUsers, createUser, updateUser, deleteUser } from '$lib/api';
-	import { ApiError } from '$lib/api';
-	import { getToken, getUser } from '$lib/helpers/session';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import type { UserResponse, UserRole } from '$lib/types';
+	import DataTable from '#lib/components/DataTable.svelte';
+	import Modal from '#lib/components/Modal.svelte';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import TextField from '#lib/components/TextField.svelte';
+	import SelectField from '#lib/components/SelectField.svelte';
+	import RoleBadge from '#lib/components/RoleBadge.svelte';
+	import { listUsers, createUser, updateUser, deleteUser } from '#lib/api.js';
+	import { ApiError } from '#lib/api.js';
+	import { getToken, getUser } from '#lib/helpers/session.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import type { UserResponse, UserRole } from '#lib/types.js';
 
 	// ── State ──────────────────────────────────────────────────────────────
 	let users = $state<UserResponse[]>([]);

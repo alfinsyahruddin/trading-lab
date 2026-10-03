@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import BacktestResultPreview from '$lib/components/backtest/BacktestResultPreview.svelte';
-	import { formatTimeAgo } from '$lib/constants';
-	import type { LeaderboardEntry } from '$lib/types';
+	import BacktestResultPreview from '#lib/components/backtest/BacktestResultPreview.svelte';
+	import { formatTimeAgo } from '#lib/constants.js';
+	import type { LeaderboardEntry } from '#lib/types.js';
 
 	let {
 		entry,

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
-import StrategyAiSuggestionsCard from '$lib/components/strategy/StrategyAiSuggestionsCard.svelte';
-import type { StrategyAiSuggestion } from '$lib/types';
+import StrategyAiSuggestionsCard from '#lib/components/strategy/StrategyAiSuggestionsCard.svelte';
+import type { StrategyAiSuggestion } from '#lib/types.js';
 
 describe('StrategyAiSuggestionsCard', () => {
 	const mockSuggestions: StrategyAiSuggestion[] = [

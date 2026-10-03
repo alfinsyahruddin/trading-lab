@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import ChangePasswordModal from '$lib/components/ChangePasswordModal.svelte';
+import ChangePasswordModal from '#lib/components/ChangePasswordModal.svelte';
 
 describe('ChangePasswordModal', () => {
 	it('does not render when open is false', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { isComingSoon } from '$lib/helpers/config';
+import { isComingSoon } from '#lib/helpers/config.js';
 
 describe('isComingSoon helper', () => {
 	beforeEach(() => {

@@ -2,12 +2,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import TextField from '$lib/components/TextField.svelte';
-	import ComingSoonModal from '$lib/components/ComingSoonModal.svelte';
-	import { register, getCaptcha } from '$lib/api';
-	import { ApiError } from '$lib/api';
-	import { toast } from '$lib/helpers/toast.svelte';
-	import { isComingSoon } from '$lib/helpers/config';
+	import TextField from '#lib/components/TextField.svelte';
+	import ComingSoonModal from '#lib/components/ComingSoonModal.svelte';
+	import { register, getCaptcha } from '#lib/api.js';
+	import { ApiError } from '#lib/api.js';
+	import { toast } from '#lib/helpers/toast.svelte.js';
+	import { isComingSoon } from '#lib/helpers/config.js';
 
 	let name = $state('');
 	let email = $state('');

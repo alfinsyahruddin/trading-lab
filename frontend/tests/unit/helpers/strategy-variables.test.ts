@@ -9,8 +9,8 @@ import {
 	findStrategyOperator,
 	setStrategyMetadata,
 	resetStrategyMetadata
-} from '$lib/helpers/strategy-variables.svelte';
-import * as api from '$lib/api';
+} from '#lib/helpers/strategy-variables.svelte';
+import * as api from '#lib/api.js';
 import { mockStrategyMetadata } from '../../fixtures/strategy-metadata';
 
 describe('Strategy Variables Reactive Helper', () => {

@@ -7,7 +7,7 @@
 		type BaselineData,
 		type Time
 	} from 'lightweight-charts';
-	import type { PortfolioHistoryEntry } from '$lib/types';
+	import type { PortfolioHistoryEntry } from '#lib/types.js';
 
 	let { data, initialCash }: { data: PortfolioHistoryEntry[]; initialCash: number } = $props();
 
