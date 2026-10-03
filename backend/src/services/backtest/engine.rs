@@ -4,17 +4,22 @@ use chrono::NaiveDate;
 use uuid::Uuid;
 
 use crate::{
-    entities::backtest::{
-        BacktestPortfolioHistoryRecord, BacktestResultRecord, BacktestTradeRecord, Position,
-        StockData,
+    entities::{
+        backtest::{
+            BacktestPortfolioHistoryRecord, BacktestResultRecord, BacktestTradeRecord, Position,
+            StockData,
+        },
+        trading_strategy::StrategyRuleGroup,
     },
     helpers::math_helper,
+    services::backtest::rules::evaluate_manual_rules,
 };
 
 #[allow(clippy::too_many_arguments)]
 pub fn simulate_backtest(
     job_id: Uuid,
     stocks: &[StockData],
+    manual_filter_groups: &[StrategyRuleGroup],
     initial_cash: f64,
     max_holding_stocks: i32,
     tp_percentage: f64,
@@ -36,15 +41,15 @@ pub fn simulate_backtest(
     let mut portfolio_history: Vec<BacktestPortfolioHistoryRecord> = Vec::new();
 
     let mut all_dates: Vec<NaiveDate> = Vec::new();
-    let mut date_to_stock_data: HashMap<NaiveDate, HashMap<String, f64>> = HashMap::new();
+    let mut date_to_stock_data: HashMap<NaiveDate, HashMap<String, (f64, u64)>> = HashMap::new();
 
     for stock in stocks {
-        for (date, close, _) in &stock.daily_data {
+        for (date, close, volume) in &stock.daily_data {
             all_dates.push(*date);
             date_to_stock_data
                 .entry(*date)
                 .or_default()
-                .insert(stock.code.clone(), *close);
+                .insert(stock.code.clone(), (*close, *volume));
         }
     }
 
@@ -61,7 +66,7 @@ pub fn simulate_backtest(
         while i >= 0 {
             let idx = i as usize;
             let pos = &open_positions[idx];
-            if let Some(&current_close) = current_stock_data.get(&pos.code) {
+            if let Some(&(current_close, _)) = current_stock_data.get(&pos.code) {
                 let hold_days = (current_date - pos.buy_date).num_days();
                 let tp_price = pos.buy_price * (1.0 + tp_percentage / 100.0);
                 let sl_price = pos.buy_price * (1.0 - sl_percentage / 100.0);
@@ -128,7 +133,16 @@ pub fn simulate_backtest(
                     continue;
                 }
 
-                if let Some(&current_close) = current_stock_data.get(&stock.code) {
+                if let Some(&(current_close, current_volume)) = current_stock_data.get(&stock.code)
+                {
+                    let vol = current_volume as f64;
+                    let val = current_close * vol * 100.0;
+
+                    if !evaluate_manual_rules(manual_filter_groups, current_close, vol, val) {
+                        stock_queue.push_back(stock_idx);
+                        continue;
+                    }
+
                     let lots = (entry_capital / (100.0 * current_close)).floor() as i32;
                     if lots > 0 {
                         let buy_value = (lots as f64) * 100.0 * current_close;
@@ -153,8 +167,8 @@ pub fn simulate_backtest(
                         stock_queue.push_back(stock_idx);
                     }
                 } else {
-                    stock_queue.push_front(stock_idx);
-                    break;
+                    stock_queue.push_back(stock_idx);
+                    continue;
                 }
             } else {
                 break;
@@ -167,7 +181,7 @@ pub fn simulate_backtest(
 
         for pos in &open_positions {
             let mut last_close = pos.buy_price;
-            if let Some(&c) = current_stock_data.get(&pos.code) {
+            if let Some(&(c, _)) = current_stock_data.get(&pos.code) {
                 last_close = c;
             }
 
@@ -191,7 +205,7 @@ pub fn simulate_backtest(
         let current_stock_data = date_to_stock_data.get(&last_date).unwrap_or(&empty_map);
         for pos in open_positions {
             let mut current_close = pos.buy_price;
-            if let Some(&c) = current_stock_data.get(&pos.code) {
+            if let Some(&(c, _)) = current_stock_data.get(&pos.code) {
                 current_close = c;
             }
 
@@ -385,6 +399,7 @@ mod tests {
         let (_result, history, trades) = simulate_backtest(
             job_id,
             &[stock],
+            &[],
             initial_cash,
             1,
             10.0, // 10% TP
@@ -425,6 +440,7 @@ mod tests {
         let (_, _, trades_sl) = simulate_backtest(
             job_id,
             &[stock_sl],
+            &[],
             10_000_000.0,
             1,
             10.0, // 10% TP
@@ -450,6 +466,7 @@ mod tests {
         let (_, _, trades_tp) = simulate_backtest(
             job_id,
             &[stock_tp],
+            &[],
             10_000_000.0,
             1,
             10.0, // 10% TP
@@ -469,7 +486,7 @@ mod tests {
     fn simulate_backtest_with_zero_trades_edge_case() {
         let job_id = Uuid::new_v4();
         let (result, portfolio, trades) =
-            simulate_backtest(job_id, &[], 10_000_000.0, 1, 10.0, 5.0, 10, 0.15, 0.25);
+            simulate_backtest(job_id, &[], &[], 10_000_000.0, 1, 10.0, 5.0, 10, 0.15, 0.25);
 
         assert_eq!(result.trades_processed, 0);
         assert_eq!(result.wins, 0);
@@ -501,6 +518,7 @@ mod tests {
         let (result, _, trades) = simulate_backtest(
             job_id,
             &[stock],
+            &[],
             10_000_000.0,
             1,
             10.0, // 10% TP
@@ -535,8 +553,18 @@ mod tests {
             ],
         };
 
-        let (result, portfolio, _) =
-            simulate_backtest(job_id, &[stock], 10_000_000.0, 1, 10.0, 5.0, 10, 0.0, 0.0);
+        let (result, portfolio, _) = simulate_backtest(
+            job_id,
+            &[stock],
+            &[],
+            10_000_000.0,
+            1,
+            10.0,
+            5.0,
+            10,
+            0.0,
+            0.0,
+        );
 
         assert_eq!(portfolio.len(), 3);
         assert_eq!(portfolio[0].net_value, portfolio[1].net_value);
@@ -556,8 +584,18 @@ mod tests {
             daily_data: vec![(date1, 1000.0, 10000), (date2, 1000.0, 10000)],
         };
 
-        let (result, _, trades) =
-            simulate_backtest(job_id, &[stock], 250_000.0, 2, 10.0, 5.0, 1, 0.15, 0.25);
+        let (result, _, trades) = simulate_backtest(
+            job_id,
+            &[stock],
+            &[],
+            250_000.0,
+            2,
+            10.0,
+            5.0,
+            1,
+            0.15,
+            0.25,
+        );
 
         assert_eq!(trades.len(), 1);
         let trade = &trades[0];
@@ -573,5 +611,96 @@ mod tests {
         assert_eq!(result.total_fees, expected_total_fees);
         assert_eq!(trade.pnl, -expected_total_fees);
         assert_eq!(result.net_pnl, -expected_total_fees);
+    }
+
+    #[test]
+    fn simulate_backtest_with_buy_guardrails_price_filter() {
+        use crate::entities::trading_strategy::StrategyRuleCondition;
+
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let job_id = Uuid::new_v4();
+
+        // EXPENSIVE is 1000 IDR (violates price <= 500 guardrail)
+        let expensive_stock = StockData {
+            code: "EXPENSIVE".to_string(),
+            daily_data: vec![(date1, 1000.0, 10000), (date2, 1050.0, 10000)],
+        };
+
+        // CHEAP is 400 IDR (satisfies price <= 500 guardrail)
+        let cheap_stock = StockData {
+            code: "CHEAP".to_string(),
+            daily_data: vec![(date1, 400.0, 10000), (date2, 450.0, 10000)],
+        };
+
+        let guardrail_rules = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![StrategyRuleCondition {
+                id: "c1".to_string(),
+                variable: "price".to_string(),
+                operator: "<=".to_string(),
+                value: "500".to_string(),
+                connector_to_next: None,
+            }],
+        }];
+
+        let (_, _, trades) = simulate_backtest(
+            job_id,
+            &[expensive_stock, cheap_stock],
+            &guardrail_rules,
+            10_000_000.0,
+            1,
+            10.0,
+            5.0,
+            10,
+            0.0,
+            0.0,
+        );
+
+        // Only CHEAP should have been bought
+        assert_eq!(trades.len(), 1);
+        assert_eq!(trades[0].code, "CHEAP");
+        assert_eq!(trades[0].buy_price, 400.0);
+    }
+
+    #[test]
+    fn simulate_backtest_queue_continues_when_candidate_has_no_daily_data() {
+        let date1 = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
+        let date2 = NaiveDate::from_ymd_opt(2024, 1, 2).unwrap();
+        let job_id = Uuid::new_v4();
+
+        // Stock A only has data on date2 (missing on date1)
+        let stock_a = StockData {
+            code: "STOCKA".to_string(),
+            daily_data: vec![(date2, 500.0, 10000)],
+        };
+
+        // Stock B has data on date1 and date2
+        let stock_b = StockData {
+            code: "STOCKB".to_string(),
+            daily_data: vec![(date1, 300.0, 10000), (date2, 330.0, 10000)],
+        };
+
+        let (_, _, trades) = simulate_backtest(
+            job_id,
+            &[stock_a, stock_b],
+            &[],
+            10_000_000.0,
+            1,
+            10.0,
+            5.0,
+            10,
+            0.0,
+            0.0,
+        );
+
+        // On date1, STOCKA was skipped without breaking the queue, allowing STOCKB to be bought on date1.
+        // On date2, STOCKB exits via TP, and STOCKA is then bought on date2.
+        assert_eq!(trades.len(), 2);
+        assert_eq!(trades[0].code, "STOCKB");
+        assert_eq!(trades[0].buy_date, date1);
+        assert_eq!(trades[1].code, "STOCKA");
+        assert_eq!(trades[1].buy_date, date2);
     }
 }

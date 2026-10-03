@@ -660,21 +660,14 @@ pub async fn get_cached_stock_transactions(
     (HashMap::new(), stocks.to_vec())
 }
 
-/// Converts a raw [`DailyTransaction`] list into filtered, sorted `(date, close, volume)` triples.
-fn process_transactions(
-    data: Vec<DailyTransaction>,
-    manual_filter_groups: &[crate::entities::trading_strategy::StrategyRuleGroup],
-) -> Vec<(NaiveDate, f64, u64)> {
+/// Converts a raw [`DailyTransaction`] list into sorted `(date, close, volume)` triples.
+fn process_transactions(data: Vec<DailyTransaction>) -> Vec<(NaiveDate, f64, u64)> {
     let mut valid = Vec::new();
     for d in data {
         let Some(date) = NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() else {
             continue;
         };
-        let vol = d.volume as f64;
-        let val = d.close * vol * 100.0;
-        if evaluate_manual_rules(manual_filter_groups, d.close, vol, val) {
-            valid.push((date, d.close, d.volume));
-        }
+        valid.push((date, d.close, d.volume));
     }
     valid.sort_by_key(|&(date, _, _)| date);
     valid
@@ -870,7 +863,7 @@ async fn run_backtest(
             .or_else(|| fetched_stocks_data.remove(clean_symbol));
 
         if let Some(transactions) = transactions_opt {
-            let valid = process_transactions(transactions, &manual_filter_groups);
+            let valid = process_transactions(transactions);
             if !valid.is_empty() {
                 stock_data_list.push(StockData {
                     code: stock.symbol.clone(),
@@ -889,6 +882,7 @@ async fn run_backtest(
     let (result_record, portfolio_records, trade_records) = simulate_backtest(
         job_id,
         &stock_data_list,
+        &manual_filter_groups,
         req.initial_cash,
         req.max_holding_stocks,
         strategy.tp_percentage,

@@ -12,15 +12,20 @@ pub fn build_where_query(
         let mut manual_conditions = Vec::new();
 
         for cond in &group.conditions {
-            if cond.variable.eq_ignore_ascii_case("volume")
-                || cond.variable.eq_ignore_ascii_case("value")
-            {
+            let var_trimmed = cond.variable.trim();
+            let is_volume_or_value = var_trimmed.eq_ignore_ascii_case("volume")
+                || var_trimmed.eq_ignore_ascii_case("value");
+            let is_price = var_trimmed.eq_ignore_ascii_case("price");
+
+            if is_volume_or_value || is_price {
                 manual_conditions.push(cond.clone());
+            }
+
+            if is_volume_or_value {
                 continue;
             }
 
-            let var_trimmed = cond.variable.trim();
-            let variable = if var_trimmed.eq_ignore_ascii_case("price") {
+            let variable = if is_price {
                 "last_close_price".to_string()
             } else if var_trimmed.eq_ignore_ascii_case("market_cap")
                 || var_trimmed.to_ascii_lowercase().starts_with("market_cap[")
@@ -92,11 +97,12 @@ fn evaluate_single_manual_condition(
     volume: f64,
     value: f64,
 ) -> bool {
-    let target = if cond.variable.eq_ignore_ascii_case("volume") {
+    let var = cond.variable.trim();
+    let target = if var.eq_ignore_ascii_case("volume") {
         volume
-    } else if cond.variable.eq_ignore_ascii_case("value") {
+    } else if var.eq_ignore_ascii_case("value") {
         value
-    } else if cond.variable.eq_ignore_ascii_case("price") {
+    } else if var.eq_ignore_ascii_case("price") {
         price
     } else {
         return true;
@@ -225,8 +231,10 @@ mod tests {
             "(pb[2025]<1.0) and (last_close_price>50 and last_close_price<=1000)"
         );
         assert_eq!(manual_filters.len(), 1);
-        assert_eq!(manual_filters[0].conditions.len(), 1);
-        assert_eq!(manual_filters[0].conditions[0].variable, "volume");
+        assert_eq!(manual_filters[0].conditions.len(), 3);
+        assert_eq!(manual_filters[0].conditions[0].variable, "price");
+        assert_eq!(manual_filters[0].conditions[1].variable, "price");
+        assert_eq!(manual_filters[0].conditions[2].variable, "volume");
     }
 
     #[test]
@@ -329,5 +337,39 @@ mod tests {
             where_query,
             "(market_cap>=1000000000 and pe[2025]<15) and (market_cap>500000000)"
         );
+    }
+
+    #[test]
+    fn should_include_price_in_both_screener_query_and_manual_filters() {
+        let groups = vec![StrategyRuleGroup {
+            id: "g1".to_string(),
+            connector_to_next: None,
+            conditions: vec![
+                StrategyRuleCondition {
+                    id: "c1".to_string(),
+                    variable: "price".to_string(),
+                    operator: ">=".to_string(),
+                    value: "200".to_string(),
+                    connector_to_next: Some("AND".to_string()),
+                },
+                StrategyRuleCondition {
+                    id: "c2".to_string(),
+                    variable: "price".to_string(),
+                    operator: "<=".to_string(),
+                    value: "5000".to_string(),
+                    connector_to_next: None,
+                },
+            ],
+        }];
+
+        let (where_query, manual_filters) = build_where_query(&groups, 2024);
+        assert_eq!(
+            where_query,
+            "(last_close_price>=200 and last_close_price<=5000)"
+        );
+        assert_eq!(manual_filters.len(), 1);
+        assert_eq!(manual_filters[0].conditions.len(), 2);
+        assert_eq!(manual_filters[0].conditions[0].variable, "price");
+        assert_eq!(manual_filters[0].conditions[1].variable, "price");
     }
 }
