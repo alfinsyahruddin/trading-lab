@@ -32,9 +32,9 @@ export const LANDING_FEATURES: LandingFeature[] = [
 		id: 'strategy-builder',
 		title: 'Visual Strategy Builder',
 		description:
-			'Compose multi-group screening rules with AND/OR logic across valuation, profitability, solvency, dividend, and technical indicators. No code, no Python.',
+			'Compose multi-group screening rules with AND/OR logic across valuation, profitability, foreign flow, and technical indicators. No code, no Python.',
 		bullets: [
-			'P/E, P/B, ROE, DER, Dividend Yield',
+			'P/E, P/B, ROE, DER, Foreign Flow',
 			'Price, volume, and momentum signals',
 			'Cross-metric comparisons'
 		],
