@@ -8,7 +8,9 @@
 
 ---
 
-**AI-powered backtesting platform for the Indonesia Stock Exchange (IDX).**
+**AI-powered backtesting platform for IDX**
+
+Trading Lab helps Indonesian retail traders to validate and improve their trading strategies<br />before risking real money, by providing a reliable backtesting platform.
 
 <p align="center">
     <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.80+-orange?logo=rust" alt="Rust"/></a>
@@ -16,11 +18,11 @@
     <a href="https://sectors.app"><img src="https://img.shields.io/badge/Data-Sectors.app-ff0000" alt="Sectors.app"/></a>
 </p>
 
+</div>
+
 <br />
 
 <img src="./frontend/static/backtest.webp" alt="Trading Lab Quantitative Backtesting Platform" width="100%" />
-
-</div>
 
 ---
 
@@ -29,8 +31,8 @@
 **Trading Lab** is a backtesting platform built for the Indonesia Stock Exchange (IDX). It enables traders to easily build custom multi-condition trading strategies (AI-Powered), test them against historical market data, analyze risk and performance metrics, and share winning strategies with the community.
 
 - 🌐 **Live Preview**: [https://trading-lab.xyz](https://trading-lab.xyz)
-- 🎬 **1-min Teaser**: [https://youtu.be/p1dY_RPsLf4](https://youtu.be/p1dY_RPsLf4)
-- 🎥 **3-min Demo**: [https://youtu.be/pqEO3HtPNvs](https://youtu.be/pqEO3HtPNvs)
+- 🎬 **1-min Teaser**: [https://youtu.be/_gCJQdS6fKU](https://youtu.be/_gCJQdS6fKU)
+- 🎥 **3-min Demo**: [https://youtu.be/1f50fLwToxE](https://youtu.be/1f50fLwToxE)
 
 ## Features
 
@@ -50,7 +52,7 @@
 
 ### 📊 Deep Analytics & Interactive Visualizations
 - **Key Performance Metrics**: Instant calculation of Total Return %, Win Rate %, Profit Factor, Sharpe Ratio (2% risk-free rate), Portfolio Volatility, and Average Holding Time.
-- **Win/Loss Doughnut & Sparklines**: Semicircular SVG win vs loss distribution chart and mini sparkline equity previews on list cards.
+- **Win/Loss Chart & Sparklines**: Semicircular SVG win vs loss distribution chart and mini sparkline equity previews on list cards.
 - **Detailed Trade Telemetry**: In-depth breakdown of Top Gainers, Top Losers, Most Traded Tickers, and a complete trade execution history log with exit reasons (Take-Profit, Stop-Loss, Max Holding Days, or Period End).
 
 ### 🌐 Community Leaderboard & Social Collaboration
@@ -108,30 +110,33 @@ A shared rate limiter enforces Sectors.app's quota (25 req/min) across all endpo
 
 ## Project Structure
 
+<details>
+<summary><strong>Click to expand</strong></summary>
+
 ```
 trading-lab/
-├── backend/                  # Rust API service
-│   ├── migrations/           # SQLx migration files (PostgreSQL schema)
+├── backend/                  # Rust API service (Actix-web 4, SQLx, Redis, Reqwest)
+│   ├── migrations/           # SQLx migration files (sequential PostgreSQL schema)
 │   ├── src/
-│   │   ├── clients/          # Sectors.app financial market data & LLM clients
-│   │   ├── constants/        # Global constants & financial indicator definitions
-│   │   ├── entities/         # Domain models, requests, responses, errors, settings
+│   │   ├── clients/          # Sectors.app & LLM clients
+│   │   ├── constants/        # Global constants (Redis prefixes)
+│   │   ├── entities/         # Domain models, requests/responses, errors, configuration
 │   │   ├── enums/            # System enums (UserRole, BacktestStatus, TokenType)
-│   │   ├── guards/           # Actix-web request extractors (AuthenticatedUser, RequireAdmin)
-│   │   ├── helpers/          # Cryptography, JWT, Argon2 hashing helpers
+│   │   ├── guards/           # Actix extractors (AuthenticatedUser, RequireAdmin)
+│   │   ├── helpers/          # Hash, token, math, date, and prompt helpers
 │   │   ├── repositories/     # PostgreSQL SQLx query layer
-│   │   ├── routes/           # REST API endpoints (users, strategies, backtests, dashboard, settings)
-│   │   ├── services/         # Business logic, calculation routines & simulation engine
-│   │   │   └── backtest/     # Modular backtest engine (simulation & screener rules)
-│   │   ├── setup/            # Infrastructure setup (PostgreSQL, Redis, HTTP client)
-│   │   ├── di.rs             # AppDependencies container
-│   │   ├── http.rs           # Server middleware & CORS configuration
-│   │   ├── lib.rs            # Library entrypoint
-│   │   └── main.rs           # Application server entrypoint
-│   ├── tests/                # Contract & integration tests
-│   ├── Cargo.toml            # Rust dependencies & profiles
-│   ├── Dockerfile            # Multi-stage Rust build container
-│   ├── .env.example          # Host environment template
+│   │   ├── routes/           # REST route controllers
+│   │   ├── services/         # Business logic, simulation engine, and rules parser
+│   │   │   └── backtest/     # Backtest engine (engine.rs) & rule evaluator (rules.rs)
+│   │   ├── setup/            # Infrastructure setup (DB, Redis, HTTP client)
+│   │   ├── di.rs             # AppDependencies dependency injection container
+│   │   ├── http.rs           # Middleware, CORS, and JSON error handling
+│   │   ├── lib.rs            # Backend library entrypoint
+│   │   └── main.rs           # Server executable entrypoint
+│   ├── tests/                # Integration and HTTP contract tests (http_contract.rs)
+│   ├── Cargo.toml            # Rust dependencies & workspace configuration
+│   ├── Dockerfile            # Container build specification
+│   ├── .env.example          # Local host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
 ├── frontend/                 # SvelteKit 3 SPA (CSR-only, Bun, TailwindCSS v4)
@@ -140,12 +145,13 @@ trading-lab/
 │   │   ├── app.html          # Shell HTML template
 │   │   ├── lib/
 │   │   │   ├── api.ts        # Typed API client with auto-refresh deduplication
-│   │   │   ├── constants/    # Landing content & metadata constants
+│   │   │   ├── constants/    # Landing content & metadata constants (landing.ts)
 │   │   │   ├── constants.ts  # Shared financial indicators & storage keys
 │   │   │   ├── types.ts      # Domain TypeScript interfaces
 │   │   │   ├── components/   # Svelte 5 UI components (dashboard, strategy, backtest, landing, shared)
 │   │   │   └── helpers/      # Client session, theme, date, config, reveal, and toast helpers
 │   │   └── routes/           # CSR client routes (+layout.svelte, +page.svelte)
+│   ├── static/               # Static assets (logos, illustrations, mockups)
 │   ├── tests/
 │   │   ├── unit/             # Vitest unit and Svelte 5 component tests (jsdom)
 │   │   └── e2e/              # Playwright browser end-to-end user journey tests
@@ -156,25 +162,37 @@ trading-lab/
 │   ├── .env.example          # Local host environment template
 │   └── .env.docker.example   # Docker container environment template
 │
+├── docs/                     # Modular documentation guidelines
+│   ├── backend.md            # In-depth backend architecture, domains, and rules
+│   ├── frontend.md           # In-depth frontend architecture, runes, and components
+│   ├── environment.md        # Complete environment variables and credentials
+│   ├── testing.md            # Testing strategies and commands
+│   └── workflow.md           # Developer workflows, checklists, and git guidelines
+│
 ├── docker-compose.yml        # Root Docker Compose (PostgreSQL, Redis, Backend, Frontend)
-├── AGENTS.md                 # Developer & AI Agent architectural guidelines
-└── README.md                 # Project overview and setup guide
+├── AGENTS.md                 # Agent & contributor index and golden rules
+├── LICENSE                   # Source-available evaluation license
+└── README.md                 # Project overview and public documentation
 ```
+
+</details>
 
 ---
 
 ## Getting Started
 
-### Prerequisites
+<details>
+<summary><strong>Prerequisites</strong></summary>
 
 Ensure you have the following installed:
 - [Rust](https://www.rust-lang.org/) (latest stable toolchain)
 - [Bun](https://bun.sh/) (v1.2+)
 - [Docker](https://www.docker.com/) & Docker Compose
 
----
+</details>
 
-### Quick Start with Docker (Full Stack)
+<details>
+<summary><strong>Quick Start with Docker</strong></summary>
 
 To run the complete platform (PostgreSQL, Redis, Rust Backend, and SvelteKit Frontend) with Docker Compose:
 
@@ -194,9 +212,10 @@ To run the complete platform (PostgreSQL, Redis, Rust Backend, and SvelteKit Fro
    - Frontend UI: `http://localhost:3000`
    - Backend API: `http://localhost:8000`
 
----
+</details>
 
-### Local Development Setup
+<details>
+<summary><strong>Local Development Setup</strong></summary>
 
 #### 1. Backend Setup
 
@@ -243,6 +262,8 @@ To run the complete platform (PostgreSQL, Redis, Rust Backend, and SvelteKit Fro
    bun run dev
    ```
    *The web application will be accessible at `http://localhost:3000`.*
+
+</details>
 
 ---
 

@@ -27,7 +27,7 @@ trading-lab/
 ├── backend/                  # Rust API service (Actix-web 4, SQLx, Redis, Reqwest)
 │   ├── migrations/           # SQLx migration files (sequential PostgreSQL schema)
 │   ├── src/
-│   │   ├── clients/          # Sectors.app (global GCRA rate limiter, 60s retry, 90d chunks) & Gemini LLM clients
+│   │   ├── clients/          # Sectors.app & LLM clients
 │   │   ├── constants/        # Global constants (Redis prefixes)
 │   │   ├── entities/         # Domain models, requests/responses, errors, configuration
 │   │   ├── enums/            # System enums (UserRole, BacktestStatus, TokenType)
@@ -60,6 +60,7 @@ trading-lab/
 │   │   │   ├── components/   # Svelte 5 UI components (dashboard, strategy, backtest, landing, shared)
 │   │   │   └── helpers/      # Client session, theme, date, config, reveal, and toast helpers
 │   │   └── routes/           # CSR client routes (+layout.svelte, +page.svelte)
+│   ├── static/               # Static assets (logos, illustrations, mockups)
 │   ├── tests/
 │   │   ├── unit/             # Vitest unit and Svelte 5 component tests (jsdom)
 │   │   └── e2e/              # Playwright browser end-to-end user journey tests
@@ -77,8 +78,9 @@ trading-lab/
 │   ├── testing.md            # Testing strategies and commands
 │   └── workflow.md           # Developer workflows, checklists, and git guidelines
 │
-├── docker-compose.yml        # PostgreSQL, Redis, Backend, and Frontend containers
+├── docker-compose.yml        # Root Docker Compose (PostgreSQL, Redis, Backend, Frontend)
 ├── AGENTS.md                 # Agent & contributor index and golden rules
+├── LICENSE                   # Source-available evaluation license
 └── README.md                 # Project overview and public documentation
 ```
 
